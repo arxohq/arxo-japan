@@ -98,7 +98,21 @@
         "resultHash": "sha256:bdff306e3932c904a1a64756f8d319135999a52618ec157a821f7b73cb41905e"
       }
     ],
-    "repeatCanonicalDocuments": "identical"
+    "repeatCanonicalDocuments": "identical",
+    "packages": {
+      "jp.constitution": {
+        "checked": 2292,
+        "passed": 2292,
+        "failed": 0,
+        "notRun": 0
+      },
+      "jp.kanpo": {
+        "checked": 48,
+        "passed": 48,
+        "failed": 0,
+        "notRun": 0
+      }
+    }
   },
   "historicalEvidence": {
     "jp.constitution": {
@@ -119,7 +133,14 @@
   "publicDelivery": {
     "githubRepository": "https://github.com/arxohq/arxo-japan",
     "npm": "not_requested",
-    "installation": "local CLI core replay passed; public clone recorded separately after publication"
+    "installation": "passed",
+    "published": true,
+    "anonymousClone": "passed",
+    "readmeExample": "COMPUTED / TRUE_ONLY",
+    "publicCI": "https://github.com/arxohq/arxo-japan/actions/runs/38445165462",
+    "publicCIStatus": "passed",
+    "sourceInventory": "192 allowlisted files plus generated manifest; no private history",
+    "releaseVerified": false
   },
   "deliveryChecks": {
     "sourceInventory": "passed",
