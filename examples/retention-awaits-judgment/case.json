@@ -1,0 +1,94 @@
+{
+  "assertions": [
+    {
+      "contentHash": "sha256:02322671a5077c002bafc5c8c682b288f187bd6daec92e2fe44aadaf877d0487",
+      "evidence": [],
+      "id": "urn:jp:corpus:clir:kanpo#kanpo-t28-01",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:kanpo-2025-04-01-kanpo-t28",
+            "kind": "entity_ref"
+          },
+          {
+            "kind": "value",
+            "type": {
+              "name": "urn:law:std#Date"
+            },
+            "value": "2025-04-01"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:corpus:clir:kanpo#issued_on"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:corpus:clir:kanpo"
+    },
+    {
+      "contentHash": "sha256:632397aaa1cd32031ad7817d1dcf852500b40a0da38f0d96c9c90ecab27c477d",
+      "evidence": [],
+      "id": "urn:jp:corpus:clir:kanpo#kanpo-t28-02",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:kanpo-2025-04-01-kanpo-t28",
+            "kind": "entity_ref"
+          },
+          {
+            "kind": "value",
+            "type": {
+              "name": "urn:law:std#Text"
+            },
+            "value": "https://www.kanpo.go.jp"
+          },
+          {
+            "kind": "value",
+            "type": {
+              "name": "urn:law:std#Date"
+            },
+            "value": "2025-04-01"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:corpus:clir:kanpo#made_available_for_inspection_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:corpus:clir:kanpo"
+    },
+    {
+      "contentHash": "sha256:f6da1344659864190bc43302511796eea54b5b512f653a35fed083fe4cb0ee29",
+      "evidence": [],
+      "id": "urn:jp:corpus:clir:kanpo#kanpo-t28-03",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:item-open",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:kanpo-2025-04-01-kanpo-t28",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:corpus:clir:kanpo#item_published_in"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:corpus:clir:kanpo"
+    }
+  ],
+  "context": {
+    "deadlinePolicy": "urn:jp:corpus:clir:kanpo#KANPO_INSPECTION_PERIOD",
+    "decisionTime": "2026-09-15T12:00:00Z",
+    "knowledgeTime": "2026-09-15T12:00:00Z",
+    "legalTime": "2026-09-15",
+    "timezone": "Asia/Tokyo"
+  },
+  "options": {}
+}

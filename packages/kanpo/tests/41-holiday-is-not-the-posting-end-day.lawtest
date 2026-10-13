@@ -1,0 +1,18 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第二十二条第一項括弧書（テスト36の対）: 行政機関の休日 06-14 は期間の末日ではない。
+test "urn:query:kanpo-t41" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t41-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t41"), @2025-06-07) { origin case_input; }
+        assert "kanpo-t41-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t41"), @2025-06-07) { origin case_input; }
+        assert "kanpo-t41-03": administrative_holiday(@2025-06-14) { origin case_input; }
+        assert "kanpo-t41-04": administrative_holiday(@2025-06-15) { origin case_input; }
+    }
+    evaluate truth(paper_posting_period_ends_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t41"), @2025-06-14));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

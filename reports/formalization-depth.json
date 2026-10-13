@@ -1,0 +1,1086 @@
+{
+  "format": "arxo.japan-depth/1",
+  "method": "existing boundaries.depth; own package nodes only; structural executability does not establish complete legal formalization or runtime compatibility",
+  "implementation": [
+    {
+      "name": "boundaries.py",
+      "sha256": "sha256:4138459861a438324c7fdbdbb7ac192f1a996ff83354836484397de18e2451e6"
+    },
+    {
+      "name": "ja_numerals.py",
+      "sha256": "sha256:ba4f07ea426d71c281e50f23762fac570045cd1c5af9cecb40434ae0ed1ba439"
+    },
+    {
+      "name": "act_split.py",
+      "sha256": "sha256:3289fb03603fe85293054b5966db860ebde93353cc41e5f2f5feb644b9d6de54"
+    },
+    {
+      "name": "applicability.py",
+      "sha256": "sha256:72c85d6e851b190c8b4d2c8e4fd48003ccc74e8e867fe9b182da3d9f2ad7847c"
+    }
+  ],
+  "applicabilityImplementation": "captured lawref from Wohngeld measurement; runtime lock unavailable; reported override, not corpus runtime acceptance",
+  "packages": {
+    "constitution": {
+      "worldHash": "sha256:86193eac3121bcdb7850889389942c7683f1272cbdc71a8a1d015b4692824295",
+      "sources": [
+        {
+          "path": "packages/constitution/sources/jp-constitution/ja.txt",
+          "sha256": "sha256:6940ddcc8f782ec899f8ef6cf446b1ff243f83c86cac0ab1d84ee0f477e46bd4",
+          "unit": "ja_article",
+          "measurement": {
+            "source": "packages/constitution/sources/jp-constitution/ja.txt",
+            "clir": [
+              "registry/jp-constitution.lawir.json"
+            ],
+            "rows": [
+              {
+                "article": "1",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "2",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "3",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "4",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "5",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "6",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "7",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 42,
+                "interpreted": 2,
+                "anchoring": 44,
+                "defeasible": 0
+              },
+              {
+                "article": "8",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "9",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 4,
+                "anchoring": 14,
+                "defeasible": 0
+              },
+              {
+                "article": "10",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "11",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 5,
+                "interpreted": 0,
+                "anchoring": 5,
+                "defeasible": 1
+              },
+              {
+                "article": "12",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "13",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "14",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 18,
+                "defeasible": 0
+              },
+              {
+                "article": "15",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 13,
+                "interpreted": 0,
+                "anchoring": 13,
+                "defeasible": 0
+              },
+              {
+                "article": "16",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "17",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "18",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 5,
+                "interpreted": 0,
+                "anchoring": 5,
+                "defeasible": 1
+              },
+              {
+                "article": "19",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "20",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 14,
+                "interpreted": 0,
+                "anchoring": 14,
+                "defeasible": 0
+              },
+              {
+                "article": "21",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 14,
+                "interpreted": 0,
+                "anchoring": 14,
+                "defeasible": 0
+              },
+              {
+                "article": "22",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 13,
+                "interpreted": 0,
+                "anchoring": 13,
+                "defeasible": 3
+              },
+              {
+                "article": "23",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "24",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "25",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "26",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "27",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "28",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "29",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "30",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "31",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "32",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "33",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "34",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "35",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "36",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 5,
+                "interpreted": 0,
+                "anchoring": 5,
+                "defeasible": 0
+              },
+              {
+                "article": "37",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 14,
+                "interpreted": 0,
+                "anchoring": 14,
+                "defeasible": 0
+              },
+              {
+                "article": "38",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 0,
+                "anchoring": 9,
+                "defeasible": 0
+              },
+              {
+                "article": "39",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "40",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "41",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "42",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "43",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "44",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 5,
+                "interpreted": 0,
+                "anchoring": 13,
+                "defeasible": 0
+              },
+              {
+                "article": "45",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 5,
+                "interpreted": 0,
+                "anchoring": 5,
+                "defeasible": 1
+              },
+              {
+                "article": "46",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "47",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "48",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "49",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "50",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 1
+              },
+              {
+                "article": "51",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "52",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "53",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "54",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 17,
+                "interpreted": 0,
+                "anchoring": 17,
+                "defeasible": 1
+              },
+              {
+                "article": "55",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "56",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 0,
+                "anchoring": 9,
+                "defeasible": 0
+              },
+              {
+                "article": "57",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 15,
+                "interpreted": 0,
+                "anchoring": 15,
+                "defeasible": 2
+              },
+              {
+                "article": "58",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "59",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 16,
+                "interpreted": 0,
+                "anchoring": 16,
+                "defeasible": 0
+              },
+              {
+                "article": "60",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "61",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "62",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "63",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "64",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 0,
+                "anchoring": 9,
+                "defeasible": 0
+              },
+              {
+                "article": "65",
+                "title": "",
+                "level": "ANCHORED",
+                "deriving": 0,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "66",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 4,
+                "anchoring": 15,
+                "defeasible": 0
+              },
+              {
+                "article": "67",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 13,
+                "interpreted": 0,
+                "anchoring": 13,
+                "defeasible": 0
+              },
+              {
+                "article": "68",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "69",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 0,
+                "anchoring": 9,
+                "defeasible": 0
+              },
+              {
+                "article": "70",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "71",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "72",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 9,
+                "interpreted": 0,
+                "anchoring": 9,
+                "defeasible": 0
+              },
+              {
+                "article": "73",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 30,
+                "interpreted": 0,
+                "anchoring": 30,
+                "defeasible": 0
+              },
+              {
+                "article": "74",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "75",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 1
+              },
+              {
+                "article": "76",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 14,
+                "interpreted": 0,
+                "anchoring": 15,
+                "defeasible": 0
+              },
+              {
+                "article": "77",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "78",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 11,
+                "interpreted": 0,
+                "anchoring": 11,
+                "defeasible": 1
+              },
+              {
+                "article": "79",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 31,
+                "interpreted": 0,
+                "anchoring": 31,
+                "defeasible": 1
+              },
+              {
+                "article": "80",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 12,
+                "interpreted": 0,
+                "anchoring": 12,
+                "defeasible": 0
+              },
+              {
+                "article": "81",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 11,
+                "interpreted": 0,
+                "anchoring": 11,
+                "defeasible": 0
+              },
+              {
+                "article": "82",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 15,
+                "interpreted": 0,
+                "anchoring": 15,
+                "defeasible": 6
+              },
+              {
+                "article": "83",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "84",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "85",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "86",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 3,
+                "interpreted": 0,
+                "anchoring": 3,
+                "defeasible": 0
+              },
+              {
+                "article": "87",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "88",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "89",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 4,
+                "interpreted": 0,
+                "anchoring": 4,
+                "defeasible": 0
+              },
+              {
+                "article": "90",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "91",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "92",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "93",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "94",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 8,
+                "interpreted": 0,
+                "anchoring": 8,
+                "defeasible": 0
+              },
+              {
+                "article": "95",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 6,
+                "interpreted": 0,
+                "anchoring": 6,
+                "defeasible": 0
+              },
+              {
+                "article": "96",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 19,
+                "interpreted": 0,
+                "anchoring": 19,
+                "defeasible": 0
+              },
+              {
+                "article": "97",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 1,
+                "interpreted": 0,
+                "anchoring": 1,
+                "defeasible": 0
+              },
+              {
+                "article": "98",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 10,
+                "interpreted": 0,
+                "anchoring": 10,
+                "defeasible": 0
+              },
+              {
+                "article": "99",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 12,
+                "interpreted": 0,
+                "anchoring": 12,
+                "defeasible": 0
+              },
+              {
+                "article": "100",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 7,
+                "interpreted": 0,
+                "anchoring": 7,
+                "defeasible": 0
+              },
+              {
+                "article": "101",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "102",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              },
+              {
+                "article": "103",
+                "title": "",
+                "level": "EXECUTABLE",
+                "deriving": 2,
+                "interpreted": 0,
+                "anchoring": 2,
+                "defeasible": 0
+              }
+            ],
+            "unresolved": 0,
+            "otherEdition": 0,
+            "unit": "статья",
+            "excludedArticles": []
+          },
+          "denominator": 103,
+          "levelCounts": {
+            "EXECUTABLE": 102,
+            "ANCHORED": 1
+          },
+          "editionRevision": "321CONSTITUTION_19470503_000000000000000",
+          "notMeasuredUnits": [
+            "preamble (outside article denominator)"
+          ]
+        }
+      ],
+      "ownNodeInventory": {
+        "rule": 554,
+        "norm_template": 221,
+        "anchor": 647,
+        "priority_rule": 23,
+        "type_decl": 90,
+        "interpretation": 6,
+        "symbol_decl": 784,
+        "deadline_policy": 2,
+        "source_work": 1,
+        "publication": 1,
+        "source_edition": 1,
+        "fragment": 176,
+        "external_decl": 27,
+        "assertion": 24
+      },
+      "identity": {
+        "name": "jp.constitution",
+        "namespace": "urn:jp:constitution:clir",
+        "semanticHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "version": "0.1.0"
+      },
+      "semantics": "law.core/0.2.11",
+      "artifactHash": "sha256:86193eac3121bcdb7850889389942c7683f1272cbdc71a8a1d015b4692824295",
+      "sourceHash": "sha256:26672fc3594323fa3ed13a4805ad4443168c945fc81f1e02da57304667b8f31f",
+      "publicationIds": [
+        "urn:jp:constitution:clir#JP_CONSTITUTION_JA"
+      ],
+      "editionIds": [
+        "urn:jp:constitution:clir#JP_CONSTITUTION_TEXT"
+      ]
+    },
+    "kanpo": {
+      "worldHash": "sha256:a11766d3e5f25f30ccd4d61d5b708dfaab1c43b27000cc194681603fae2d42a6",
+      "sources": [
+        {
+          "path": "packages/kanpo/sources/kanpo-furei-80/ja.txt",
+          "sha256": "sha256:0c8bbc41e20bfbb2ddf86d44fe18e1a72891ef99464b87a165dddc326ee90c1e",
+          "status": "not_measured",
+          "reason": "No pinned division declaration; no inferred denominator",
+          "denominator": null,
+          "notMeasuredPublications": [
+            "urn:jp:corpus:clir:kanpo#KANPO_FUREI_80_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_HAKKO_HO_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_SEIREI_309_JA_TEXT"
+          ]
+        },
+        {
+          "path": "packages/kanpo/sources/kanpo-hakko-ho/ja.txt",
+          "sha256": "sha256:cd09715099a791913fda86e3e8a49d56d0377275dcc622d5e734fa7a9168be3f",
+          "status": "not_measured",
+          "reason": "No pinned division declaration; no inferred denominator",
+          "denominator": null,
+          "notMeasuredPublications": [
+            "urn:jp:corpus:clir:kanpo#KANPO_FUREI_80_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_HAKKO_HO_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_SEIREI_309_JA_TEXT"
+          ]
+        },
+        {
+          "path": "packages/kanpo/sources/seirei-309/ja.txt",
+          "sha256": "sha256:e087c2072e534135c6f7ad15058c7e46daa915d0623fd6a248a2d94747a02e2b",
+          "status": "not_measured",
+          "reason": "No pinned division declaration; no inferred denominator",
+          "denominator": null,
+          "notMeasuredPublications": [
+            "urn:jp:corpus:clir:kanpo#KANPO_FUREI_80_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_HAKKO_HO_JA_TEXT",
+            "urn:jp:corpus:clir:kanpo#KANPO_SEIREI_309_JA_TEXT"
+          ]
+        }
+      ],
+      "ownNodeInventory": {
+        "rule": 44,
+        "type_decl": 5,
+        "fragment": 19,
+        "source_work": 3,
+        "source_edition": 3,
+        "publication": 3,
+        "deadline_policy": 1,
+        "priority_rule": 6,
+        "symbol_decl": 53,
+        "external_decl": 4
+      },
+      "identity": {
+        "name": "jp.kanpo",
+        "namespace": "urn:jp:corpus:clir:kanpo",
+        "semanticHash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+        "version": "0.1.0"
+      },
+      "semantics": "law.core/0.2.11",
+      "artifactHash": "sha256:a11766d3e5f25f30ccd4d61d5b708dfaab1c43b27000cc194681603fae2d42a6",
+      "sourceHash": "sha256:a0567dc59d8d36f78de854bd31d8ea65614e8c133941aada200c9a31f0dae5ce",
+      "publicationIds": [
+        "urn:jp:corpus:clir:kanpo#KANPO_FUREI_80_JA_TEXT",
+        "urn:jp:corpus:clir:kanpo#KANPO_HAKKO_HO_JA_TEXT",
+        "urn:jp:corpus:clir:kanpo#KANPO_SEIREI_309_JA_TEXT"
+      ],
+      "editionIds": [
+        "urn:jp:corpus:clir:kanpo#KANPO_FUREI_80_2025",
+        "urn:jp:corpus:clir:kanpo#KANPO_HAKKO_HO_2025",
+        "urn:jp:corpus:clir:kanpo#KANPO_SEIREI_309_2024"
+      ]
+    }
+  }
+}

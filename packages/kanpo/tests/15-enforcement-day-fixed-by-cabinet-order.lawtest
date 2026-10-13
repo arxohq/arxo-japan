@@ -1,0 +1,14 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 附則第一条・令和六年政令第三百九号: 施行期日は令和七年四月一日 — выводится из 政令, дело дня не подаёт.
+test "urn:query:kanpo-t15" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(enforcement_day(@2025-04-01));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

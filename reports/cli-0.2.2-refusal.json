@@ -1,0 +1,12 @@
+{
+  "tool": "0.2.2",
+  "package": "jp.constitution@0.1.0",
+  "case": "amendment-eight-of-twelve",
+  "worldSha256": "sha256:86193eac3121bcdb7850889389942c7683f1272cbdc71a8a1d015b4692824295",
+  "error": {
+    "error": {
+      "code": "CONSTANT_OUTSIDE_MODEL",
+      "message": "constant urn:jp:constitution:clir#SupremeCourtOfJapan substituted into a typed CLIR reference slot that cannot represent its value (\u00a754)"
+    }
+  }
+}

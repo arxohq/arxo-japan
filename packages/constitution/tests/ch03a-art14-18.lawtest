@@ -1,0 +1,583 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter III part 1 (Arts. 10-24), stage J3. Historical context idiom: decision, knowledge and legal time
+// on one date. Court decisions are facts with `origin adjudicated`; everything else is `case_input`.
+test "ART14-01-DISCRIMINATION-BY-RACE-IN-POLITICAL-SPHERE-VIOLATES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), race, political) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-02-NO-DISCRIMINATION-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDiscrimination, ACTIVE);
+    expect not position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-03-GROUND-RACE-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), race, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-03-GROUND-CREED-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), creed, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-03-GROUND-SEX-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), sex, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-03-GROUND-SOCIAL-STATUS-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), social_status, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-03-GROUND-FAMILY-ORIGIN-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), family_origin, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-04-SPHERE-POLITICAL-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), sex, political) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-04-SPHERE-ECONOMIC-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), sex, economic) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-04-SPHERE-SOCIAL-IS-LISTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), sex, social) { id "f3"; origin case_input; }
+    }
+    evaluate truth(discriminates_on_listed_ground(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-05-UNLISTED-GROUND-NOT-COVERED-BY-THE-LETTER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), other_ground, political) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDiscrimination, ACTIVE);
+    expect not position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-06-UNLISTED-SPHERE-NOT-COVERED-BY-THE-LETTER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), race, other_sphere) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDiscrimination, ACTIVE);
+    expect not position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-07-NOT-A-STATE-ORGAN-NO-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), race, political) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-08-NON-NATIONAL-NOT-PROTECTED-BY-THE-LETTER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert discriminates(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), race, political) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoDiscrimination, VIOLATED);
+}
+
+test "ART14-09-PEERAGE-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert establishes_peerage(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoNobility, VIOLATED);
+}
+
+test "ART14-10-NO-PEERAGE-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoNobility, ACTIVE);
+    expect not position(NoNobility, VIOLATED);
+}
+
+test "ART14-11-PRIVILEGE-WITH-HONOUR-VIOLATES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f1"; origin case_input; }
+        assert honour_with_privilege(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:h1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoPrivilegeWithHonour, VIOLATED);
+}
+
+test "ART14-12-HONOUR-WITHOUT-PRIVILEGE-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoPrivilegeWithHonour, ACTIVE);
+    expect not position(NoPrivilegeWithHonour, VIOLATED);
+}
+
+test "ART14-13-HONOUR-IN-EFFECT-FOR-LIVING-HOLDER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(honour_in_effect_for(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART14-14-HONOUR-ENDS-WITH-HOLDERS-GENERATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f0"; origin case_input; }
+        assert holder_deceased(entity_ref("urn:jp:case:p2")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(honour_in_effect_for(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")));
+    expect truth_status == NEITHER;
+}
+
+test "ART14-15-HEREDITARY-EFFECT-VIOLATES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f1"; origin case_input; }
+        assert honour_effect_extended_to_successor(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:h1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoHereditaryHonour, VIOLATED);
+}
+
+test "ART14-16-NO-HEREDITARY-EFFECT-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert honour_awarded_to(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:p2")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoHereditaryHonour, ACTIVE);
+    expect not position(NoHereditaryHonour, VIOLATED);
+}
+
+test "ART15-01-NATIONAL-MAY-SELECT-OFFICIALS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SelectPublicOfficials, ACTIVE);
+}
+
+test "ART15-02-NATIONAL-MAY-DISMISS-OFFICIALS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(DismissPublicOfficials, ACTIVE);
+}
+
+test "ART15-03-NON-NATIONAL-HAS-NO-RIGHT-TO-SELECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SelectPublicOfficials, ACTIVE);
+    expect not position(DismissPublicOfficials, ACTIVE);
+}
+
+test "ART15-04-PUBLIC-OFFICIAL-SERVES-THE-WHOLE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(servant_of_whole_community(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART15-05-NON-OFFICIAL-NOT-SO-DEFINED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(servant_of_whole_community(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART15-06-ADULT-NATIONAL-MAY-VOTE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(VoteInElection, ACTIVE);
+}
+
+test "ART15-07-MINOR-HAS-NO-VOTING-LIBERTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(VoteInElection, ACTIVE);
+}
+
+test "ART15-08-ELECTION-OF-NON-OFFICIALS-NOT-COVERED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(VoteInElection, ACTIVE);
+}
+
+test "ART15-09-SUFFRAGE-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f3"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(GuaranteeUniversalSuffrage, ACTIVE);
+}
+
+test "ART15-10-DENIAL-OF-FRANCHISE-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f3"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f4"; origin case_input; }
+        assert denies_franchise(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:e1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(GuaranteeUniversalSuffrage, VIOLATED);
+}
+
+test "ART15-11-SECRET-BALLOT-IMMUNITY-FOR-VOTER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f3"; origin case_input; }
+        assert votes_in(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:e1")) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SecretBallot, ACTIVE);
+    expect position(NoResponsibilityForChoice, ACTIVE);
+}
+
+test "ART15-12-NO-BALLOT-NO-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert adult(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert election_of_public_officials(entity_ref("urn:jp:case:e1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SecretBallot, ACTIVE);
+    expect not position(NoResponsibilityForChoice, ACTIVE);
+}
+
+test "ART16-01-PEACEFUL-PETITION-LIBERTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert petition_by(entity_ref("urn:jp:case:t1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert petition_peaceful(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(PetitionPeacefully, ACTIVE);
+}
+
+test "ART16-02-NON-NATIONAL-MAY-ALSO-PETITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert petition_by(entity_ref("urn:jp:case:t1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert petition_peaceful(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(PetitionPeacefully, ACTIVE);
+}
+
+test "ART16-03-PETITION-NOT-PEACEFUL-NO-LIBERTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert petition_by(entity_ref("urn:jp:case:t1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(PetitionPeacefully, ACTIVE);
+}
+
+test "ART16-04-PETITIONER-IMMUNE-FROM-DISCRIMINATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert petition_by(entity_ref("urn:jp:case:t1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert petition_peaceful(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDisadvantageForPetition, ACTIVE);
+}
+
+test "ART16-05-NO-PETITION-NO-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate positions();
+    expect not position(NoDisadvantageForPetition, ACTIVE);
+}
+
+test "ART17-01-COMPENSATION-DUTY-OF-STATE-OR-BODY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert official_wrong_of(entity_ref("urn:jp:case:w1"), entity_ref("urn:jp:case:b1")) { id "f0"; origin case_input; }
+        assert damaged_by(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f1"; origin case_input; }
+        assert compensation_statute_applies(entity_ref("urn:jp:case:w1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateForOfficialWrong, ACTIVE);
+}
+
+test "ART17-02-NO-STATUTE-NO-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert official_wrong_of(entity_ref("urn:jp:case:w1"), entity_ref("urn:jp:case:b1")) { id "f0"; origin case_input; }
+        assert damaged_by(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(CompensateForOfficialWrong, ACTIVE);
+}
+
+test "ART17-03-NO-DAMAGE-NO-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert official_wrong_of(entity_ref("urn:jp:case:w1"), entity_ref("urn:jp:case:b1")) { id "f0"; origin case_input; }
+        assert compensation_statute_applies(entity_ref("urn:jp:case:w1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(CompensateForOfficialWrong, ACTIVE);
+}
+
+test "ART17-04-COMPENSATION-PAID-SATISFIES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert official_wrong_of(entity_ref("urn:jp:case:w1"), entity_ref("urn:jp:case:b1")) { id "f0"; origin case_input; }
+        assert damaged_by(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f1"; origin case_input; }
+        assert compensation_statute_applies(entity_ref("urn:jp:case:w1")) { id "f2"; origin case_input; }
+        assert compensation_paid(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateForOfficialWrong, SATISFIED);
+}
+
+test "ART17-05-REFUSAL-BEFORE-ANY-DEADLINE-DOES-NOT-YET-VIOLATE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert official_wrong_of(entity_ref("urn:jp:case:w1"), entity_ref("urn:jp:case:b1")) { id "f0"; origin case_input; }
+        assert damaged_by(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f1"; origin case_input; }
+        assert compensation_statute_applies(entity_ref("urn:jp:case:w1")) { id "f2"; origin case_input; }
+        assert not compensation_paid(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:w1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateForOfficialWrong, ACTIVE);
+    expect not position(CompensateForOfficialWrong, VIOLATED);
+}
+
+test "ART18-01-SLAVERY-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert imposes_slavery(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoBondage, VIOLATED);
+}
+
+test "ART18-02-NO-BONDAGE-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoBondage, ACTIVE);
+    expect not position(NoBondage, VIOLATED);
+}
+
+test "ART18-03-INVOLUNTARY-SERVITUDE-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert imposes_involuntary_servitude(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoInvoluntaryServitude, VIOLATED);
+}
+
+test "ART18-04-NO-SERVITUDE-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoInvoluntaryServitude, ACTIVE);
+    expect not position(NoInvoluntaryServitude, VIOLATED);
+}
+
+test "ART18-05-SERVITUDE-AS-PUNISHMENT-FOR-CRIME-EXCEPTED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert imposes_involuntary_servitude(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert servitude_as_criminal_punishment(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoInvoluntaryServitude, VIOLATED);
+}
+
+test "ART18-06-PUNISHMENT-DOES-NOT-EXCUSE-SLAVERY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert imposes_slavery(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert servitude_as_criminal_punishment(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoBondage, VIOLATED);
+}
+
+test "ART18-07-PROTECTS-NON-NATIONALS-TOO" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert imposes_involuntary_servitude(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoInvoluntaryServitude, VIOLATED);
+}
+
+test "ART18-08-NOT-A-STATE-ORGAN-NO-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert person_present(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert imposes_slavery(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoBondage, VIOLATED);
+}
+

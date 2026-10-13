@@ -1,0 +1,563 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter VI (stage J7). Historical context idiom: decision, knowledge and legal time on one date.
+// Court decisions and classifications made by a court are facts with `origin adjudicated`;
+// everything else is `case_input`.
+
+test "ART76-01-SUPREME-COURT-HOLDS-JUDICIAL-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(holds_judicial_power(SupremeCourtOfJapan));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART76-02-LOWER-COURT-ESTABLISHED-BY-STATUTE-HOLDS-JUDICIAL-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert established_under_statute(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(holds_judicial_power(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART76-03-LOWER-COURT-WITHOUT-STATUTE-NO-JUDICIAL-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(holds_judicial_power(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART76-04-EXECUTIVE-ORGAN-HOLDS-NO-JUDICIAL-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert established_under_statute(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(holds_judicial_power(entity_ref("urn:jp:case:o1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART76-05-EXTRAORDINARY-TRIBUNAL-ESTABLISHED-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert tribunal(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+        assert establishes_tribunal(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:t1")) { id "f2"; origin case_input; }
+        assert is_extraordinary_tribunal(entity_ref("urn:jp:case:t1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(NoExtraordinaryTribunal, VIOLATED);
+}
+
+test "ART76-06-ORDINARY-TRIBUNAL-NOT-A-VIOLATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert tribunal(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+        assert establishes_tribunal(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:t1")) { id "f2"; origin case_input; }
+        assert not is_extraordinary_tribunal(entity_ref("urn:jp:case:t1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(NoExtraordinaryTribunal, VIOLATED);
+    expect position(NoExtraordinaryTribunal, ACTIVE);
+}
+
+test "ART76-07-NO-TRIBUNAL-ESTABLISHED-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert tribunal(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoExtraordinaryTribunal, ACTIVE);
+    expect not position(NoExtraordinaryTribunal, VIOLATED);
+}
+
+test "ART76-08-UNANSWERED-CLASSIFICATION-REQUIRES-JUDGMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert tribunal(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+        assert establishes_tribunal(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:t1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(establishes_extraordinary_tribunal(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:t1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(is_extraordinary_tribunal);
+}
+
+test "ART76-08B-UNANSWERED-CLASSIFICATION-NO-VIOLATION-FROM-SILENCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert tribunal(entity_ref("urn:jp:case:t1")) { id "f1"; origin case_input; }
+        assert establishes_tribunal(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:t1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoExtraordinaryTribunal, VIOLATED);
+}
+
+test "ART76-09-EXECUTIVE-FINAL-ADJUDICATION-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert adjudication(entity_ref("urn:jp:case:a1")) { id "f1"; origin case_input; }
+        assert renders_final_adjudication(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoFinalAdjudicationByExecutiveOrgan, VIOLATED);
+}
+
+test "ART76-10-EXECUTIVE-WITHOUT-FINAL-ADJUDICATION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert adjudication(entity_ref("urn:jp:case:a1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoFinalAdjudicationByExecutiveOrgan, ACTIVE);
+    expect not position(NoFinalAdjudicationByExecutiveOrgan, VIOLATED);
+}
+
+test "ART76-11-COURT-FINAL-ADJUDICATION-NOT-PROHIBITED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert adjudication(entity_ref("urn:jp:case:a1")) { id "f1"; origin case_input; }
+        assert renders_final_adjudication(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoFinalAdjudicationByExecutiveOrgan, VIOLATED);
+    expect not position(NoFinalAdjudicationByExecutiveOrgan, ACTIVE);
+}
+
+test "ART76-12-JUDGE-INDEPENDENCE-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudicialIndependence, ACTIVE);
+}
+
+test "ART76-13-SUPREME-COURT-JUSTICE-INDEPENDENT-DESPITE-DIRECTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+        assert directs_judicial_function(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudicialIndependence, ACTIVE);
+}
+
+test "ART76-14-NON-JUDGE-HAS-NO-INDEPENDENCE-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert directs_judicial_function(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(JudicialIndependence, ACTIVE);
+}
+
+test "ART76-15-JUDGE-BOUND-ONLY-BY-CONSTITUTION-AND-STATUTES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(bound_only_by_constitution_and_statutes(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART76-16-INSTRUCTION-DOES-NOT-BIND-JUDGE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert directs_judicial_function(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(judge_bound_by_directive(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART76-17-NO-POSITION-BEFORE-ENTRY-INTO-FORCE" {
+    given {
+        context { decision_time @1947-01-01T12:00:00Z; knowledge_time @1947-01-01T12:00:00Z; legal_time @1947-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(JudicialIndependence, ACTIVE);
+}
+
+test "ART77-01-RULE-ON-PROCEDURE-IN-FORCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f0"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART77-02-RULE-ON-ATTORNEYS-IN-FORCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), attorneys) { id "f0"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART77-03-RULE-ON-INTERNAL-DISCIPLINE-IN-FORCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), internal_discipline) { id "f0"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART77-04-RULE-ON-JUDICIAL-ADMINISTRATION-IN-FORCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), judicial_administration) { id "f0"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART77-05-RULE-ON-OTHER-MATTER-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), other_matter) { id "f0"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART77-06-RULE-NOT-MADE-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f0"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART77-07-LOWER-COURT-HAS-NO-ART77-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f1"; origin case_input; }
+        assert makes_rule(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:r1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(court_rule_in_force(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART77-08-PROSECUTOR-DUTY-ACTIVE-UNDER-VALID-RULE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_prosecutor(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert rule_addresses_prosecutors(entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f2"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(ProsecutorComplyWithCourtRule, ACTIVE);
+}
+
+test "ART77-09-PROSECUTOR-DISREGARDING-RULE-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_prosecutor(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert rule_addresses_prosecutors(entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f2"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f3"; origin case_input; }
+        assert disregards_court_rule(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:r1")) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(ProsecutorComplyWithCourtRule, VIOLATED);
+}
+
+test "ART77-10-INVALID-RULE-CREATES-NO-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_prosecutor(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert rule_addresses_prosecutors(entity_ref("urn:jp:case:r1")) { id "f1"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), other_matter) { id "f2"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(ProsecutorComplyWithCourtRule, ACTIVE);
+}
+
+test "ART77-11-RULE-NOT-ADDRESSING-PROSECUTORS-NO-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_prosecutor(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f1"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(ProsecutorComplyWithCourtRule, ACTIVE);
+}
+
+test "ART77-12-NON-PROSECUTOR-NOT-BOUND" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert rule_addresses_prosecutors(entity_ref("urn:jp:case:r1")) { id "f0"; origin case_input; }
+        assert rule_matter(entity_ref("urn:jp:case:r1"), court_procedure) { id "f1"; origin case_input; }
+        assert makes_rule(SupremeCourtOfJapan, entity_ref("urn:jp:case:r1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(ProsecutorComplyWithCourtRule, ACTIVE);
+}
+
+test "ART77-13-DELEGATION-TO-LOWER-COURT-VALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert delegates_rulemaking(SupremeCourtOfJapan, entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(rulemaking_delegated_to(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART77-14-DELEGATION-TO-NON-COURT-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert not inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert delegates_rulemaking(SupremeCourtOfJapan, entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(rulemaking_delegated_to(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART77-14B-DELEGATION-TO-ORGAN-NOT-KNOWN-AS-COURT-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert delegates_rulemaking(SupremeCourtOfJapan, entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(rulemaking_delegated_to(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART77-15-NO-DELEGATION-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(rulemaking_delegated_to(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART77-16-LOWER-COURT-CANNOT-DELEGATE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:c2")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c2")) { id "f2"; origin case_input; }
+        assert delegates_rulemaking(entity_ref("urn:jp:case:c2"), entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(rulemaking_delegated_to(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART78-01-IMPEACHED-JUDGE-VALIDLY-REMOVED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert impeached_by_public_impeachment(entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+        assert removes_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(judge_removed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART78-02-JUDGE-DECLARED-INCAPABLE-VALIDLY-REMOVED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert declared_incapable_by_judicial_decision(entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+        assert removes_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(judge_removed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART78-03-REMOVAL-WITHOUT-GROUND-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert removes_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(judge_removed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART78-04-NO-REMOVAL-ATTEMPT-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert impeached_by_public_impeachment(entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate truth(judge_removed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART78-05-NON-JUDGE-NOT-REACHED-BY-ART78" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert removes_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert impeached_by_public_impeachment(entity_ref("urn:jp:case:p1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate truth(judge_removed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART78-06-IMMUNITY-ACTIVE-WHILE-NO-GROUND" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudgeNotRemoved, ACTIVE);
+}
+
+test "ART78-07-IMMUNITY-DEFEATED-BY-IMPEACHMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert impeached_by_public_impeachment(entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(JudgeNotRemoved, ACTIVE);
+}
+
+test "ART78-08-IMMUNITY-DEFEATED-BY-JUDICIAL-DECLARATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert declared_incapable_by_judicial_decision(entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(JudgeNotRemoved, ACTIVE);
+}
+
+test "ART78-09-EXECUTIVE-DISCIPLINE-OF-JUDGE-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o2")) { id "f3"; origin case_input; }
+        assert disciplines_judge(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoExecutiveDisciplineOfJudges, VIOLATED);
+}
+
+test "ART78-10-NO-DISCIPLINE-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o2")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoExecutiveDisciplineOfJudges, ACTIVE);
+    expect not position(NoExecutiveDisciplineOfJudges, VIOLATED);
+}
+
+test "ART78-11-DISCIPLINE-BY-COURT-NOT-PROHIBITED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:o2")) { id "f3"; origin case_input; }
+        assert disciplines_judge(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoExecutiveDisciplineOfJudges, VIOLATED);
+    expect not position(NoExecutiveDisciplineOfJudges, ACTIVE);
+}
+
+test "ART78-12-JUDGE-IMMUNE-FROM-EXECUTIVE-DISCIPLINE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudgeImmuneFromExecutiveDiscipline, ACTIVE);
+}
+
+test "ART78-13-NON-JUDGE-NOT-PROTECTED-FROM-DISCIPLINE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o2")) { id "f0"; origin case_input; }
+        assert disciplines_judge(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(JudgeImmuneFromExecutiveDiscipline, ACTIVE);
+    expect not position(NoExecutiveDisciplineOfJudges, VIOLATED);
+}
+
+test "ART78-14-CROSS-JUDGE-INDEPENDENT-AND-NOT-DISCIPLINABLE-BY-EXECUTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert j7_executive_organ(entity_ref("urn:jp:case:o2")) { id "f3"; origin case_input; }
+        assert directs_judicial_function(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert disciplines_judge(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudicialIndependence, ACTIVE);
+    expect position(JudgeImmuneFromExecutiveDiscipline, ACTIVE);
+    expect position(NoExecutiveDisciplineOfJudges, VIOLATED);
+    expect position(JudgeNotRemoved, ACTIVE);
+}

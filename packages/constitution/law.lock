@@ -1,0 +1,15 @@
+{
+  "dependencyEdges": [],
+  "languageSemantics": "law.core/0.2.11",
+  "lockVersion": "0.4",
+  "packages": [],
+  "resolutionHash": "sha256:b837515774e90bb457ffb4382d4088da920c0c4bb94e6372c244f2b55ae1811c",
+  "resources": [],
+  "root": {
+    "artifactHash": "sha256:86193eac3121bcdb7850889389942c7683f1272cbdc71a8a1d015b4692824295",
+    "name": "jp.constitution",
+    "namespace": "urn:jp:constitution:clir",
+    "sourceHash": "sha256:26672fc3594323fa3ed13a4805ad4443168c945fc81f1e02da57304667b8f31f",
+    "version": "0.1.0"
+  }
+}

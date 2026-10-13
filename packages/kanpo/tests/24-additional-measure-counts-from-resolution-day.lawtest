@@ -1,0 +1,24 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十七条括弧書: 閲覧期間が経過した時（06-30 午前八時三十分）にも措置をとれず、07-05 に解消 → 起算日は 07-05;
+// 期間内の十二時間以上の日は 06-28, 06-29 の 2 日（06-30 は期間内 8 時間）→ 07-07 午前八時三十分まで。
+test "urn:query:kanpo-t24" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t24-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t24-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t24-03": disaster_or_unavoidable_circumstance(entity_ref("urn:jp:case:disruption-2025-06")) { origin case_input; }
+        assert "kanpo-t24-04": measure_interrupted_by(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), entity_ref("urn:jp:case:disruption-2025-06")) { origin case_input; }
+        assert "kanpo-t24-05": disruption_resolved_on(entity_ref("urn:jp:case:disruption-2025-06"), @2025-07-05) { origin case_input; }
+        assert "kanpo-t24-06": unavailable_hours_on(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), @2025-06-28, 24) { origin case_input; }
+        assert "kanpo-t24-07": unavailable_hours_on(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), @2025-06-29, 24) { origin case_input; }
+        assert "kanpo-t24-08": unavailable_hours_on(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), @2025-06-30, 8) { origin case_input; }
+        assert "kanpo-t24-09": resolution_announced(entity_ref("urn:jp:case:disruption-2025-06")) { origin case_input; }
+    }
+    evaluate truth(additional_measure_ends_on(entity_ref("urn:jp:case:kanpo-2025-04-01-d3"), @2025-07-07));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

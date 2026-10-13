@@ -1,0 +1,82 @@
+# Manifest §10 — package root marker (DECISION-0033). The normative headers of
+# §22 live in the .law files themselves; the manifest must agree with them
+# (LDC-E1109, lawc check).
+[package]
+name = "jp.constitution"
+version = "0.1.0"
+language = "0.2"
+namespace = "urn:jp:constitution:clir"
+
+# Catalogue metadata (DECISION-0051; docs/PACKAGE-METADATA.ru.md). NOT semantics.
+[metadata]
+act = "jp-constitution"
+# 日本国憲法 — the Constitution of Japan (1946): the preamble and all 103 articles.
+title = "日本国憲法（昭和二十一年憲法）"
+primarySource = "JP_CONSTITUTION"
+jurisdiction = "JP"
+instrument = "constitution"
+sourceFidelity = "pinned_unofficial_copy"
+# 国会 (the Diet) adopted the text; promulgated by the Emperor on 3 November 1946.
+issuer = "国会 (National Diet of Japan); promulgated by the Emperor on 3 November 1946"
+# legalStatus: `in_force`. No article has ever been amended since 1947; the
+# disputes are about the INTERPRETATION of a text in force (Article 9), not
+# about its validity.
+legalStatus = "in_force"
+# verifiedAgainstSource: byte-for-byte against the e-Gov API v2 extraction
+# (sources/jp-constitution/provenance.json), a government database — not the
+# bytes of the 官報 issue, hence PINNED_UNOFFICIAL_COPY with verified=true.
+verifiedAgainstSource = true
+
+# Scenarios: the single source of facts, questions and expectations.
+[[tests]]
+family = "jp_constitution"
+suites = [
+    "tests/01-voting.lawtest",
+    "tests/ch01-emperor.lawtest",
+    "tests/ch02-renunciation-of-war.lawtest",
+    "tests/ch03a-art10-13.lawtest",
+    "tests/ch03a-art14-18.lawtest",
+    "tests/ch03a-art19-24.lawtest",
+    "tests/ch03b-social-25-30.lawtest",
+    "tests/ch03b-criminal-31-35.lawtest",
+    "tests/ch03b-criminal-36-40.lawtest",
+    "tests/ch04a-diet-status.lawtest",
+    "tests/ch04b-diet-sessions.lawtest",
+    "tests/ch04c-diet-legislation.lawtest",
+    "tests/ch05-art65-68.lawtest",
+    "tests/ch05-art69-71.lawtest",
+    "tests/ch05-art72-75.lawtest",
+    "tests/ch05-flows.lawtest",
+    "tests/ch06-art76-78.lawtest",
+    "tests/ch06-art79-80.lawtest",
+    "tests/ch06-art81-82.lawtest",
+    "tests/ch07-art83-85.lawtest",
+    "tests/ch07-art86-88.lawtest",
+    "tests/ch07-art89-91.lawtest",
+    "tests/ch08-art92-94.lawtest",
+    "tests/ch08-art95.lawtest",
+    "tests/ch09-art96-initiation.lawtest",
+    "tests/ch09-art96-approval-promulgation.lawtest",
+    "tests/ch10-art97-99.lawtest",
+    "tests/ch11-art100-103.lawtest",
+    "tests/x-cross-01a-no-confidence-to-cabinet.lawtest",
+    "tests/x-cross-01b-no-confidence-without-dissolution.lawtest",
+    "tests/x-cross-02a-law-two-thirds-repassage.lawtest",
+    "tests/x-cross-02b-law-sixty-days.lawtest",
+    "tests/x-cross-02c-law-promulgation.lawtest",
+    "tests/x-cross-03a-budget-councillors-differ.lawtest",
+    "tests/x-cross-03b-budget-thirty-days.lawtest",
+    "tests/x-cross-04-amendment.lawtest",
+    "tests/x-cross-05-emperor-acts.lawtest",
+    "tests/x-cross-06-criminal-guarantees.lawtest",
+    "tests/x-cross-07-supreme-court-review.lawtest",
+    "tests/x-cross-08-special-local-law.lawtest",
+    "tests/x-cross-09a-public-funds.lawtest",
+    "tests/x-cross-09b-tax-by-law.lawtest",
+    "tests/x-cross-10-article-9.lawtest",
+    "tests/x-cross-11-nullity.lawtest",
+]
+world = ["jp.constitution"]
+
+[authoring]
+local_imports = "explicit"

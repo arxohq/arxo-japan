@@ -1,0 +1,20 @@
+name: Japan addressed verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  japan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the hash-pinned standalone CLI
+        run: python3 tools/install_cli.py --out "$RUNNER_TEMP/arxo-japan-cli"
+      - name: Verify source bytes, both packages and canonical example replay
+        run: python3 tools/check.py --law "$RUNNER_TEMP/arxo-japan-cli/law"

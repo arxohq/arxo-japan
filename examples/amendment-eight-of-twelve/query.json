@@ -1,0 +1,19 @@
+{
+  "kind": "truth",
+  "literal": {
+    "args": [
+      {
+        "id": "urn:jp:case:x1",
+        "kind": "entity_ref"
+      },
+      {
+        "id": "urn:jp:constitution:clir#HouseOfRepresentatives",
+        "kind": "const_ref"
+      }
+    ],
+    "kind": "literal",
+    "polarity": "positive",
+    "predicate": "urn:jp:constitution:clir#house_carried_amendment"
+  },
+  "queryId": "urn:jp:constitution:clir#test/ART96-01-REPS-EIGHT-OF-TWELVE-IS-TWO-THIRDS-OF-ALL/query/0"
+}

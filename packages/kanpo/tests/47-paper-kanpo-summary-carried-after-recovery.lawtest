@@ -1,0 +1,20 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 法第十一条第六項: 書面官報 06-04, 措置をとることができることとなった日 06-05, その後 06-06 に発行した官報に発行の年月日及び要旨を掲載。
+test "urn:query:kanpo-t47" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t47-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t47"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t47-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t47"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t47-03": measure_possible_again_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t47"), @2025-06-05) { origin case_input; }
+        assert "kanpo-t47-04": issued_on(entity_ref("urn:jp:case:kanpo-kanpo-t47-after"), @2025-06-06) { origin case_input; }
+        assert "kanpo-t47-05": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-kanpo-t47-after"), "https://www.kanpo.go.jp", @2025-06-06) { origin case_input; }
+        assert "kanpo-t47-06": carries_paper_kanpo_date_and_summary(entity_ref("urn:jp:case:kanpo-kanpo-t47-after"), entity_ref("urn:jp:case:shomen-kanpo-kanpo-t47")) { origin case_input; }
+    }
+    evaluate truth(paper_kanpo_summary_carried(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t47")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

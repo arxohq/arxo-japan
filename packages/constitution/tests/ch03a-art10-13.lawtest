@@ -1,0 +1,307 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter III part 1 (Arts. 10-24), stage J3. Historical context idiom: decision, knowledge and legal time
+// on one date. Court decisions are facts with `origin adjudicated`; everything else is `case_input`.
+test "ART10-01-STATUTORY-REQUIREMENTS-MET-PERSON-IS-NATIONAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(r3a_national(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART10-02-REQUIREMENTS-WITHOUT-NATIONALITY-STATUTE-NO-STATUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(r3a_national(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART10-03-STATUTE-WITHOUT-MET-REQUIREMENTS-NO-STATUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(r3a_national(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART11-01-NATIONAL-HOLDS-FUNDAMENTAL-RIGHTS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(holds_fundamental_rights(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART11-02-NON-NATIONAL-NOT-A-HOLDER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(holds_fundamental_rights(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART11-03-IMMUNITY-ACTIVE-FOR-NATIONAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(FundamentalRightsInviolable, ACTIVE);
+}
+
+test "ART11-04-NO-IMMUNITY-FOR-NON-NATIONAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(FundamentalRightsInviolable, ACTIVE);
+}
+
+test "ART11-05-NO-EFFECT-WITHOUT-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(limitation_takes_effect(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART11-06-LIMITATION-INVALID-WHEN-NOT-CONTRARY-TO-PUBLIC-WELFARE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+        assert imposes_limitation(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:r1")) { id "f6"; origin case_input; }
+        assert not exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(limitation_takes_effect(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART11-07-LIMITATION-TAKES-EFFECT-WHEN-CONTRARY-TO-PUBLIC-WELFARE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+        assert imposes_limitation(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:r1")) { id "f6"; origin case_input; }
+        assert exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(limitation_takes_effect(entity_ref("urn:jp:case:r1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART11-08-LIMITATION-NO-EFFECT-WITHOUT-COURT-ANSWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+        assert imposes_limitation(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:r1")) { id "f6"; origin case_input; }
+    }
+    evaluate truth(limitation_takes_effect(entity_ref("urn:jp:case:r1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART11-09-FUTURE-NATIONAL-STILL-PROTECTED-IN-2100" {
+    given {
+        context { decision_time @2100-01-01T12:00:00Z; knowledge_time @2100-01-01T12:00:00Z; legal_time @2100-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(FundamentalRightsInviolable, ACTIVE);
+}
+
+test "ART11-10-NO-POSITION-BEFORE-ENTRY-INTO-FORCE" {
+    given {
+        context { decision_time @1947-04-01T12:00:00Z; knowledge_time @1947-04-01T12:00:00Z; legal_time @1947-04-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert limitation_affects(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert limitation_of_exercise(entity_ref("urn:jp:case:r1"), entity_ref("urn:jp:case:x1")) { id "f3"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(FundamentalRightsInviolable, ACTIVE);
+}
+
+test "ART12-01-ABUSE-ESTABLISHED-BY-COURT-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(NoAbuseOfFreedomsAndRights, VIOLATED);
+}
+
+test "ART12-02-EXERCISE-NOT-CONTRARY-TO-PUBLIC-WELFARE-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert not exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(NoAbuseOfFreedomsAndRights, ACTIVE);
+    expect not position(NoAbuseOfFreedomsAndRights, VIOLATED);
+}
+
+test "ART12-03-ABUSE-REQUIRES-JUDGMENT-WITHOUT-COURT-ANSWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(abusive_exercise(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:x1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(exercise_contradicts_public_welfare);
+}
+
+test "ART12-04-NON-NATIONAL-NOT-BOUND-BY-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoAbuseOfFreedomsAndRights, ACTIVE);
+}
+
+test "ART13-01-RESPECT-AS-INDIVIDUAL-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(RespectIndividual, ACTIVE);
+}
+
+test "ART13-02-DISREGARD-OF-INDIVIDUAL-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert disregards_individual(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(RespectIndividual, VIOLATED);
+}
+
+test "ART13-03-UTMOST-RESPECT-DUTY-ACTIVE-WHEN-NOT-CONTRARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), life_liberty_pursuit) { id "f4"; origin case_input; }
+        assert not exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f5"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(UtmostRespectForLifeLibertyHappiness, ACTIVE);
+}
+
+test "ART13-04-DISREGARD-OF-EXERCISE-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), life_liberty_pursuit) { id "f4"; origin case_input; }
+        assert not exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f5"; origin adjudicated; }
+        assert disregards_exercise(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:x1")) { id "f6"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(UtmostRespectForLifeLibertyHappiness, VIOLATED);
+}
+
+test "ART13-05-NO-DUTY-WHEN-EXERCISE-CONTRARY-TO-PUBLIC-WELFARE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), life_liberty_pursuit) { id "f4"; origin case_input; }
+        assert exercise_contradicts_public_welfare(entity_ref("urn:jp:case:x1")) { id "f5"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(UtmostRespectForLifeLibertyHappiness, ACTIVE);
+}
+
+test "ART13-06-UTMOST-RESPECT-WITHOUT-COURT-ANSWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), life_liberty_pursuit) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(UtmostRespectForLifeLibertyHappiness, ACTIVE);
+}
+
+test "ART13-07-OTHER-KIND-OF-EXERCISE-NOT-COVERED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert nationality_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+        assert meets_statutory_nationality_requirements(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert exercise_by(entity_ref("urn:jp:case:x1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), occupation) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(UtmostRespectForLifeLibertyHappiness, ACTIVE);
+}
+

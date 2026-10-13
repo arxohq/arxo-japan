@@ -1,0 +1,280 @@
+[
+  {
+    "name": "amendment-eight-of-twelve",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "ch09-art96-initiation.lawtest",
+    "sourceTest": "ART96-01-REPS-EIGHT-OF-TWELVE-IS-TWO-THIRDS-OF-ALL",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "TRUE_ONLY"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "TRUE_ONLY",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:8b09b84f344fca4115966fde24bc22e49c3ab2b33996db79d6316b93e6a79fd1"
+  },
+  {
+    "name": "amendment-seven-of-twelve",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "ch09-art96-initiation.lawtest",
+    "sourceTest": "ART96-02-REPS-SEVEN-OF-TWELVE-IS-NOT-TWO-THIRDS-OF-ALL",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "NEITHER"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "NEITHER",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:e5d71259add7669d53405488f773edd3db977816e084d1b40c7a49669b5ac0a5"
+  },
+  {
+    "name": "referendum-three-to-two",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "ch09-art96-approval-promulgation.lawtest",
+    "sourceTest": "ART96-36-THREE-FOR-TWO-AGAINST-CARRIES-THE-REFERENDUM",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "TRUE_ONLY"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "TRUE_ONLY",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:51172b111a0630eb5532421ad0f07d5c68a69ce4678a296d82437b51dbdab2cf"
+  },
+  {
+    "name": "article9-literal",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "x-cross-10-article-9.lawtest",
+    "sourceTest": "X10-01-LITERAL-READING-THE-FORCE-IS-WAR-POTENTIAL",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "TRUE_ONLY"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "TRUE_ONLY",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:ffbd75f73520576954c0a11d885fcf10708ae2c254c4fcfd642035039e17abaa"
+  },
+  {
+    "name": "article9-judgment-missing",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "x-cross-10-article-9.lawtest",
+    "sourceTest": "X10-05-NECESSARY-MINIMUM-READING-WITHOUT-AN-ANSWER-REQUIRES-A-JUDGMENT",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "NEITHER"
+      },
+      {
+        "field": "evaluation_status",
+        "op": "eq",
+        "value": "REQUIRES_JUDGMENT"
+      },
+      {
+        "negated": false,
+        "observation": "judgment_request",
+        "value": "urn:jp:constitution:clir#exceeds_necessary_minimum_for_self_defense"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "REQUIRES_JUDGMENT",
+        "truthStatus": "NEITHER",
+        "judgmentRequests": 1
+      }
+    ],
+    "resultHash": "sha256:82053ca898cdfdf93f82034af320e1156040c2db6dbf163029ed60dd1de901cc"
+  },
+  {
+    "name": "article9-judgment-negative",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "x-cross-10-article-9.lawtest",
+    "sourceTest": "X10-08-NECESSARY-MINIMUM-READING-THE-COURT-SAYS-NOT-EXCEEDS-NO-WAR-POTENTIAL",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "NEITHER"
+      },
+      {
+        "field": "evaluation_status",
+        "op": "eq",
+        "value": "COMPUTED"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "NEITHER",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:338c3333f3bf5b2309bbaba2a83894c307b22734574d3e1eeb7911178bf044bf"
+  },
+  {
+    "name": "article9-no-reading",
+    "package": "jp.constitution@0.1.0",
+    "sourceSuite": "x-cross-10-article-9.lawtest",
+    "sourceTest": "X10-11-WITHOUT-A-READING-THE-RULES-OF-THE-READINGS-ARE-SILENT",
+    "expectations": [
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "NEITHER"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "NEITHER",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:05aef58df0f1c97a80cf968f9a875f7c8166e67bba39c0a344a5cfa0b18464b9"
+  },
+  {
+    "name": "electronic-promulgation",
+    "package": "jp.kanpo@0.1.0",
+    "sourceSuite": "01-electronic-kanpo-promulgation-at-inspection-measure.lawtest",
+    "sourceTest": "urn:query:kanpo-t01",
+    "expectations": [
+      {
+        "field": "result_kind",
+        "op": "eq",
+        "value": "PROPOSITION"
+      },
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "TRUE_ONLY"
+      },
+      {
+        "field": "evaluation_status",
+        "op": "eq",
+        "value": "COMPUTED"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "TRUE_ONLY",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:6e6c7b6adcba25746d27503f450ccf5deedf98d12d20c2b54ee1af9da1b4cd15"
+  },
+  {
+    "name": "database-copy",
+    "package": "jp.kanpo@0.1.0",
+    "sourceSuite": "04-database-copy-is-not-kanpo.lawtest",
+    "sourceTest": "urn:query:kanpo-t04",
+    "expectations": [
+      {
+        "field": "result_kind",
+        "op": "eq",
+        "value": "PROPOSITION"
+      },
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "NEITHER"
+      },
+      {
+        "field": "evaluation_status",
+        "op": "eq",
+        "value": "COMPUTED"
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "COMPUTED",
+        "truthStatus": "NEITHER",
+        "judgmentRequests": 0
+      }
+    ],
+    "resultHash": "sha256:547c9bfe975983ee2503c3140ae887d902f0f9f111ebcbb69f34975f9d184307"
+  },
+  {
+    "name": "retention-awaits-judgment",
+    "package": "jp.kanpo@0.1.0",
+    "sourceSuite": "28-other-matter-awaits-prime-minister-judgments.lawtest",
+    "sourceTest": "urn:query:kanpo-t28",
+    "expectations": [
+      {
+        "field": "result_kind",
+        "op": "eq",
+        "value": "PROPOSITION"
+      },
+      {
+        "field": "truth_status",
+        "op": "eq",
+        "value": "TRUE_ONLY"
+      },
+      {
+        "field": "evaluation_status",
+        "op": "eq",
+        "value": "REQUIRES_JUDGMENT"
+      },
+      {
+        "authority": "urn:jp:corpus:clir:kanpo#PrimeMinisterOfJapan",
+        "negated": false,
+        "observation": "judgment_request",
+        "value": "urn:jp:corpus:clir:kanpo#indefinite_posting_risks_individual_privacy"
+      },
+      {
+        "authority": "urn:jp:corpus:clir:kanpo#PrimeMinisterOfJapan",
+        "negated": false,
+        "observation": "judgment_request",
+        "value": "urn:jp:corpus:clir:kanpo#indefinite_posting_risks_addressee_privacy"
+      },
+      {
+        "authority": "urn:jp:corpus:clir:kanpo#PrimeMinisterOfJapan",
+        "negated": false,
+        "observation": "judgment_request",
+        "value": "urn:jp:corpus:clir:kanpo#indefinite_posting_specially_impeded"
+      },
+      {
+        "negated": false,
+        "observation": "judgment_requests",
+        "value": 3
+      }
+    ],
+    "summary": [
+      {
+        "evaluationStatus": "REQUIRES_JUDGMENT",
+        "truthStatus": "TRUE_ONLY",
+        "judgmentRequests": 3
+      }
+    ],
+    "resultHash": "sha256:bdff306e3932c904a1a64756f8d319135999a52618ec157a821f7b73cb41905e"
+  }
+]

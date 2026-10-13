@@ -1,0 +1,16 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 附則第二条: 施行日前に発行された官報には法第八条第一項（閲覧期間）が適用されない。
+test "urn:query:kanpo-t21" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t21-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-03-31"), @2025-03-31) { origin case_input; }
+        assert "kanpo-t21-b": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-03-31"), "https://www.kanpo.go.jp", @2025-03-31) { origin case_input; }
+    }
+    evaluate truth(inspection_period_ends_on(entity_ref("urn:jp:case:kanpo-2025-03-31"), @2025-06-29));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

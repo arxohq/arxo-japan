@@ -1,0 +1,667 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter I scenarios (Arts. 1-8). Historical context idiom: decision, knowledge and legal time on one date.
+
+test "ART1-01-EMPEROR-IS-SYMBOL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+
+    }
+    evaluate truth(symbol_of_state_and_unity(Emperor));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART1-02-POSITION-GROUNDED-IN-POPULAR-WILL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+
+    }
+    evaluate truth(position_grounded_in_will_of_sovereign_people(Emperor));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART2-01-SUCCESSION-BY-DIET-ADOPTED-HOUSE-LAW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert in_hereditary_line(entity_ref("urn:jp:constitution:clir#P1")) { id "f0"; origin case_input; }
+        assert succession_defined_by(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#L1")) { id "f1"; origin case_input; }
+        assert imperial_house_law(entity_ref("urn:jp:constitution:clir#L1")) { id "f2"; origin case_input; }
+        assert adopted_by_diet_resolution(entity_ref("urn:jp:constitution:clir#L1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(succeeds_to_throne(entity_ref("urn:jp:constitution:clir#P1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART2-02-HOUSE-LAW-NOT-ADOPTED-BY-DIET-NO-SUCCESSION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert in_hereditary_line(entity_ref("urn:jp:constitution:clir#P1")) { id "f0"; origin case_input; }
+        assert succession_defined_by(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#L1")) { id "f1"; origin case_input; }
+        assert imperial_house_law(entity_ref("urn:jp:constitution:clir#L1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(succeeds_to_throne(entity_ref("urn:jp:constitution:clir#P1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART2-03-NOT-IN-HEREDITARY-LINE-NO-SUCCESSION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert succession_defined_by(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#L1")) { id "f0"; origin case_input; }
+        assert imperial_house_law(entity_ref("urn:jp:constitution:clir#L1")) { id "f1"; origin case_input; }
+        assert adopted_by_diet_resolution(entity_ref("urn:jp:constitution:clir#L1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(succeeds_to_throne(entity_ref("urn:jp:constitution:clir#P1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART3-01-ACT-WITH-CABINET-APPROVAL-HAS-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART3-02-ACT-WITHOUT-CABINET-APPROVAL-INVALID-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART3-03-CABINET-RESPONSIBLE-FOR-STATE-ACT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(cabinet_responsible_for(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART3-04-APPROVAL-WITHOUT-EXERCISE-NO-EFFECT-NO-ISSUE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART3-05-NOT-A-STATE-ACT-NO-CABINET-RESPONSIBILITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f0"; origin case_input; }
+    }
+    evaluate truth(cabinet_responsible_for(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART4-01-GOVERNANCE-ACT-OUTSIDE-LIST-NO-EFFECT-EVEN-WITH-CABINET" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), governance_act) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART4-02-GOVERNANCE-ACT-IS-ULTRA-VIRES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), governance_act) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_ultra_vires(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART4-03-LISTED-ACT-IS-NOT-ULTRA-VIRES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), convoke_diet) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_ultra_vires(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART4-04-DELEGATION-AUTHORIZED-BY-STATUTE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert emperor_delegates_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f1"; origin case_input; }
+        assert delegation_authorized_by_statute(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_delegated(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART4-05-DELEGATION-WITHOUT-STATUTE-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert emperor_delegates_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(act_delegated(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART5-01-REGENT-LISTED-ACT-WITH-APPROVAL-HAS-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), award_honours) { id "f1"; origin case_input; }
+        assert regent_performs_act_in_emperors_name(entity_ref("urn:jp:constitution:clir#R1"), entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert regency_established_under_house_law(entity_ref("urn:jp:constitution:clir#R1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART5-02-REGENT-GOVERNANCE-ACT-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), governance_act) { id "f1"; origin case_input; }
+        assert regent_performs_act_in_emperors_name(entity_ref("urn:jp:constitution:clir#R1"), entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert regency_established_under_house_law(entity_ref("urn:jp:constitution:clir#R1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART5-03-REGENT-GOVERNANCE-ACT-IS-ULTRA-VIRES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), governance_act) { id "f1"; origin case_input; }
+        assert regent_performs_act_in_emperors_name(entity_ref("urn:jp:constitution:clir#R1"), entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert regency_established_under_house_law(entity_ref("urn:jp:constitution:clir#R1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_ultra_vires(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART5-04-NO-REGENCY-NO-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), award_honours) { id "f1"; origin case_input; }
+        assert regent_performs_act_in_emperors_name(entity_ref("urn:jp:constitution:clir#R1"), entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART5-05-REGENT-WITHOUT-CABINET-APPROVAL-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), award_honours) { id "f1"; origin case_input; }
+        assert regent_performs_act_in_emperors_name(entity_ref("urn:jp:constitution:clir#R1"), entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert regency_established_under_house_law(entity_ref("urn:jp:constitution:clir#R1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART6-01-PRIME-MINISTER-ON-DIET-DESIGNATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_prime_minister) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert designated_by_diet(entity_ref("urn:jp:constitution:clir#A1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART6-02-PRIME-MINISTER-WITHOUT-DIET-DESIGNATION-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_prime_minister) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART6-03-PRIME-MINISTER-DESIGNATED-ONLY-BY-CABINET-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_prime_minister) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert designated_by_cabinet(entity_ref("urn:jp:constitution:clir#A1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART6-04-CHIEF-JUSTICE-ON-CABINET-DESIGNATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_chief_justice) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert designated_by_cabinet(entity_ref("urn:jp:constitution:clir#A1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART6-05-CHIEF-JUSTICE-WITHOUT-CABINET-DESIGNATION-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_chief_justice) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert designated_by_diet(entity_ref("urn:jp:constitution:clir#A1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART6-06-PRIME-MINISTER-DESIGNATION-WITHOUT-CABINET-APPROVAL-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), appoint_prime_minister) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert designated_by_diet(entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-01-PROMULGATE-AMENDMENT-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_amendment) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-02-PROMULGATE-LAW-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_law) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-03-PROMULGATE-CABINET-ORDER-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_cabinet_order) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-04-PROMULGATE-TREATY-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), promulgate_treaty) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-05-CONVOKE-DIET-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), convoke_diet) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-06-DISSOLVE-HOUSE-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-07-PROCLAIM-GENERAL-ELECTION-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), proclaim_general_election) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-08-ATTEST-APPOINTMENTS-AND-CREDENTIALS-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), attest_appointments_and_credentials) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-09-ATTEST-AMNESTY-AND-RESTORATION-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), attest_amnesty_and_restoration) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-10-AWARD-HONOURS-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), award_honours) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-11-ATTEST-RATIFICATION-AND-DOCUMENTS-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), attest_ratification_and_documents) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-12-RECEIVE-AMBASSADORS-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), receive_ambassadors) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-13-PERFORM-CEREMONIES-WITH-CABINET-ADVICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), perform_ceremonies) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-14-CONVOCATION-WITHOUT-ADVICE-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), convoke_diet) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-15-HONOURS-WITHOUT-ADVICE-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), award_honours) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-16-DISSOLUTION-WITHOUT-CABINET-ADVICE-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART7-17-ACT-BEFORE-ENTRY-INTO-FORCE-NO-EFFECT" {
+    given {
+        context { decision_time @1947-05-02T12:00:00Z; knowledge_time @1947-05-02T12:00:00Z; legal_time @1947-05-02; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART7-18-ACT-ON-FIRST-DAY-OF-FORCE-HAS-EFFECT" {
+    given {
+        context { decision_time @1947-05-03T12:00:00Z; knowledge_time @1947-05-03T12:00:00Z; legal_time @1947-05-03; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART7-19-POWER-ACTIVE-BEFORE-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(EmperorDissolveHouse, ACTIVE);
+}
+
+test "ART7-20-DISSOLUTION-PRACTICE-READING-CABINET-DISCRETION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; interpretation Article7DissolutionPractice; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(dissolution_substantively_lawful(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART7-21-ART69-READING-NO-NO-CONFIDENCE-NO-BASIS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; interpretation Article69OnlyDissolution; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(dissolution_substantively_lawful(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART7-22-ART69-READING-WITH-NO-CONFIDENCE-BASIS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; interpretation Article69OnlyDissolution; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+        assert no_confidence_resolution_basis(entity_ref("urn:jp:constitution:clir#A1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(dissolution_substantively_lawful(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART7-23-NO-READING-SELECTED-SUBSTANTIVE-BASIS-SILENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(dissolution_substantively_lawful(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART7-24-LETTER-EFFECT-INDEPENDENT-OF-READING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; interpretation Article69OnlyDissolution; }
+        assert state_matter_act(entity_ref("urn:jp:constitution:clir#A1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:constitution:clir#A1"), dissolve_house) { id "f1"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:constitution:clir#A1")) { id "f2"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:constitution:clir#A1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(act_has_legal_effect(entity_ref("urn:jp:constitution:clir#A1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART8-01-TRANSFER-WITHOUT-DIET-RESOLUTION-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert imperial_house_transfer(entity_ref("urn:jp:constitution:clir#T1")) { id "f0"; origin case_input; }
+        assert party_to_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f1"; origin case_input; }
+        assert performs_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(ImperialHouseTransferWithoutDietResolution, VIOLATED);
+}
+
+test "ART8-02-TRANSFER-WITH-DIET-RESOLUTION-NOT-PROHIBITED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert imperial_house_transfer(entity_ref("urn:jp:constitution:clir#T1")) { id "f0"; origin case_input; }
+        assert party_to_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f1"; origin case_input; }
+        assert performs_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f2"; origin case_input; }
+        assert diet_resolution_basis(entity_ref("urn:jp:constitution:clir#T1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(ImperialHouseTransferWithoutDietResolution, VIOLATED);
+    expect not position(ImperialHouseTransferWithoutDietResolution, ACTIVE);
+}
+
+test "ART8-03-NO-TRANSFER-YET-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert imperial_house_transfer(entity_ref("urn:jp:constitution:clir#T1")) { id "f0"; origin case_input; }
+        assert party_to_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(ImperialHouseTransferWithoutDietResolution, ACTIVE);
+    expect not position(ImperialHouseTransferWithoutDietResolution, VIOLATED);
+}
+
+test "ART8-04-TRANSFER-BEFORE-ENTRY-INTO-FORCE-NOT-VIOLATED" {
+    given {
+        context { decision_time @1947-05-02T12:00:00Z; knowledge_time @1947-05-02T12:00:00Z; legal_time @1947-05-02; timezone "Asia/Tokyo"; }
+        assert imperial_house_transfer(entity_ref("urn:jp:constitution:clir#T1")) { id "f0"; origin case_input; }
+        assert party_to_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f1"; origin case_input; }
+        assert performs_transfer(entity_ref("urn:jp:constitution:clir#P1"), entity_ref("urn:jp:constitution:clir#T1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(ImperialHouseTransferWithoutDietResolution, VIOLATED);
+}

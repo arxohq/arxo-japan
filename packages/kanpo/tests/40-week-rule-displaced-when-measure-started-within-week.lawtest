@@ -1,0 +1,17 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第二十二条第二項「前項の規定にかかわらず」: 措置 06-05 開始なら、第一項の 06-11 は期間の末日ではない。
+test "urn:query:kanpo-t40" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t40-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t40"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t40-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t40"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t40-03": paper_matters_posted_on_cabinet_office_website(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t40"), @2025-06-05) { origin case_input; }
+    }
+    evaluate truth(paper_posting_period_ends_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t40"), @2025-06-11));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

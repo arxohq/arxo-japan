@@ -1,0 +1,19 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十八条柱書: 号外国会会議録の官報に係る電磁的官報記録は対象外 — 判断要求も生じない。
+test "urn:query:kanpo-t33" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t33-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t33"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t33-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t33"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t33-03": item_published_in(entity_ref("urn:jp:case:item-diet"), entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t33")) { origin case_input; }
+        assert "kanpo-t33-04": item_in_extra_diet_proceedings_issue(entity_ref("urn:jp:case:item-diet")) { origin case_input; }
+    }
+    evaluate truth(kept_available_after_inspection_period(entity_ref("urn:jp:case:item-diet")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+    expect judgment_requests(0);
+}

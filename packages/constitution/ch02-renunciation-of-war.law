@@ -1,0 +1,308 @@
+// Chapter II, Article 9 (第九条, 戦争の放棄 — renunciation of war). The chapter
+// consists of this single article in two paragraphs (項).
+//
+//   • paragraph 1 — renunciation of war as a sovereign right of the nation and
+//     of the threat or use of force as means of settling international disputes;
+//   • paragraph 2, sentence 1 — no maintenance of land, sea and air forces or
+//     other war potential (戦力, senryoku);
+//   • paragraph 2, sentence 2 — the right of belligerency of the state
+//     (交戦権, kōsen-ken) is not recognized.
+//
+// THE MAIN FINDING: "IN ORDER TO ACCOMPLISH THE AIM OF THE PRECEDING PARAGRAPH"
+// (前項の目的を達するため) SPLITS THE TEXT INTO TWO INCOMPATIBLE READINGS WITH
+// OPPOSITE OUTCOMES ON THE SAME CASES. Paragraph 2 forbids maintaining 戦力 "in
+// order to accomplish the aim of the preceding paragraph", and that aim is read
+// in two ways:
+//
+//   • NecessaryMinimumSelfDefenseReading — the position of the Government.
+//     Since the statement of the Defense Agency Director of 22 December 1954
+//     (House of Representatives Budget Committee) the Government holds that
+//     forces of the scope necessary for self-defense do not violate Article 9;
+//     the formula was later stated as "the minimum necessary for self-defense"
+//     (Cabinet answer of 29 November 1991), and such forces are held not to be
+//     戦力. Since paragraph 1 renounces war and force only AS MEANS OF SETTLING
+//     INTERNATIONAL DISPUTES, the 戦力 of paragraph 2 are not all forces but
+//     those exceeding that minimum. Self-Defense Forces (自衛隊) kept within it
+//     are not 戦力;
+//   • LiteralPacifistReading — the reading that the "aim of the preceding
+//     paragraph" is peace as such and the prohibition of paragraph 2 is
+//     unconditional. Scholarly views on the aim are not uniform; the prevailing
+//     view, as summarised by the secretariat of the House of Representatives
+//     Research Commission (2003, a SECONDARY source), treats the Self-Defense
+//     Forces as 戦力 and so unconstitutional. Sources and quotations:
+//     docs/foundations/jp-constitution/INTERPRETATION-SOURCES.md.
+//
+// The Supreme Court did not settle the question: in Sunagawa (Grand Bench, 16
+// December 1959) it held that Article 9 does not deny the inherent right of
+// self-defense, that "war potential" means forces Japan itself commands, and it
+// expressly left open whether paragraph 2 bars forces for self-defense.
+//
+// The readings are competing `interpretation` nodes over one anchor
+// (`JP_CONST_ART9_P2`) WITHOUT `interpretation_group` / `selection exactly_one`
+// — the `organ-allocation` idiom: a group with `exactly_one` would block the
+// WHOLE query (including questions unrelated to the dispute about forces). The
+// reading is chosen per scenario by the `interpretation <Reading>;` axis of the
+// case context (DECISION-0058, DECISION-0152); with no reading selected the
+// predicate `war_potential` is silent (NEITHER), not defaulted.
+//
+// JUDGMENT CHANNEL §47.3 INSIDE NecessaryMinimumSelfDefenseReading. Even under
+// that reading the question "does THIS force exceed the minimum necessary for
+// self-defense" is not self-executing: it is an evaluative judgment of
+// sufficiency, necessity and proportionality, not arithmetic. It is recorded as
+// `external judgment relation exceeds_necessary_minimum_for_self_defense` with
+// `authority CourtsOfJapan`. In Naganuma the Sapporo District Court (7
+// September 1973) held the Self-Defense Forces unconstitutional, the Sapporo
+// High Court (5 August 1976) reversed, and the Supreme Court (9 September 1982)
+// dismissed the appeal for lack of a remaining interest in suing without
+// deciding the constitutional question (primary texts of these three decisions
+// were not verified; see INTERPRETATION-SOURCES.md). REQUIRES_JUDGMENT without a
+// fact supplied by the case shows that no such judgment is in the input.
+//
+// DECLARED BOUNDARY: THE 2014–2015 REINTERPRETATION IS NOT EXPRESSED. Until
+// 2014 the government's position recognized only INDIVIDUAL self-defense within
+// the necessary minimum. The Cabinet decision of 1 July 2014 CHANGED the
+// interpretation: the minimum was held to include also LIMITED collective
+// self-defense (集団的自衛権) under the "new three conditions"; the 2015 peace
+// and security legislation (Act No. 76 of 2015) implemented it (entry into force
+// on 29 March 2016 is stated on a secondary source only). The TEXT of
+// Article 9 did not change by a byte — only the official reading of the same
+// text changed, by a decision of the executive without the amendment procedure
+// of Article 96. The "new three conditions" and their wording live in that
+// Cabinet decision and in the amendments to the Self-Defense Forces Act — a
+// different source, not Article 9. Binding such a rule to
+// `@source(JP_CONST_ART9…)` would attribute to the text what is not in it. It
+// is a candidate for a separate package that imports this one.
+//
+// NON-RECOGNITION OF 交戦権 IS EXPRESSED AS A PROHIBITION, NOT AS A FIFTH
+// TEMPLATE. Textually it is the denial of a POWER (the state lacks the legal
+// capacity of a belligerent under the classical law of war — blockade, prize
+// law, status of occupier), and the closed set of templates §122–130 has no
+// stand-alone "absence of power" construct. It is recorded as a prohibition
+// of the act of invoking such a status — the same device as the renunciation
+// norms of the Atlantic Charter and the Declaration of the United Nations
+// (`united-nations-1942`). An explicit methodological boundary, not a silent
+// choice.
+//
+// LIFECYCLE. The text was promulgated on 1946-11-03, but the windows of the
+// norms open at `@1947-05-03`: by its own Article 100 the Constitution comes
+// into force six months after promulgation. The date is common ground of both
+// readings.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    JP_CONST_ART9_P1,
+    JP_CONST_ART9_P2,
+    MilitaryForce,
+    Nation,
+    nation,
+};
+
+// --- Paragraph 1 -------------------------------------------------------------
+//
+// "Aspiring sincerely to an international peace based on justice and order, the
+// Japanese people forever renounce war as a sovereign right of the nation and
+// the threat or use of force as means of settling international disputes" —
+// two separate renunciations (§206: the conjunctive head is split), both as
+// prohibitions of an act, not as a denial of a power.
+//
+// "As a means of settling international disputes" (国際紛争を解決する手段として)
+// belongs to BOTH renunciations (war; threat or use of force), echoing the
+// Briand–Kellogg Pact of 1928 and Article 2(4) of the UN Charter. The
+// government reading rests exactly on this clause: pure self-defense is not a
+// "means of settling an international dispute" and so lies outside what
+// paragraph 1 rejects. The clause is not a guard checked against the facts of a
+// case: paragraph 1 renounces unconditionally, and the clause works as a
+// BOUNDARY OF THE SUBJECT MATTER (war or force AGAINST a foreign state in a
+// dispute — not any use of force at all, for instance to keep domestic order).
+
+relation wages_war(n: Nation) kind empirical {
+    label ja official "戦争を行う";
+    label en unofficial "wages war as an exercise of the sovereign right";
+}
+
+relation threatens_or_uses_force_to_settle_dispute(n: Nation) kind empirical {
+    label ja official "武力による威嚇又は武力の行使を国際紛争を解決する手段とする";
+    label en unofficial "threatens or uses force as a means of settling an international dispute";
+}
+
+@source(JP_CONST_ART9_P1)
+rule NoWarAsSovereignRight(n: Nation) strict {
+    label ja official "国権の発動たる戦争...は、...永久にこれを放棄する";
+    label en unofficial "Paragraph 1. Renunciation of war as a sovereign right of the nation";
+    when nation(n);
+    then prohibition WarAsSovereignRight {
+        bearer n;
+        action wages_war(n);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART9_P1)
+rule NoThreatOrUseOfForceToSettleDispute(n: Nation) strict {
+    label ja official "武力による威嚇又は武力の行使は、国際紛争を解決する手段としては、...永久にこれを放棄する";
+    label en unofficial "Paragraph 1. Renunciation of the threat or use of force as a means of settling international disputes";
+    when nation(n);
+    then prohibition ThreatOrUseOfForceToSettleDispute {
+        bearer n;
+        action threatens_or_uses_force_to_settle_dispute(n);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Paragraph 2, sentence 1: the forces -------------------------------------
+//
+// Two incompatible readings of what is a 戦力 under the condition "in order to
+// accomplish the aim of the preceding paragraph" — see the header. The
+// prohibition itself (`NoMaintainingWarPotential`) stands OUTSIDE the readings:
+// it is not disputed — only the extent of the predicate `war_potential` it
+// consumes is.
+
+relation maintains_force(n: Nation, f: MilitaryForce) kind empirical {
+    label ja official "戦力を保持する";
+    label en unofficial "maintains the given force";
+}
+
+relation land_sea_or_air_force(f: MilitaryForce) kind empirical {
+    label ja official "陸海空軍";
+    label en unofficial "land, sea or air forces";
+}
+
+relation other_war_potential(f: MilitaryForce) kind empirical {
+    label ja official "その他の戦力";
+    label en unofficial "other war potential (not land/sea/air forces literally)";
+}
+
+// Institutional predicate: "force f is a 戦力 in the sense of paragraph 2" —
+// filled DIFFERENTLY by each of the two competing readings below.
+relation war_potential(f: MilitaryForce) kind institutional {
+    label ja official "戦力";
+    label en unofficial "war potential forbidden by paragraph 2";
+}
+
+// --- Judgment channel §47.3: does the force exceed the necessary minimum -----
+//
+// `authority CourtsOfJapan`: the courts are formally competent (Article 81,
+// constitutional review), although historically they have avoided the merits by
+// the "act of state" doctrine (see the header). The bridge is a STRICT rule
+// with a LITERAL head: without it the channel is invisible through a norm head
+// (checked on Locke, §240).
+
+external judgment relation exceeds_necessary_minimum_for_self_defense(f: MilitaryForce) {
+    authority CourtsOfJapan;
+    label ja official "自衛のための必要最小限度を超える";
+    label en unofficial "exceeds the minimum necessary for self-defense";
+}
+
+relation force_exceeds_necessary_minimum_established(f: MilitaryForce) kind institutional {
+    label en unofficial "it is established that the force exceeds the necessary minimum of defense";
+}
+
+@source(JP_CONST_ART9_P2)
+rule ForceExceedsNecessaryMinimumEstablished(f: MilitaryForce) strict {
+    label en unofficial "the judgment on exceeding the necessary minimum of defense has been made";
+    when exceeds_necessary_minimum_for_self_defense(f);
+    then force_exceeds_necessary_minimum_established(f);
+}
+
+// --- Reading 1: LiteralPacifistReading ---------------------------------------
+//
+// The position of the majority of Japanese constitutional scholars: the "aim of
+// the preceding paragraph" is peace as such; the prohibition is unconditional
+// for ANY land/sea/air forces or other war potential.
+
+@source(JP_CONST_ART9_P2)
+rule LandSeaOrAirForceIsWarPotentialLiteral(f: MilitaryForce) strict {
+    label ja official "陸海空軍...は、これを保持しない（無条件）";
+    label en unofficial "Any land, sea or air force is 戦力 unconditionally";
+    when land_sea_or_air_force(f);
+    then war_potential(f);
+}
+
+@source(JP_CONST_ART9_P2)
+rule OtherWarPotentialIsWarPotentialLiteral(f: MilitaryForce) strict {
+    label ja official "その他の戦力は、これを保持しない（無条件）";
+    label en unofficial "Any other war potential is 戦力 unconditionally";
+    when other_war_potential(f);
+    then war_potential(f);
+}
+
+interpretation LiteralPacifistReading of JP_CONST_ART9_P2 {
+    status disputed;
+    include LandSeaOrAirForceIsWarPotentialLiteral, OtherWarPotentialIsWarPotentialLiteral;
+    label ja unofficial "無条件説（学界多数説）";
+    label en unofficial "Unconditional reading: any force is 戦力 regardless of aim and scale";
+}
+
+// --- Reading 2: NecessaryMinimumSelfDefenseReading ---------------------------
+//
+// The standing position of the government since 1954: the 戦力 of paragraph 2
+// are not all forces but only those exceeding the minimum necessary for
+// self-defense (the bridge is the rule above).
+
+@source(JP_CONST_ART9_P2)
+rule LandSeaOrAirForceExceedingMinimumIsWarPotential(f: MilitaryForce) strict {
+    label ja official "必要最小限度を超える陸海空軍は、戦力にあたる";
+    label en unofficial "A land, sea or air force is 戦力 if it exceeds the minimum necessary for self-defense";
+    when land_sea_or_air_force(f)
+        and force_exceeds_necessary_minimum_established(f);
+    then war_potential(f);
+}
+
+@source(JP_CONST_ART9_P2)
+rule OtherWarPotentialExceedingMinimumIsWarPotential(f: MilitaryForce) strict {
+    label ja official "必要最小限度を超えるその他の実力は、戦力にあたる";
+    label en unofficial "Other war potential is 戦力 if it exceeds the minimum necessary for self-defense";
+    when other_war_potential(f)
+        and force_exceeds_necessary_minimum_established(f);
+    then war_potential(f);
+}
+
+interpretation NecessaryMinimumSelfDefenseReading of JP_CONST_ART9_P2 {
+    status disputed;
+    include LandSeaOrAirForceExceedingMinimumIsWarPotential, OtherWarPotentialExceedingMinimumIsWarPotential;
+    label ja unofficial "必要最小限度説（政府見解、1954年以降）";
+    label en unofficial "Necessary-minimum reading: 戦力 are forbidden only above the level necessary for self-defense";
+}
+
+// --- The prohibition of maintenance (outside the readings) -------------------
+//
+// The premise binds the force by `war_potential(f)` only; the prohibited act
+// `maintains_force(n, f)` is the ACTION of the prohibition, not a premise: since
+// errata E-0179 a prohibition is VIOLATED on itself when its action is
+// established inside the window, and stands ACTIVE otherwise. (The former form
+// carried `maintains_force` in the premise and so could never be ACTIVE.)
+
+@source(JP_CONST_ART9_P2)
+rule NoMaintainingWarPotential(n: Nation, f: MilitaryForce) strict {
+    label ja official "陸海空軍その他の戦力は、これを保持しない";
+    label en unofficial "Paragraph 2. No maintenance of war potential (extent — by the chosen reading above)";
+    when nation(n)
+        and war_potential(f);
+    then prohibition MaintainWarPotential {
+        bearer n;
+        action maintains_force(n, f);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Paragraph 2, sentence 2: non-recognition of 交戦権 ----------------------
+
+relation invokes_belligerent_status(n: Nation) kind empirical {
+    label ja official "交戦権を主張する";
+    label en unofficial "claims the status of a belligerent under the law of war";
+}
+
+@source(JP_CONST_ART9_P2)
+rule BelligerencyRightNotRecognized(n: Nation) strict {
+    label ja official "国の交戦権は、これを認めない";
+    label en unofficial "Paragraph 2. Non-recognition of the right of belligerency of the state";
+    when nation(n);
+    then prohibition BelligerentStatusInvocation {
+        bearer n;
+        action invokes_belligerent_status(n);
+        window [@1947-05-03, infinity);
+    };
+}

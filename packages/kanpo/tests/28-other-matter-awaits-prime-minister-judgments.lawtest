@@ -1,0 +1,21 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十八条: 法令以外の事項 — 第一号から第三号までの認定が未了なら、除外は働かず、内閣総理大臣への判断要求が開いている。
+test "urn:query:kanpo-t28" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t28-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t28"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t28-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t28"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t28-03": item_published_in(entity_ref("urn:jp:case:item-open"), entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t28")) { origin case_input; }
+    }
+    evaluate truth(kept_available_after_inspection_period(entity_ref("urn:jp:case:item-open")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(indefinite_posting_risks_individual_privacy, PrimeMinisterOfJapan);
+    expect judgment_request(indefinite_posting_risks_addressee_privacy, PrimeMinisterOfJapan);
+    expect judgment_request(indefinite_posting_specially_impeded, PrimeMinisterOfJapan);
+    expect judgment_requests(3);
+}

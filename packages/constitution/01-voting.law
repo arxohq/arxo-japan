@@ -1,0 +1,246 @@
+// The vote model of the Constitution and its thresholds. The Constitution
+// names FOUR different denominators; each has its own predicate here and no
+// rule may substitute one for another:
+//
+//   present   出席議員        members present (abstainers and those who did
+//                              not vote are counted) — Arts. 55, 56(2), 57(1),
+//                              57(3) (one fifth demand), 58(2), 59(2)
+//   all       総議員           the statutory total of members of the House
+//                              (`member_count`), NOT those in office or present
+//                              — Arts. 53 (one quarter), 56(1) (one third),
+//                              96(1) (two thirds)
+//   cast      投票             votes cast for or against (for + against);
+//                              abstentions and absences are not counted —
+//                              Art. 96(2), Art. 79(3) (by analogy of the text
+//                              "majority of the voters"; see the chapters)
+//   ties      可否同数         for == against — the presiding officer decides
+//                              (Art. 56(2))
+//
+// All comparisons are by multiplication (no division). A threshold over an empty
+// vote is TRUE for `0 >= 0` (AUDIT.md, item 7), so every predicate that could
+// be satisfied by an empty vote carries the guard `> 0`.
+//
+// Aggregates run over EMPIRICAL relations only (§111): the facts of a vote are
+// supplied by the case; the predicates below are institutional.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    House,
+    JP_CONST_ART53_P1,
+    JP_CONST_ART55_P1,
+    JP_CONST_ART56_P1,
+    JP_CONST_ART56_P2,
+    JP_CONST_ART57_P3,
+    JP_CONST_ART96_P1,
+    Person,
+};
+
+entity Motion { label ja official "議案"; label en unofficial "motion, bill or proposal put to a vote"; }
+
+relation motion_before(m: Motion, h: House) kind empirical {
+    label ja official "議院に係属する議案";
+    label en unofficial "the motion is before the House";
+}
+relation put_to_vote(m: Motion) kind empirical {
+    label ja official "採決に付された議案";
+    label en unofficial "the motion has been put to a vote (binds the motion of a threshold rule)";
+}
+relation present_at(m: Motion, p: Person) kind empirical {
+    label ja official "出席議員";
+    label en unofficial "the member is present at the vote on the motion";
+}
+relation votes_for(m: Motion, p: Person) kind empirical {
+    label ja official "賛成";
+    label en unofficial "the person votes for the motion";
+}
+relation votes_against(m: Motion, p: Person) kind empirical {
+    label ja official "反対";
+    label en unofficial "the person votes against the motion";
+}
+relation demands_action(m: Motion, p: Person) kind empirical {
+    label ja official "要求";
+    label en unofficial "the member joins the demand put as the motion";
+}
+relation presiding_officer_decides_for(m: Motion) kind empirical {
+    label ja official "議長の決するところ（賛成）";
+    label en unofficial "on a tie the presiding officer decides for the motion";
+}
+relation presiding_officer_decides_against(m: Motion) kind empirical {
+    label ja official "議長の決するところ（反対）";
+    label en unofficial "on a tie the presiding officer decides against the motion";
+}
+// The statutory total of members of the House (総議員).
+relation member_count(h: House, n: Integer) kind empirical {
+    key(h);
+    label ja official "総議員";
+    label en unofficial "statutory total number of members of the House";
+}
+
+relation quorum_one_third_of_all(m: Motion) kind institutional {
+    label ja official "総議員の三分の一以上の出席";
+    label en unofficial "at least one third of all members are present (Art. 56(1))";
+}
+relation two_thirds_of_present_for(m: Motion) kind institutional {
+    label ja official "出席議員の三分の二以上の賛成";
+    label en unofficial "for-votes are at least two thirds of the members present";
+}
+relation two_thirds_of_all_for(m: Motion) kind institutional {
+    label ja official "総議員の三分の二以上の賛成";
+    label en unofficial "for-votes are at least two thirds of all members";
+}
+relation majority_of_present_for(m: Motion) kind institutional {
+    label ja official "出席議員の過半数の賛成";
+    label en unofficial "for-votes are more than half of the members present";
+}
+relation vote_tied(m: Motion) kind institutional {
+    label ja official "可否同数";
+    label en unofficial "votes for equal votes against, and there is at least one vote";
+}
+relation majority_of_votes_cast_for(m: Motion) kind institutional {
+    label ja official "投票の過半数の賛成";
+    label en unofficial "for-votes are more than half of the votes cast (for + against)";
+}
+relation one_fifth_of_present_demand(m: Motion) kind institutional {
+    label ja official "出席議員の五分の一以上の要求";
+    label en unofficial "the demand is joined by at least one fifth of the members present (Art. 57(3))";
+}
+relation adopted_by_ordinary_majority(m: Motion) kind institutional {
+    label ja official "出席議員の過半数で決した議事";
+    label en unofficial "the motion is decided in favour under Art. 56: quorum, and a majority of the members present or, on a tie, the presiding officer's decision (for use where the Constitution makes no special provision)";
+}
+relation rejected_by_ordinary_majority(m: Motion) kind institutional {
+    label ja official "出席議員の過半数に達しなかった議事";
+    label en unofficial "the motion is decided against under Art. 56: quorum, a vote held, and no majority of the members present for it and no tie decided by the presiding officer for it";
+}
+relation one_quarter_of_all_demand(m: Motion) kind institutional {
+    label ja official "総議員の四分の一以上の要求";
+    label en unofficial "the demand is joined by at least one quarter of all members (Art. 53)";
+}
+
+// Art. 56(1): the House cannot transact business unless at least one third of
+// its members are present.
+@source(JP_CONST_ART56_P1)
+rule QuorumOneThirdOfAll strict {
+    label en unofficial "A quorum is present when at least one third of all members are present";
+    for m: Motion; for h: House; for n: Integer;
+    when motion_before(m, h) and member_count(h, n)
+        and (count distinct p: Person where present_at(m, p)) * 3 >= n;
+    then quorum_one_third_of_all(m);
+}
+
+@source(JP_CONST_ART55_P1)
+rule TwoThirdsOfPresent strict {
+    label en unofficial "Two thirds or more of the members present vote for the motion";
+    for m: Motion;
+    when put_to_vote(m)
+        and (count distinct p: Person where present_at(m, p)) > 0
+        and (count distinct p: Person where votes_for(m, p)) * 3
+            >= (count distinct p: Person where present_at(m, p)) * 2;
+    then two_thirds_of_present_for(m);
+}
+
+@source(JP_CONST_ART96_P1)
+rule TwoThirdsOfAll strict {
+    label en unofficial "Two thirds or more of all members vote for the motion";
+    for m: Motion; for h: House; for n: Integer;
+    when motion_before(m, h) and member_count(h, n)
+        and (count distinct p: Person where votes_for(m, p)) * 3 >= n * 2;
+    then two_thirds_of_all_for(m);
+}
+
+@source(JP_CONST_ART56_P2)
+rule MajorityOfPresent strict {
+    label en unofficial "A majority of those present vote for the motion";
+    for m: Motion;
+    when put_to_vote(m)
+        and (count distinct p: Person where present_at(m, p)) > 0
+        and (count distinct p: Person where votes_for(m, p)) * 2
+            > (count distinct p: Person where present_at(m, p));
+    then majority_of_present_for(m);
+}
+
+@source(JP_CONST_ART56_P2)
+rule VoteTied strict {
+    label en unofficial "The votes for and against the motion are equal";
+    for m: Motion;
+    when put_to_vote(m)
+        and (count distinct p: Person where votes_for(m, p)) > 0
+        and (count distinct p: Person where votes_for(m, p))
+            == (count distinct p: Person where votes_against(m, p));
+    then vote_tied(m);
+}
+
+@source(JP_CONST_ART96_P1)
+rule MajorityOfVotesCast strict {
+    label en unofficial "A majority of the votes cast is in favour of the motion";
+    for m: Motion;
+    when put_to_vote(m)
+        and (count distinct p: Person where votes_for(m, p))
+            + (count distinct p: Person where votes_against(m, p)) > 0
+        and (count distinct p: Person where votes_for(m, p)) * 2
+            > (count distinct p: Person where votes_for(m, p))
+              + (count distinct p: Person where votes_against(m, p));
+    then majority_of_votes_cast_for(m);
+}
+
+@source(JP_CONST_ART53_P1)
+rule OneQuarterOfAllDemand strict {
+    label en unofficial "One quarter or more of all members of a House demand the action";
+    for m: Motion; for h: House; for n: Integer;
+    when motion_before(m, h) and member_count(h, n)
+        and (count distinct p: Person where demands_action(m, p)) > 0
+        and (count distinct p: Person where demands_action(m, p)) * 4 >= n;
+    then one_quarter_of_all_demand(m);
+}
+
+// Art. 57(3): demand of one fifth of the members PRESENT (not of all).
+@source(JP_CONST_ART57_P3)
+rule OneFifthOfPresentDemand strict {
+    label en unofficial "One fifth or more of the members present demand the action";
+    for m: Motion;
+    when put_to_vote(m)
+        and (count distinct p: Person where demands_action(m, p)) > 0
+        and (count distinct p: Person where present_at(m, p)) > 0
+        and (count distinct p: Person where demands_action(m, p)) * 5
+            >= (count distinct p: Person where present_at(m, p));
+    then one_fifth_of_present_demand(m);
+}
+
+// Art. 56(2): "the proceedings are decided by a majority of the members present,
+// and on a tie by the presiding officer", after Art. 56(1)'s quorum. Each special
+// provision (55, 57(1), 58(2), 59(2)) uses its own threshold predicate instead.
+@source(JP_CONST_ART56_P2)
+rule AdoptedByMajorityOfPresent strict {
+    label en unofficial "A motion is adopted by an ordinary majority when a quorum is present and a majority of those present vote for it";
+    for m: Motion;
+    when quorum_one_third_of_all(m) and majority_of_present_for(m);
+    then adopted_by_ordinary_majority(m);
+}
+
+@source(JP_CONST_ART56_P2)
+rule AdoptedOnTieByPresidingOfficer strict {
+    label en unofficial "A motion is adopted on a tie when a quorum is present and the presiding officer decides in favour";
+    for m: Motion;
+    when quorum_one_third_of_all(m) and vote_tied(m) and presiding_officer_decides_for(m);
+    then adopted_by_ordinary_majority(m);
+}
+
+@source(JP_CONST_ART56_P2)
+rule RejectedForWantOfMajority strict {
+    label en unofficial "A motion is rejected when a quorum is present but there is neither a majority nor a tie";
+    for m: Motion;
+    when quorum_one_third_of_all(m) and put_to_vote(m)
+        and not_known(majority_of_present_for(m)) and not_known(vote_tied(m));
+    then rejected_by_ordinary_majority(m);
+}
+
+@source(JP_CONST_ART56_P2)
+rule RejectedOnTieByPresidingOfficer strict {
+    label en unofficial "A motion is rejected on a tie when the presiding officer decides against";
+    for m: Motion;
+    when quorum_one_third_of_all(m) and vote_tied(m) and presiding_officer_decides_against(m);
+    then rejected_by_ordinary_majority(m);
+}

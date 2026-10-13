@@ -1,0 +1,633 @@
+// Chapter V, The Cabinet (第五章 内閣), Articles 65-68: executive power, the
+// composition of the Cabinet, the designation of the Prime Minister and the
+// appointment and dismissal of Ministers. Articles 69-71 (resignation en masse and
+// continuation of functions) are in ch05b-cabinet-resignation.law, Articles 72-75
+// (functions, countersignature, immunity of Ministers) in ch05c-cabinet-functions.law.
+//
+// BUILT ON CHAPTER IV (nothing there is redefined; all names are those of the
+// PUBLIC PRODUCERS listed in ch04b/ch04c): `Cabinet`, `Diet`, `HouseOfRepresentatives`,
+// `HouseOfCouncillors`, `Proposal` with `pk_designation_of_prime_minister`,
+// `passed_by_house`, `house_resolves_differently`, `councillors_resolved`,
+// `joint_committee_provided_by_law` / `_held` / `_no_agreement`, `diet_resolution`,
+// `recess_day`, `days_counted_excluding_recess`, `assessment_date`,
+// `minister_of_state`, `member_of`, `motion_before`.
+//
+// MODEL
+//   * ARTICLE 65. Executive power belongs to the Cabinet: the institutional fact
+//     `holds_executive_power(Cabinet)`. The text sets no rule with an addressee, an
+//     action or a consequence; the norms that flesh it out are Arts. 66(3), 72, 73.
+//   * ARTICLE 66(1). The Cabinet is organised "as provided by law" (the Cabinet Law:
+//     external contract `cabinet_organised_by_statute`; its content is NOT invented)
+//     of its head, the Prime Minister, and the other Ministers of State. In the text of
+//     Arts. 66(2), 68 the term 国務大臣 means the Ministers OTHER than the Prime
+//     Minister (Art. 63 and 66(2) say "the Prime Minister and the other Ministers of
+//     State"); the relation `state_minister` is that set. The relation
+//     `minister_of_state` of ch04c ("the Prime Minister or another Minister") is an
+//     input of Art. 63; this module derives it from the facts of the composition, so
+//     the case need not assert it twice.
+//   * ARTICLE 66(2), 文民 (civilian). An EVALUATIVE element without an organ named by
+//     the text. Channel 3 of DECISION-0194: two competing readings of the Government,
+//     each a reading of the SAME article, selected by the scenario
+//     (`interpretation <Reading>;`); with no reading selected `civilian` is silent.
+//     Both readings are backed by PRIMARY sources (Diet minutes, kokkai.ndl.go.jp),
+//     see coverage/J6-interpretations.md: the Cabinet Legislation Bureau in 1961
+//     (only a former career military person deeply imbued with militarism is not a
+//     civilian; a member of the Self-Defense Forces is one) and from the unified view
+//     of December 1973 (restated by the Legislation Bureau on 13-18 October 1988:
+//     that person AND a person holding a post in the Self-Defense Forces are not
+//     civilians). The finding "deeply imbued with militarism" (軍国主義的思想に深く染まつ
+//     ていると考えられる) is itself a judgment; the readings quote the Government as the
+//     one who makes it (the Cabinet decides on appointment; Prime Minister Tanaka, 6
+//     Dec 1973), so it is an `external judgment relation` with authority the Cabinet.
+//     Judgment call: the requirement is a CONDITION OF VALIDITY of the designation
+//     (Art. 67) and of the appointment (Art. 68), not a duty of anyone.
+//   * ARTICLE 66(3). Joint responsibility to the Diet for the exercise of executive
+//     power: a `duty` of the Cabinet with the Diet as beneficiary, per act of
+//     executive power, a maintenance goal over an open window (the text sets no
+//     term). VIOLATED only on an asserted negation (a minister answers alone), never
+//     on silence (§113).
+//   * ARTICLE 67(1). The designation is a `power` of the Diet, valid when (a) the
+//     Diet's resolution exists (`diet_resolution`), (b) the designee is a member of a
+//     House of the Diet, (c) the designee is a civilian. The Diet's resolution comes
+//     from the vote model: both Houses concur, or paragraph 2. "Prior to all other
+//     business" is a `prohibition` addressed to the Diet: the action "other business
+//     was taken up (on an earlier day) before the designation" is established from the
+//     dated facts of the agenda. Judgment call: order is compared at the granularity
+//     of the day; two items on the same day are not "before".
+//   * ARTICLE 67(2). Two cases in which the resolution of the House of Representatives
+//     is the resolution of the Diet: (i) the Houses designate DIFFERENTLY and the joint
+//     committee held as provided by law fails to agree; (ii) the Councillors do not
+//     resolve within TEN DAYS after the Representatives designated, NOT COUNTING THE
+//     TIME OF RECESS. The recess is DATA of the case (`recess_day`, representation B of
+//     AUDIT.md item 5) and the counting is the producer of ch04c
+//     (`days_counted_excluding_recess`), fed here with the day of the Representatives'
+//     resolution; the term is over when the number of counted days exceeds 10. It is
+//     NOT a calendar term. The elapse acts on the assessment date (`assessment_date`,
+//     the "today" workaround of ch04a, TECH_GAP). Judgment calls: the day of the
+//     resolution is not counted (as in Arts. 54, 59); the Representatives' resolution
+//     is a resolution under the residual rule of Art. 56(2) (the text sets no other).
+//   * ARTICLE 6(1) (Chapter I). This module is the PRODUCER of `designated_by_diet(a)`
+//     of ch01-emperor.law: an empirical relation there, derived here from the valid
+//     designation and the link `appointment_on_designation(a, p)` (the act of
+//     appointment is done on that designation); no second input is added.
+//   * ARTICLE 68(1). The appointment is a `power` of the Prime Minister (valid for a
+//     civilian). "The majority must be chosen from among the members of the Diet" is
+//     a condition on the COMPOSITION, computed by the model (`count x 2 > total`), and a
+//     `prohibition` addressed to the Prime Minister: the action "the Cabinet lacks
+//     a majority of Diet members among its Ministers" is established by the count, so the
+//     violation is derived, not asserted. The count runs over the empirical relation
+//     `state_minister` (aggregates: empirical relations only, §111); the Ministers
+//     of Art. 68 are those other than the Prime Minister; a person cannot sit in both
+//     Houses (Art. 48), so the two counts are added.
+//   * ARTICLE 68(2). "At will" (任意に): a `power` of the Prime Minister valid for any
+//     sitting Minister; no ground is required, none is invented.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    Diet,
+    Emperor,
+    House,
+    HouseOfCouncillors,
+    HouseOfRepresentatives,
+    JP_CONST_ART65_P1,
+    JP_CONST_ART66_P1,
+    JP_CONST_ART66_P2,
+    JP_CONST_ART66_P3,
+    JP_CONST_ART67_P1,
+    JP_CONST_ART67_P2,
+    JP_CONST_ART68_P1,
+    JP_CONST_ART68_P2,
+    JP_CONST_ART6_P1,
+    Organ,
+    Person,
+    Proposal,
+    ProposalKind,
+    StateAct,
+    StateActKind,
+    act_appoints_person,
+    act_kind,
+    assessment_date,
+    cabinet_advised_and_approved,
+    councillors_resolved,
+    days_counted_excluding_recess,
+    designated_by_diet,
+    diet_resolution,
+    house_resolves_differently,
+    joint_committee_held,
+    joint_committee_no_agreement,
+    joint_committee_provided_by_law,
+    member_of,
+    minister_of_state,
+    passed_by_house,
+    performs_act,
+    proposal_before_diet,
+    proposal_kind,
+    recess_day,
+};
+
+// --- Article 65 ------------------------------------------------------------------
+relation holds_executive_power(o: Organ) kind institutional {
+    label ja official "行政権は、内閣に属する";
+    label en unofficial "the organ holds the executive power";
+}
+
+@source(JP_CONST_ART65_P1)
+assert holds_executive_power(Cabinet);
+
+// --- Article 66(1): composition ---------------------------------------------------
+relation cabinet_organ(o: Organ) kind institutional {
+    label ja official "内閣";
+    label en unofficial "the organ is the Cabinet";
+}
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "内閣は")
+assert cabinet_organ(Cabinet);
+
+relation cabinet_organised_by_statute(o: Organ) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "the Cabinet is organised under the statute (the Cabinet Law; content is an external contract)";
+}
+relation is_prime_minister(p: Person) kind empirical {
+    label ja official "内閣総理大臣";
+    label en unofficial "the person is the Prime Minister (the head of the Cabinet)";
+}
+// G1/G2 (J10b): the Prime Minister is DERIVED from the valid Art. 6(1) appointment. The input
+// `is_prime_minister` remains for an incumbent whose appointment the case does not model; every rule
+// of Chapter V reads the single derived relation.
+relation prime_minister_in_office(p: Person) kind institutional {
+    label ja official "内閣総理大臣";
+    label en unofficial "the person is the Prime Minister: appointed by a valid act of Art. 6(1) (with legal effect), or established as the incumbent by the input `is_prime_minister`";
+}
+@source(JP_CONST_ART66_P1, relation = applies, coverage = partial, quote = "内閣総理大臣")
+rule PrimeMinisterFromInput strict {
+    label en unofficial "A person given as Prime Minister is the Prime Minister in office";
+    for p: Person;
+    when is_prime_minister(p);
+    then prime_minister_in_office(p);
+}
+// The conditions of validity of the Art. 6(1) act (the power of ch01), read WITHOUT its effect
+// `act_has_legal_effect`: a strict rule may not read an effect of a power through not_known (LDC-E4103),
+// and Art. 74 (`enactment_formalities_complete`) reads the Prime Minister under not_known.
+relation valid_pm_appointment(a: StateAct) kind institutional {
+    label ja official "国会の指名に基いて、内閣総理大臣を任命する";
+    label en unofficial "the act is the Emperor's appointment of a Prime Minister on the Diet's designation and with the Cabinet's advice and approval (the validity conditions of Art. 6(1))";
+}
+@source(JP_CONST_ART6_P1, relation = applies, coverage = partial, quote = "内閣総理大臣を任命する")
+rule ValidPrimeMinisterAppointment strict {
+    label en unofficial "The Emperor's appointment of the Prime Minister is valid when the Diet designated and the Cabinet advised and approved";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == appoint_prime_minister and performs_act(Emperor, a)
+        and designated_by_diet(a) and cabinet_advised_and_approved(a);
+    then valid_pm_appointment(a);
+}
+@source(JP_CONST_ART6_P1, relation = applies, coverage = partial, quote = "内閣総理大臣を任命する")
+rule PrimeMinisterFromValidAppointment strict {
+    label en unofficial "The person named in a valid appointment act is the Prime Minister in office";
+    for a: StateAct; for p: Person;
+    when valid_pm_appointment(a) and act_appoints_person(a, p);
+    then prime_minister_in_office(p);
+}
+relation state_minister(m: Person) kind empirical {
+    label ja official "国務大臣（内閣総理大臣を除く）";
+    label en unofficial "the person is a Minister of State other than the Prime Minister (Arts. 66, 68)";
+}
+relation cabinet_head(o: Organ, p: Person) kind institutional {
+    label ja official "その首長たる内閣総理大臣";
+    label en unofficial "the person is the head of the Cabinet";
+}
+relation cabinet_composed_of(o: Organ, p: Person) kind institutional {
+    label ja official "内閣総理大臣及びその他の国務大臣でこれを組織する";
+    label en unofficial "the person is a member of the Cabinet (the Prime Minister or another Minister)";
+}
+
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "その首長たる内閣総理大臣")
+rule PrimeMinisterHeadsCabinet strict {
+    label en unofficial "The Prime Minister in office is the head of the Cabinet";
+    for o: Organ; for p: Person;
+    when cabinet_organ(o) and cabinet_organised_by_statute(o) and prime_minister_in_office(p);
+    then cabinet_head(o, p);
+}
+
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣及びその他の国務大臣でこれを組織する")
+rule PrimeMinisterIsMemberOfCabinet strict {
+    label en unofficial "The Prime Minister is a member of the Cabinet";
+    for o: Organ; for p: Person;
+    when cabinet_organ(o) and cabinet_organised_by_statute(o) and prime_minister_in_office(p);
+    then cabinet_composed_of(o, p);
+}
+
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣及びその他の国務大臣でこれを組織する")
+rule OtherMinisterIsMemberOfCabinet strict {
+    label en unofficial "Ministers of State other than the Prime Minister are members of the Cabinet";
+    for o: Organ; for m: Person;
+    when cabinet_organ(o) and cabinet_organised_by_statute(o) and state_minister(m);
+    then cabinet_composed_of(o, m);
+}
+
+// The producer of the input of Art. 63 (ch04c): the Prime Minister and the other Ministers.
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣及びその他の国務大臣")
+rule PrimeMinisterIsMinisterOfState strict {
+    label en unofficial "The Prime Minister is a Minister of State";
+    for p: Person;
+    when prime_minister_in_office(p);
+    then minister_of_state(p);
+}
+
+@source(JP_CONST_ART66_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣及びその他の国務大臣")
+rule OtherMinisterIsMinisterOfState strict {
+    label en unofficial "A minister of the Cabinet other than the Prime Minister is a Minister of State";
+    for m: Person;
+    when state_minister(m);
+    then minister_of_state(m);
+}
+
+// --- Article 66(2): the civilian requirement (evaluative; channel 3) --------------------
+relation office_candidate(p: Person) kind empirical {
+    label ja official "内閣総理大臣その他の国務大臣となる者";
+    label en unofficial "the person is proposed for, or holds, the office of Prime Minister or Minister of State";
+}
+relation former_career_military(p: Person) kind empirical {
+    label ja official "旧陸海軍の職業軍人の経歴を有する者";
+    label en unofficial "the person has a career as a professional soldier of the former army or navy";
+}
+relation holds_sdf_post(p: Person) kind empirical {
+    label ja official "自衛官の職に在る者";
+    label en unofficial "the person holds a post as a member of the Self-Defense Forces";
+}
+external judgment relation deeply_imbued_with_militarism(p: Person) {
+    authority CabinetOfJapan;
+    label ja official "軍国主義的思想に深く染まつていると考えられる";
+    label en unofficial "the person is considered deeply imbued with militarist thought (the Government's criterion; authority: the Cabinet that appoints)";
+}
+relation civilian(p: Person) kind institutional {
+    label ja official "文民";
+    label en unofficial "the person is a civilian (Art. 66(2)); silent until a reading is selected";
+}
+
+// Reading 1: the Government's official reading in 1961 (Legislation Bureau). Two rules: a
+// person with no career in the former army or navy; and a former career soldier whom the
+// Cabinet does NOT consider deeply imbued with militarism. The second reads the judgment
+// relation, so that an unanswered question is REQUIRES_JUDGMENT, not a silent default.
+@source(JP_CONST_ART66_P2)
+rule CivilianWithoutMilitaryCareer1961(p: Person) strict {
+    label en unofficial "Reading 1961: a person with no career as a professional soldier of the former army or navy is a civilian";
+    when office_candidate(p) and not_known(former_career_military(p));
+    then civilian(p);
+}
+
+@source(JP_CONST_ART66_P2)
+rule CivilianFormerSoldierNotMilitarist1961(p: Person) strict {
+    label en unofficial "Reading 1961: a former career soldier not considered deeply imbued with militarism is a civilian (a member of the Self-Defense Forces is one)";
+    when office_candidate(p) and former_career_military(p) and not deeply_imbued_with_militarism(p);
+    then civilian(p);
+}
+
+// Reading 2: the unified view of the Government from December 1973.
+@source(JP_CONST_ART66_P2)
+rule CivilianWithoutMilitaryCareer1973(p: Person) strict {
+    label en unofficial "Reading 1973: a person with no military career and no post in the Self-Defense Forces is a civilian";
+    when office_candidate(p) and not_known(former_career_military(p)) and not_known(holds_sdf_post(p));
+    then civilian(p);
+}
+
+@source(JP_CONST_ART66_P2)
+rule CivilianFormerSoldierNotMilitarist1973(p: Person) strict {
+    label en unofficial "Reading 1973: a former career soldier not considered deeply imbued with militarism, holding no post in the Self-Defense Forces, is a civilian";
+    when office_candidate(p) and former_career_military(p) and not deeply_imbued_with_militarism(p)
+        and not_known(holds_sdf_post(p));
+    then civilian(p);
+}
+
+interpretation CivilianGovernmentReading1961 of JP_CONST_ART66_P2 {
+    status disputed;
+    include CivilianWithoutMilitaryCareer1961, CivilianFormerSoldierNotMilitarist1961;
+    label ja unofficial "文民（昭和三十六年の政府見解）";
+    label en unofficial "Government reading of 24 Feb 1961 (Legislation Bureau Director-General Hayashi, House of Representatives Budget Committee): only a former career soldier deeply imbued with militarism is not a civilian; an SDF member is one";
+}
+
+interpretation CivilianGovernmentReading1973 of JP_CONST_ART66_P2 {
+    status disputed;
+    include CivilianWithoutMilitaryCareer1973, CivilianFormerSoldierNotMilitarist1973;
+    label ja unofficial "文民（昭和四十八年の政府統一見解）";
+    label en unofficial "Unified Government view of Dec 1973, restated 1988: a militarist former career soldier and a person holding an SDF post are not civilians";
+}
+
+// --- Article 66(3): joint responsibility ---------------------------------------------------
+entity CabinetAct { label ja official "内閣の行為"; label en unofficial "an act of the Cabinet in the exercise of executive power"; }
+
+relation exercise_of_executive_power(a: CabinetAct) kind empirical {
+    label ja official "行政権の行使";
+    label en unofficial "the act is an exercise of executive power";
+}
+relation jointly_answerable_to_diet(a: CabinetAct) kind empirical {
+    label ja official "国会に対し連帯して責任を負ふ";
+    label en unofficial "the Cabinet answers jointly to the Diet for the act (not one Minister alone)";
+}
+
+@source(JP_CONST_ART66_P3)
+rule CabinetJointlyResponsibleToDiet strict {
+    label ja official "内閣は、行政権の行使について、国会に対し連帯して責任を負ふ";
+    label en unofficial "Article 66(3). The Cabinet is collectively responsible to the Diet for the exercise of executive power";
+    for a: CabinetAct;
+    when exercise_of_executive_power(a);
+    then duty CabinetCollectiveResponsibility {
+        bearer Cabinet; beneficiary Diet;
+        goal maintenance {
+            condition jointly_answerable_to_diet(a);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 67(1): designation of the Prime Minister ---------------------------------------
+relation designation_candidate(p: Proposal, c: Person) kind empirical {
+    key(p);
+    label ja official "指名される者";
+    label en unofficial "the person whom the proposal designates as Prime Minister";
+}
+relation designee_from_diet(p: Proposal) kind institutional {
+    label ja official "国会議員の中から";
+    label en unofficial "the designee is a member of a House of the Diet";
+}
+relation designation_civilian(p: Proposal) kind institutional {
+    label en unofficial "the designee is a civilian (Art. 66(2)) under the selected reading";
+}
+relation designation_valid(p: Proposal) kind institutional {
+    label ja official "国会の議決による指名";
+    label en unofficial "the designation meets all conditions: resolution of the Diet, a member of the Diet, a civilian";
+}
+relation diet_designates_prime_minister(p: Proposal) kind empirical {
+    label ja official "指名する";
+    label en unofficial "the Diet designates the person (the act of exercise)";
+}
+relation designation_effective(p: Proposal) kind institutional {
+    label en unofficial "the designation of the Prime Minister has effect (the effect of the power)";
+}
+relation appointment_on_designation(a: StateAct, p: Proposal) kind empirical {
+    label ja official "国会の指名に基いて任命する";
+    label en unofficial "the Emperor's act of appointment is done on the designation of the proposal";
+}
+
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "国会議員の中から")
+rule DesigneeIsMemberOfDiet strict {
+    label en unofficial "The designated Prime Minister candidate is a member of the Diet";
+    for p: Proposal; for c: Person; for h: House;
+    when proposal_kind(p, pk_designation_of_prime_minister) and designation_candidate(p, c) and member_of(c, h);
+    then designee_from_diet(p);
+}
+
+@source(JP_CONST_ART66_P2, relation = applies, coverage = partial, quote = "内閣総理大臣その他の国務大臣は、文民でなければならない")
+rule DesigneeIsCivilian strict {
+    label en unofficial "The designated Prime Minister candidate is a civilian";
+    for p: Proposal; for c: Person;
+    when proposal_kind(p, pk_designation_of_prime_minister) and designation_candidate(p, c) and civilian(c);
+    then designation_civilian(p);
+}
+
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "国会の議決で、これを指名する")
+rule DesignationValidEstablished strict {
+    label en unofficial "A designation of the Prime Minister is valid when the Diet resolved, the designee is from the Diet and civilian";
+    for p: Proposal;
+    when proposal_kind(p, pk_designation_of_prime_minister) and diet_resolution(p)
+        and designee_from_diet(p) and designation_civilian(p);
+    then designation_valid(p);
+}
+
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣は、国会議員の中から国会の議決で、これを指名する")
+rule DietDesignatesPrimeMinister strict {
+    label ja official "内閣総理大臣は、国会議員の中から国会の議決で、これを指名する";
+    label en unofficial "Article 67(1). The Prime Minister is designated by the Diet from among its members, by its resolution";
+    for p: Proposal;
+    when proposal_kind(p, pk_designation_of_prime_minister);
+    then power DesignatePrimeMinister {
+        holder Diet; over p;
+        exercise diet_designates_prime_minister(p);
+        valid_when designation_valid(p);
+        effect create(designation_effective(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// The producer of ch01's `designated_by_diet` (Art. 6(1)).
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "国会の議決で、これを指名する")
+rule AppointmentRestsOnValidDesignation strict {
+    label en unofficial "An appointment made on a valid Diet designation is founded on designation by the Diet";
+    for a: StateAct; for p: Proposal;
+    when appointment_on_designation(a, p) and designation_valid(p);
+    then designated_by_diet(a);
+}
+
+// G2 (J10b): the appointment "on the designation" needs no separate link fact: the act appoints the very
+// person the Diet validly designated (`act_appoints_person` = `designation_candidate` of a valid
+// designation). `appointment_on_designation` stays available for a case that names the link.
+@source(JP_CONST_ART6_P1, relation = applies, coverage = partial, quote = "国会の指名に基いて")
+rule AppointmentOfTheDesignatedPerson strict {
+    label en unofficial "The appointment of the Prime Minister rests on the Diet's designation when it names the designated candidate";
+    for a: StateAct; for k: StateActKind; for p: Proposal; for c: Person;
+    when act_kind(a, k) and k == appoint_prime_minister and act_appoints_person(a, c)
+        and designation_candidate(p, c) and designation_valid(p);
+    then designated_by_diet(a);
+}
+
+// "Prior to all other business".
+relation agenda_taken_up_on(p: Proposal, d: Date) kind empirical {
+    key(p);
+    label ja official "案件を取り上げた日";
+    label en unofficial "the day on which the Diet took up the item of business";
+}
+relation other_business_before_designation(p: Proposal) kind institutional {
+    label ja official "他のすべての案件に先だつて";
+    label en unofficial "another item of business was taken up on an earlier day than the designation";
+}
+
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "この指名は、他のすべての案件に先だつて、これを行ふ")
+rule OtherBusinessPrecededDesignationEstablished strict {
+    label en unofficial "Other business was taken up before the designation of the Prime Minister";
+    for p: Proposal; for i: Proposal; for k: ProposalKind; for dp: Date; for di: Date;
+    when proposal_kind(p, pk_designation_of_prime_minister) and agenda_taken_up_on(p, dp)
+        and proposal_kind(i, k) and k != pk_designation_of_prime_minister
+        and agenda_taken_up_on(i, di) and di < dp;
+    then other_business_before_designation(p);
+}
+
+@source(JP_CONST_ART67_P1, relation = formalizes, coverage = partial, quote = "この指名は、他のすべての案件に先だつて、これを行ふ")
+rule DesignationBeforeAllOtherBusiness strict {
+    label ja official "この指名は、他のすべての案件に先だつて、これを行ふ";
+    label en unofficial "Article 67(1), second sentence. The designation is made before all other business";
+    for p: Proposal;
+    when proposal_kind(p, pk_designation_of_prime_minister) and proposal_before_diet(p);
+    then prohibition NoOtherBusinessBeforeDesignation {
+        bearer Diet;
+        action other_business_before_designation(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 67(2): the resolution of the Representatives prevails ------------------------------------
+relation representatives_resolved_on(p: Proposal, r: Date) kind empirical {
+    key(p);
+    label ja official "衆議院が指名の議決をした";
+    label en unofficial "the House of Representatives resolved the designation on the day r";
+}
+relation designated_differently_by(p: Proposal, h: House) kind empirical {
+    label ja official "異なつた指名の議決をした";
+    label en unofficial "the House designated another person than the one the proposal names";
+}
+relation councillors_inaction_ten_days(p: Proposal, x: Date) kind institutional {
+    label ja official "国会休会中の期間を除いて十日以内に、参議院が、指名の議決をしないとき";
+    label en unofficial "on the day x more than ten days, recess excluded, have passed since the Representatives designated and the Councillors have not resolved";
+}
+
+@source(JP_CONST_ART67_P2, relation = formalizes, coverage = partial, quote = "衆議院と参議院とが異なつた指名の議決をした場合")
+rule DifferentDesignationIsADifferentResolution strict {
+    label en unofficial "A different designation of the Prime Minister by a House is a different resolution";
+    for p: Proposal; for h: House;
+    when proposal_kind(p, pk_designation_of_prime_minister) and designated_differently_by(p, h);
+    then house_resolves_differently(p, h);
+}
+
+@source(JP_CONST_ART67_P2, relation = formalizes, coverage = partial, quote = "国会休会中の期間を除いて十日以内に")
+rule DesignationDaysCountedExcludeRecess strict {
+    label en unofficial "Art. 67(2). The days counted since the Representatives designated: the days between the day after the resolution and the day x, minus the recess days in that interval (the producer of ch04c)";
+    for p: Proposal; for r: Date; for x: Date;
+    when proposal_kind(p, pk_designation_of_prime_minister) and representatives_resolved_on(p, r) and assessment_date(x);
+    then days_counted_excluding_recess(p, x, days_between(r, x) - (count distinct d: Date where recess_day(d) and d > r and d <= x));
+}
+
+@source(JP_CONST_ART67_P2, relation = formalizes, coverage = partial, quote = "国会休会中の期間を除いて十日以内に、参議院が、指名の議決をしないとき")
+rule TenDaysWithoutResolution strict {
+    label en unofficial "The House of Councillors is inactive when it has not designated within ten days, recess excluded";
+    for p: Proposal; for x: Date; for n: Integer;
+    when proposal_kind(p, pk_designation_of_prime_minister) and passed_by_house(p, HouseOfRepresentatives)
+        and days_counted_excluding_recess(p, x, n) and n > 10 and not_known(councillors_resolved(p));
+    then councillors_inaction_ten_days(p, x);
+}
+
+@source(JP_CONST_ART67_P2, relation = formalizes, coverage = partial, quote = "法律の定めるところにより、両議院の協議会を開いても意見が一致しないとき")
+rule RepresentativesDesignationPrevailsAfterFailedJointCommittee strict {
+    label ja official "衆議院と参議院とが異なつた指名の議決をした場合に、法律の定めるところにより、両議院の協議会を開いても意見が一致しないときは、衆議院の議決を国会の議決とする";
+    label en unofficial "Article 67(2), first case. Different designations and no agreement in the joint committee: the resolution of the Representatives is the resolution of the Diet";
+    for p: Proposal;
+    when proposal_kind(p, pk_designation_of_prime_minister) and passed_by_house(p, HouseOfRepresentatives)
+        and house_resolves_differently(p, HouseOfCouncillors)
+        and joint_committee_provided_by_law(p) and joint_committee_held(p) and joint_committee_no_agreement(p);
+    then diet_resolution(p);
+}
+
+@source(JP_CONST_ART67_P2, relation = formalizes, coverage = partial, quote = "衆議院の議決を国会の議決とする")
+rule RepresentativesDesignationPrevailsAfterTenDays strict {
+    label ja official "衆議院が指名の議決をした後、国会休会中の期間を除いて十日以内に、参議院が、指名の議決をしないときは、衆議院の議決を国会の議決とする";
+    label en unofficial "Article 67(2), second case. If the Councillors do not resolve within ten days, the time of recess excluded, the resolution of the Representatives is the resolution of the Diet";
+    for p: Proposal; for x: Date;
+    when proposal_kind(p, pk_designation_of_prime_minister) and councillors_inaction_ten_days(p, x);
+    then diet_resolution(p);
+}
+
+// --- Article 68(1): appointment of Ministers ----------------------------------------------------------
+relation pm_appoints_minister(p: Person, m: Person) kind empirical {
+    label ja official "国務大臣を任命する";
+    label en unofficial "the Prime Minister appoints the person a Minister of State (the act of exercise)";
+}
+relation minister_appointed(m: Person) kind institutional {
+    label ja official "任命された国務大臣";
+    label en unofficial "the person has been validly appointed a Minister of State (the effect of the power)";
+}
+relation minister_civilian_ok(m: Person) kind institutional {
+    label en unofficial "the appointee is a civilian under the selected reading (Art. 66(2))";
+}
+relation cabinet_lacks_diet_majority(o: Organ) kind institutional {
+    label ja official "その過半数が国会議員の中から選ばれていない";
+    label en unofficial "not more than half of the Ministers of State are members of the Diet (a violation of Art. 68(1) proviso)";
+}
+relation ministers_majority_from_diet(o: Organ) kind institutional {
+    label ja official "その過半数は、国会議員の中から選ばれなければならない";
+    label en unofficial "more than half of the Ministers of State are members of the Diet";
+}
+
+@source(JP_CONST_ART66_P2, relation = applies, coverage = partial, quote = "国務大臣は、文民でなければならない")
+rule AppointeeIsCivilian strict {
+    label en unofficial "A Minister of State satisfies the civilian requirement when the person is a civilian";
+    for m: Person;
+    when civilian(m);
+    then minister_civilian_ok(m);
+}
+
+@source(JP_CONST_ART68_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣は、国務大臣を任命する")
+rule PrimeMinisterAppointsMinisters strict {
+    label ja official "内閣総理大臣は、国務大臣を任命する";
+    label en unofficial "Article 68(1). The Prime Minister appoints the Ministers of State (valid for a civilian)";
+    for p: Person; for m: Person;
+    when prime_minister_in_office(p) and office_candidate(m);
+    then power AppointMinister {
+        holder p; over m;
+        exercise pm_appoints_minister(p, m);
+        valid_when minister_civilian_ok(m);
+        effect create(minister_appointed(m));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART68_P1, relation = formalizes, coverage = partial, quote = "その過半数は、国会議員の中から選ばれなければならない")
+rule MajorityOfMinistersFromDiet strict {
+    label en unofficial "A majority of the Ministers of State are chosen from among members of the Diet";
+    for o: Organ;
+    when cabinet_organ(o)
+        and (count distinct m: Person where state_minister(m)) > 0
+        and ((count distinct m: Person where state_minister(m) and member_of(m, HouseOfRepresentatives))
+            + (count distinct m: Person where state_minister(m) and member_of(m, HouseOfCouncillors))) * 2
+            > (count distinct m: Person where state_minister(m));
+    then ministers_majority_from_diet(o);
+}
+
+@source(JP_CONST_ART68_P1, relation = formalizes, coverage = partial, quote = "その過半数は、国会議員の中から選ばれなければならない")
+rule MinorityOfMinistersFromDietEstablished strict {
+    label en unofficial "The Cabinet lacks a majority of Ministers of State chosen from the Diet";
+    for o: Organ;
+    when cabinet_organ(o)
+        and (count distinct m: Person where state_minister(m)) > 0
+        and ((count distinct m: Person where state_minister(m) and member_of(m, HouseOfRepresentatives))
+            + (count distinct m: Person where state_minister(m) and member_of(m, HouseOfCouncillors))) * 2
+            <= (count distinct m: Person where state_minister(m));
+    then cabinet_lacks_diet_majority(o);
+}
+
+@source(JP_CONST_ART68_P1, relation = formalizes, coverage = partial, quote = "但し、その過半数は、国会議員の中から選ばれなければならない")
+rule PrimeMinisterMustChooseMajorityFromDiet strict {
+    label ja official "但し、その過半数は、国会議員の中から選ばれなければならない";
+    label en unofficial "Article 68(1) proviso. More than half of the Ministers must be chosen from among the members of the Diet";
+    for o: Organ; for p: Person;
+    when cabinet_head(o, p);
+    then prohibition NoCabinetWithoutDietMajority {
+        bearer p;
+        action cabinet_lacks_diet_majority(o);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 68(2): dismissal at will --------------------------------------------------------------------------
+relation pm_dismisses_minister(p: Person, m: Person) kind empirical {
+    label ja official "国務大臣を罷免する";
+    label en unofficial "the Prime Minister dismisses the Minister of State (the act of exercise)";
+}
+relation minister_dismissed(m: Person) kind institutional {
+    label ja official "罷免された国務大臣";
+    label en unofficial "the Minister of State has been dismissed (the effect of the power)";
+}
+
+@source(JP_CONST_ART68_P2)
+rule PrimeMinisterMayDismissMinistersAtWill strict {
+    label ja official "内閣総理大臣は、任意に国務大臣を罷免することができる";
+    label en unofficial "Article 68(2). The Prime Minister may dismiss a Minister of State at will (no ground is required)";
+    for p: Person; for m: Person;
+    when prime_minister_in_office(p) and state_minister(m);
+    then power DismissMinister {
+        holder p; over m;
+        exercise pm_dismisses_minister(p, m);
+        valid_when state_minister(m);
+        effect create(minister_dismissed(m));
+        window [@1947-05-03, infinity);
+    };
+}

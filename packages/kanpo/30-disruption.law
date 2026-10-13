@@ -1,0 +1,153 @@
+// 第八条第二項・第三項、内閣府令第十六条第二項・第十七条: 災害等の事情による措置の中断と
+// 追加措置期間.
+//
+// Art. 8(2) defines 災害等の事情 — a disaster or other unavoidable circumstance,
+// or a failure of the automatic public transmission prescribed by 府令: under
+// 府令 art. 16(2), an accident stopping the telecommunications service at BOTH
+// the main transmission facility and the alternate one in another prefecture.
+// When the measure for an issue could not be continued because of such a
+// circumstance and the PM has announced its resolution (art. 8(2) — the
+// announcement is a case fact here, the duty to announce is not a position),
+// art. 8(3) requires the measure to continue for the 追加措置期間 after the
+// inspection period.
+//
+// 府令 art. 17 fixes that period in DAYS: counting from the day the inspection
+// period elapsed (or the day the circumstance was resolved, if the measure
+// still could not be taken when the period elapsed), a period of as many days
+// as there were days inside the inspection period on which the measure could
+// not be taken for twelve hours or more in total, until 08:30 of the day on
+// which it has elapsed. At day granularity the base-day switch is exact: a
+// resolution on the period's last day after 08:30 gives the same day. The
+// case supplies whole hours per day (fractions dropped), which decides the
+// twelve-hour threshold exactly. The step reads KANPO_INSPECTION_PERIOD
+// (start_count same_day). Several circumstances for one issue give one base
+// day each; the package does not choose between them (boundary).
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    KANPO_ART8,
+    KANPO_FUREI_ART16,
+    KANPO_FUREI_ART17,
+    KanpoIssue,
+    inspection_measure_taken_on,
+    inspection_period_ends_on,
+};
+
+entity Disruption { label ja official "災害等の事情（その発生）"; }
+
+relation disaster_or_unavoidable_circumstance(x: Disruption) kind empirical {
+    label ja official "災害その他のやむを得ない事情である";
+}
+relation telecom_service_stopped_at_main_facility(x: Disruption) kind empirical {
+    label ja official "自動公衆送信設備においてインターネットへの接続を可能とする電気通信役務の提供が事故により停止した";
+}
+relation telecom_service_stopped_at_alternate_facility(x: Disruption) kind empirical {
+    label ja official "代替設備においてインターネットへの接続を可能とする電気通信役務の提供が同じ事故により停止した";
+}
+relation measure_interrupted_by(k: KanpoIssue, x: Disruption) kind empirical {
+    label ja official "閲覧期間が経過するまでの間に、この事情が生じたことにより当該官報に係る第五条第二項の措置を継続してとることができなくなった";
+}
+relation disruption_resolved_on(x: Disruption, day: Date) kind empirical {
+    label ja official "この事情が解消した日";
+    key(x);
+}
+relation resolution_announced(x: Disruption) kind empirical {
+    label ja official "第八条第二項の規定によりこの事情が解消した旨の公表がされた";
+}
+relation unavailable_hours_on(k: KanpoIssue, day: Date, hours: Integer) kind empirical {
+    label ja official "この日において当該官報に係る第五条第二項の措置をとることができなかった時間の合計（閲覧期間内、一時間未満切捨て）";
+    key(k, day);
+}
+
+relation disruption_is_disaster_etc(x: Disruption) kind institutional {
+    label ja official "第八条第二項の災害等の事情に該当する";
+}
+relation additional_measure_required(k: KanpoIssue, x: Disruption) kind institutional {
+    label ja official "第八条第三項により当該官報について追加措置期間の措置をとる";
+}
+relation inspection_lost_day(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "閲覧期間内において一日につき合計十二時間以上当該措置をとることができなかった日";
+}
+relation inspection_lost_day_count(k: KanpoIssue, n: Integer) kind institutional {
+    label ja official "閲覧期間内において一日につき合計十二時間以上当該措置をとることができなかった日の日数";
+}
+relation additional_period_base_day(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "追加措置期間の起算日（閲覧期間が経過した日又は災害等の事情が解消した日）";
+}
+relation additional_measure_ends_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "追加措置期間は、この日の午前八時三十分までとする";
+}
+
+@source(KANPO_ART8)
+rule DisasterIsDisasterEtc(x: Disruption) strict {
+    when disaster_or_unavoidable_circumstance(x);
+    then disruption_is_disaster_etc(x);
+    label ja official "第八条第二項　災害その他のやむを得ない事情は、災害等の事情に該当する";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART16)
+rule TelecomStopAtBothFacilitiesIsDisasterEtc(x: Disruption) strict {
+    when telecom_service_stopped_at_main_facility(x);
+    when telecom_service_stopped_at_alternate_facility(x);
+    then disruption_is_disaster_etc(x);
+    label ja official "第八条第二項・内閣府令第十六条第二項　自動公衆送信設備及び代替設備のいずれもが電気通信役務の提供の停止を受けた事故に起因する障害は、災害等の事情に該当する";
+}
+
+@source(KANPO_ART8)
+rule ResolutionAnnouncedTriggersAdditionalMeasure(k: KanpoIssue, x: Disruption) strict {
+    when measure_interrupted_by(k, x);
+    when disruption_is_disaster_etc(x);
+    when resolution_announced(x);
+    then additional_measure_required(k, x);
+    label ja official "第八条第三項　前項の規定により災害等の事情が解消した旨の公表をしたときは、閲覧期間が経過した後引き続いて、追加措置期間、継続して当該措置をとる";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART17)
+rule InspectionLostDay(k: KanpoIssue, m: Date, e: Date, d: Date, h: Integer) strict {
+    when inspection_measure_taken_on(k, m);
+    when inspection_period_ends_on(k, e);
+    when unavailable_hours_on(k, d, h);
+    when h >= 12;
+    when d >= m;
+    when d < e;
+    then inspection_lost_day(k, d);
+    label ja official "内閣府令第十七条　当該閲覧期間内において一日につき合計十二時間以上当該措置をとることができなかった日";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART17)
+rule InspectionLostDayCount(k: KanpoIssue, e: Date) strict {
+    when inspection_period_ends_on(k, e);
+    then inspection_lost_day_count(k, count(collect d: Date where inspection_lost_day(k, d)));
+    label ja official "内閣府令第十七条　閲覧期間内において一日につき合計十二時間以上当該措置をとることができなかった日の日数を合算する";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART17)
+rule AdditionalPeriodCountsFromPeriodEnd(k: KanpoIssue, x: Disruption, e: Date, r: Date) strict {
+    when additional_measure_required(k, x);
+    when inspection_period_ends_on(k, e);
+    when disruption_resolved_on(x, r);
+    when r <= e;
+    then additional_period_base_day(k, e);
+    label ja official "内閣府令第十七条　閲覧期間が経過した日から起算する";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART17)
+rule AdditionalPeriodCountsFromResolutionDay(k: KanpoIssue, x: Disruption, e: Date, r: Date) strict {
+    when additional_measure_required(k, x);
+    when inspection_period_ends_on(k, e);
+    when disruption_resolved_on(x, r);
+    when r > e;
+    then additional_period_base_day(k, r);
+    label ja official "内閣府令第十七条　災害等の事情により当該閲覧期間が経過した時においても当該措置をとることができない場合にあっては、当該災害等の事情が解消した日から起算する";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART17)
+rule AdditionalMeasureEndsAt0830(k: KanpoIssue, b: Date, n: Integer) strict {
+    when additional_period_base_day(k, b);
+    when inspection_lost_day_count(k, n);
+    then additional_measure_ends_on(k, add_calendar_period(b, n * 1 calendar_day));
+    label ja official "内閣府令第十七条　起算して、当該日数を合算した期間を経過した日の午前八時三十分までの期間、継続してとる";
+}

@@ -1,0 +1,1208 @@
+// Chapter VI, The Judiciary (第六章 司法), Articles 76-82 (stage J7).
+//
+// HOW THE CHAPTER IS MODELLED (modality chosen by WHOSE conduct the text describes)
+//   * institutional  Art. 76(1) (who holds judicial power), Art. 79(1) (composition,
+//                    the Chief Justice bridge to Art. 6(2)), Art. 79(2) (the schedule
+//                    of popular review), Art. 79(3) (effect of the vote), Arts. 79(5)
+//                    and 80(1) (retirement age, term of ten years);
+//   * prohibition    Art. 76(2) (extraordinary tribunals; final adjudication by an
+//                    executive organ), Art. 78 s2 (executive discipline of judges),
+//                    Arts. 79(6) and 80(2) (reduction of judicial remuneration),
+//                    Art. 82 (closing a hearing that must be public; closing a
+//                    judgment);
+//   * immunity       Art. 76(3) (independence of judges), Art. 78 (removal only by
+//                    impeachment or judicial declaration of incapacity; discipline),
+//                    Arts. 79(6) and 80(2) (remuneration during term);
+//   * duty           Art. 77(2) (prosecutors follow the Supreme Court's rules),
+//                    Arts. 79(6) and 80(2) (periodic and adequate remuneration);
+//   * power          Art. 77(1) (rules), Art. 77(3) (delegation of rule-making),
+//                    Art. 78 (removal), Art. 79(1) (Cabinet appoints the justices
+//                    other than the Chief Justice), Art. 80(1) (Cabinet appoints and
+//                    reappoints lower-court judges from the Supreme Court's list),
+//                    Art. 81 (determination of constitutionality), Art. 82(2)
+//                    (closing a hearing).
+//   A power's validity condition (`valid_when`) is a condition of the ACT, not a duty;
+//   the absence of a power is not a prohibition.
+//
+// THE CALENDAR (Arts. 79(2), 80(1)). The Constitution gives no counting rule for
+//   "ten years". The model counts calendar years by the CORRESPONDING DATE: a period
+//   of n years that starts on date d has elapsed on `add_calendar_period(d, n
+//   calendar_year)`, the anniversary (policy J7_ANNIVERSARY: `same_day`, a
+//   nonexistent 29 February becomes 28 February). Consequences, fixed by scenarios:
+//     - Art. 79(2): "the first general election held AFTER ten years have elapsed
+//       since the review" is the first election whose date is >= the anniversary of the
+//       previous review (an election ON the anniversary qualifies; one day earlier does
+//       not);
+//     - Art. 80(1): the term of ten years ends when the anniversary is reached; the
+//       anniversary itself is the first day after the term (`lower_court_term_end`).
+//   This is a modelling choice from the wording ("elapsed", "term of ten years"), NOT a
+//   claim about the Government's or the courts' practice (none was retrieved).
+//
+// ARTICLE 79(2)-(3), THE POPULAR REVIEW.
+//   * "at the first general election of the House of Representatives held AFTER the
+//     appointment": strictly later than the appointment date (an election on the day
+//     of appointment is not "after"); the case must supply ALL general elections of
+//     the relevant period (`house_general_election_on`): the first is found by a count
+//     of earlier ones, so a missing earlier election would make a later one look first.
+//   * "and thereafter likewise": the clock restarts from EACH review election
+//     (recursive rule `review_due_on`). Reading: the ten years run from the review at
+//     which the justice was last submitted to the people ("その後" refers to that review).
+//   * "the majority of the voters is in favour of dismissal": the denominator is the
+//     votes cast for or against (predicate `majority_of_votes_cast_for` of 01-voting.law,
+//     Art. 96(2) denominator): a tie or an empty vote is not a majority. The statute of
+//     Art. 79(4) (最高裁判所裁判官国民審査法, e-Gov, retrieved 2026-09-25; see
+//     coverage/J7-interpretations.md) counts a ballot with no mark as NOT favouring
+//     dismissal (Art. 15) and dismisses when the marked votes exceed the unmarked ones
+//     (Art. 32): the case therefore supplies `votes_for` (marked for dismissal) and
+//     `votes_against` (all other valid ballots). The statute adds a quorum proviso
+//     (total votes below one hundredth of the registered electors: no dismissal); it is a
+//     statutory condition outside Art. 79(3) and is NOT modelled here.
+//   * "ten years after the FIRST review" and the review on the election day: the same statute
+//     (Art. 2) uses the same reading as the model: each later review is on the first election
+//     after ten years have elapsed since the previous review date.
+//   * a review vote held at an election that is not due has no effect.
+//   * retirement age, the number of other justices, the review statute, the
+//     courts' establishment: "as provided by law" — INPUT facts, no content invented.
+//
+// EVALUATIVE ELEMENTS (DECISION-0194).
+//   * 特別裁判所 (Art. 76(2)): judgment relation `is_extraordinary_tribunal`, authority
+//     SupremeCourtOfJapan (the organ of Art. 81); with no answer the prohibition
+//     cannot say whether it is violated (REQUIRES_JUDGMENT).
+//   * 公の秩序又は善良の風俗を害する虞 (Art. 82(2)): the text itself names the decider:
+//     the court, by the unanimity of its judges. Channel 2: each judge's finding is a
+//     FACT `origin adjudicated` (`bench_judge_finds_danger`); unanimity is COUNTED.
+//   * 政治犯罪, 出版に関する犯罪 (Art. 82(2) proviso): classification of the offence
+//     is a fact of the hearing (`concerns_political_offence`, `concerns_press_offence`),
+//     `origin adjudicated`; the Constitution does not define them.
+//   * 相当額 (Arts. 79(6), 80(2)): channel 2, `remuneration_irregular_or_inadequate`
+//     `origin adjudicated`.
+//   * Art. 81 itself: judgment relation `act_contradicts_constitution` (authority
+//     SupremeCourtOfJapan); THE COURT'S RECOGNITION IS AN INPUT FACT with `origin
+//     adjudicated`. Its public consequence `unconstitutionality_recognized(a)` is
+//     what stage J9 (Art. 98, invalidity) will build on.
+//
+// ARTICLE 82 PATTERN (AUDIT.md item 9): general rule (public) -> exception (unanimous
+//   finding: not public) -> exception to the exception (political, press, Chapter III:
+//   public again), with a `priority` (§116) at each step. The closure power is valid
+//   only when the exception stands (`closed_hearing_lawful`).
+//
+// Article 6(2) BRIDGE (ch01-emperor.law): the Chief Justice is the person of whom an
+//   enumerated act `appoint_chief_justice` with legal effect (`act_has_legal_effect`)
+//   says he is appointed (`act_appoints_person`); that act's validity — designation
+//   by the Cabinet and its advice and approval — stays in ch01.
+//
+// Helper names carry the prefix `j7_` where a neighbouring stage could need the same word.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Enactment,
+    ExerciseOfRight,
+    House,
+    HouseOfRepresentatives,
+    JP_CONST_ART76_P1,
+    JP_CONST_ART76_P2,
+    JP_CONST_ART76_P3,
+    JP_CONST_ART77_P1,
+    JP_CONST_ART77_P2,
+    JP_CONST_ART77_P3,
+    JP_CONST_ART78_P1,
+    JP_CONST_ART79_P1,
+    JP_CONST_ART79_P2,
+    JP_CONST_ART79_P3,
+    JP_CONST_ART79_P4,
+    JP_CONST_ART79_P5,
+    JP_CONST_ART79_P6,
+    JP_CONST_ART80_P1,
+    JP_CONST_ART80_P2,
+    JP_CONST_ART81_P1,
+    JP_CONST_ART82_P1,
+    JP_CONST_ART82_P2,
+    Motion,
+    Organ,
+    Person,
+    Proposal,
+    RightKind,
+    StateAct,
+    StateActKind,
+    Statute,
+    act_has_legal_effect,
+    act_kind,
+    enacted_as_law,
+    exercise_kind,
+    general_election_held_on,
+    majority_of_votes_cast_for,
+    put_to_vote,
+    r3a_state_organ,
+};
+
+// A nonexistent day is not rejected: 29 February + n years is 28 February.
+deadline policy J7_ANNIVERSARY {
+    start_count same_day;
+    include_end true;
+    roll no_roll;
+    month_end last_day_of_month;
+}
+
+const SupremeCourtOfJapan: Organ = entity_ref("urn:jp:constitution:clir#SupremeCourtOfJapan") {
+    label ja official "最高裁判所";
+    label en unofficial "the Supreme Court";
+};
+
+entity SpecialTribunal { label ja official "特別裁判所"; label en unofficial "a tribunal that a State organ proposes to establish"; }
+entity Adjudication { label ja official "裁判"; label en unofficial "an adjudication (a decision of a dispute)"; }
+entity CourtRule { label ja official "規則"; label en unofficial "a rule made by the Supreme Court"; }
+entity CourtHearing { label ja official "対審"; label en unofficial "the hearing of the parties in a trial (対審)"; }
+entity CourtJudgment { label ja official "判決"; label en unofficial "a judgment"; }
+entity ReviewableAct { label ja official "法律、命令、規則又は処分"; label en unofficial "a law, order, regulation or act (処分) submitted to constitutional review"; }
+entity Directive { label ja official "指示"; label en unofficial "an instruction addressed to a judge"; }
+
+enum RuleMatter { label en unofficial "matters subject to Supreme Court rule-making"; court_procedure; attorneys; internal_discipline; judicial_administration; lower_court_matters; other_matter; }
+enum ReviewableKind { label en unofficial "kinds of acts subject to constitutional review"; statute; order; regulation; disposition; other_act; }
+
+// --- shared vocabulary -----------------------------------------------------------------
+relation j7_judge(p: Person) kind institutional {
+    label ja official "裁判官"; label en unofficial "the person is a judge of the Supreme Court or of a lower court";
+}
+relation holds_judicial_office(p: Person, c: Organ) kind empirical {
+    label ja official "裁判官の職"; label en unofficial "the person sits as a judge of the court c (a fact of office; the validity of the appointment is a separate question)";
+}
+relation supreme_court(o: Organ) kind institutional {
+    label ja official "最高裁判所"; label en unofficial "the organ is the Supreme Court";
+}
+relation inferior_court(o: Organ) kind empirical {
+    label ja official "下級裁判所"; label en unofficial "the organ is a lower court";
+}
+relation established_under_statute(o: Organ) kind empirical {
+    label ja official "法律の定めるところにより設置する"; label en unofficial "the court is established as provided by statute (content of the statute external)";
+}
+relation supreme_court_justice(p: Person) kind institutional {
+    label ja official "最高裁判所の裁判官"; label en unofficial "the person is a judge of the Supreme Court";
+}
+relation lower_court_judge(p: Person) kind institutional {
+    label ja official "下級裁判所の裁判官"; label en unofficial "the person is a judge of a lower court";
+}
+relation j7_executive_organ(o: Organ) kind empirical {
+    label ja official "行政機関"; label en unofficial "the organ is an executive organ";
+}
+relation j7_cabinet(o: Organ) kind empirical {
+    label ja official "内閣"; label en unofficial "the organ is the Cabinet";
+}
+relation j7_prosecutor(p: Person) kind empirical {
+    label ja official "検察官"; label en unofficial "the person is a prosecutor";
+}
+relation appointed_on(p: Person, d: Date) kind empirical {
+    label ja official "任命"; label en unofficial "the person was appointed as a judge on the date";
+}
+
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = partial, quote = "最高裁判所")
+assert supreme_court(SupremeCourtOfJapan);
+
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = partial, quote = "最高裁判所")
+rule SupremeCourtJusticeOfCourt strict {
+    label en unofficial "A person holding judicial office in the Supreme Court is a Supreme Court justice";
+    for p: Person; for c: Organ;
+    when holds_judicial_office(p, c) and supreme_court(c);
+    then supreme_court_justice(p);
+}
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = partial, quote = "下級裁判所")
+rule LowerCourtJudgeOfCourt strict {
+    label en unofficial "A person holding judicial office in an inferior court is a lower court judge";
+    for p: Person; for c: Organ;
+    when holds_judicial_office(p, c) and inferior_court(c);
+    then lower_court_judge(p);
+}
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = partial, quote = "最高裁判所")
+rule SupremeCourtJusticeIsJudge strict { label en unofficial "A justice of the Supreme Court is a judge"; for p: Person; when supreme_court_justice(p); then j7_judge(p); }
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = partial, quote = "下級裁判所")
+rule LowerCourtJudgeIsJudge strict { label en unofficial "A judge of a lower court is a judge"; for p: Person; when lower_court_judge(p); then j7_judge(p); }
+
+// --- Article 76 ---------------------------------------------------------------------------
+relation holds_judicial_power(o: Organ) kind institutional {
+    label ja official "司法権"; label en unofficial "the organ holds the judicial power";
+}
+
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = exact, quote = "すべて司法権は、最高裁判所及び法律の定めるところにより設置する下級裁判所に属する")
+rule JudicialPowerOfSupremeCourt strict {
+    label ja official "すべて司法権は、最高裁判所に属する";
+    label en unofficial "Article 76(1). All judicial power is vested in the Supreme Court";
+    for o: Organ;
+    when supreme_court(o);
+    then holds_judicial_power(o);
+}
+
+@source(JP_CONST_ART76_P1, relation = formalizes, coverage = exact, quote = "すべて司法権は、最高裁判所及び法律の定めるところにより設置する下級裁判所に属する")
+rule JudicialPowerOfLowerCourts strict {
+    label ja official "すべて司法権は、法律の定めるところにより設置する下級裁判所に属する";
+    label en unofficial "Article 76(1). All judicial power is vested in the lower courts established by law";
+    for o: Organ;
+    when inferior_court(o) and established_under_statute(o);
+    then holds_judicial_power(o);
+}
+
+relation tribunal(t: SpecialTribunal) kind empirical {
+    label en unofficial "the tribunal exists or is proposed (binds the tribunal of the prohibition)";
+}
+relation establishes_tribunal(o: Organ, t: SpecialTribunal) kind empirical {
+    label ja official "裁判所を設置する"; label en unofficial "the organ establishes the tribunal";
+}
+external judgment relation is_extraordinary_tribunal(t: SpecialTribunal) {
+    authority SupremeCourtOfJapan;
+    label ja official "特別裁判所";
+    label en unofficial "the tribunal is an extraordinary tribunal (judgment of the Supreme Court, Art. 81)";
+}
+relation establishes_extraordinary_tribunal(o: Organ, t: SpecialTribunal) kind institutional {
+    label ja official "特別裁判所を設置する"; label en unofficial "the organ establishes an extraordinary tribunal";
+}
+@source(JP_CONST_ART76_P2, relation = formalizes, coverage = partial, quote = "特別裁判所は、これを設置することができない")
+rule EstablishesExtraordinaryTribunal strict {
+    label en unofficial "An organ that establishes an extraordinary tribunal violates the ban on such tribunals";
+    for o: Organ; for t: SpecialTribunal;
+    when establishes_tribunal(o, t) and is_extraordinary_tribunal(t);
+    then establishes_extraordinary_tribunal(o, t);
+}
+
+@source(JP_CONST_ART76_P2, relation = formalizes, coverage = partial, quote = "特別裁判所は、これを設置することができない")
+rule NoExtraordinaryTribunals strict {
+    label ja official "特別裁判所は、これを設置することができない";
+    label en unofficial "Article 76(2), sentence 1. No extraordinary tribunal may be established";
+    for o: Organ; for t: SpecialTribunal;
+    when r3a_state_organ(o) and tribunal(t);
+    then prohibition NoExtraordinaryTribunal {
+        bearer o;
+        action establishes_extraordinary_tribunal(o, t);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation adjudication(a: Adjudication) kind empirical {
+    label en unofficial "the adjudication exists (binds the adjudication of the prohibition)";
+}
+relation renders_final_adjudication(o: Organ, a: Adjudication) kind empirical {
+    label ja official "終審として裁判を行ふ"; label en unofficial "the organ decides the dispute as the court of last resort";
+}
+
+@source(JP_CONST_ART76_P2, relation = formalizes, coverage = partial, quote = "行政機関は、終審として裁判を行ふことができない")
+rule NoFinalAdjudicationByExecutive strict {
+    label ja official "行政機関は、終審として裁判を行ふことができない";
+    label en unofficial "Article 76(2), sentence 2. No executive organ may give final judgment";
+    for o: Organ; for a: Adjudication;
+    when j7_executive_organ(o) and adjudication(a);
+    then prohibition NoFinalAdjudicationByExecutiveOrgan {
+        bearer o;
+        action renders_final_adjudication(o, a);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation bound_only_by_constitution_and_statutes(p: Person) kind institutional {
+    label ja official "この憲法及び法律にのみ拘束される"; label en unofficial "the judge is bound only by the Constitution and the statutes";
+}
+relation judge_bound_by_directive(p: Person) kind institutional {
+    label ja official "指示による拘束"; label en unofficial "the judge is bound by an instruction from outside the Constitution and the statutes (nothing in the Constitution creates it)";
+}
+relation directs_judicial_function(o: Organ, p: Person) kind empirical {
+    label en unofficial "the organ instructs the judge how to exercise the judicial function";
+}
+
+@source(JP_CONST_ART76_P3, relation = formalizes, coverage = partial, quote = "この憲法及び法律にのみ拘束される")
+rule JudgesBoundOnlyByConstitutionAndStatutes strict {
+    label ja official "すべて裁判官は、この憲法及び法律にのみ拘束される";
+    label en unofficial "Article 76(3). Judges are bound only by the Constitution and the laws";
+    for p: Person;
+    when j7_judge(p);
+    then bound_only_by_constitution_and_statutes(p);
+}
+
+@source(JP_CONST_ART76_P3, relation = formalizes, coverage = partial, quote = "すべて裁判官は、その良心に従ひ独立してその職権を行ひ")
+rule JudicialIndependenceImmunity strict {
+    label ja official "すべて裁判官は、その良心に従ひ独立してその職権を行ひ";
+    label en unofficial "Article 76(3). Judges exercise their authority independently, according to conscience: no outside instruction binds them";
+    for p: Person;
+    when j7_judge(p);
+    then immunity JudicialIndependence {
+        holder p;
+        protected_effect judge_bound_by_directive(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 77 ---------------------------------------------------------------------------
+relation makes_rule(o: Organ, r: CourtRule) kind empirical {
+    label ja official "規則を定める"; label en unofficial "the organ makes the rule (act of exercise)";
+}
+relation rule_matter(r: CourtRule, m: RuleMatter) kind empirical {
+    label en unofficial "the subject matter of the rule";
+}
+relation matter_within_art77(r: CourtRule) kind institutional {
+    label ja official "訴訟に関する手続、弁護士、裁判所の内部規律及び司法事務処理に関する事項"; label en unofficial "the rule concerns procedure, attorneys, internal discipline of courts or judicial administration";
+}
+relation court_rule_in_force(r: CourtRule) kind institutional {
+    label en unofficial "the rule of the Supreme Court is validly made and in force";
+}
+relation rule_addresses_prosecutors(r: CourtRule) kind empirical {
+    label ja official "検察官に関する規則"; label en unofficial "the rule addresses prosecutors";
+}
+
+@source(JP_CONST_ART77_P1, relation = formalizes, coverage = partial, quote = "訴訟に関する手続")
+rule MatterProcedure strict { label en unofficial "Rules of procedure of court proceedings fall within the rule-making power of the Supreme Court"; for r: CourtRule; for m: RuleMatter; when rule_matter(r, m) and m == court_procedure; then matter_within_art77(r); }
+@source(JP_CONST_ART77_P1, relation = formalizes, coverage = partial, quote = "弁護士")
+rule MatterAttorneys strict { label en unofficial "Matters concerning attorneys fall within the rule-making power of the Supreme Court"; for r: CourtRule; for m: RuleMatter; when rule_matter(r, m) and m == attorneys; then matter_within_art77(r); }
+@source(JP_CONST_ART77_P1, relation = formalizes, coverage = partial, quote = "裁判所の内部規律")
+rule MatterInternalDiscipline strict { label en unofficial "Matters of internal discipline of the courts fall within the rule-making power of the Supreme Court"; for r: CourtRule; for m: RuleMatter; when rule_matter(r, m) and m == internal_discipline; then matter_within_art77(r); }
+@source(JP_CONST_ART77_P1, relation = formalizes, coverage = partial, quote = "司法事務処理に関する事項")
+rule MatterJudicialAdministration strict { label en unofficial "Matters of judicial administration fall within the rule-making power of the Supreme Court"; for r: CourtRule; for m: RuleMatter; when rule_matter(r, m) and m == judicial_administration; then matter_within_art77(r); }
+
+@source(JP_CONST_ART77_P1, relation = formalizes, coverage = exact, quote = "最高裁判所は、訴訟に関する手続、弁護士、裁判所の内部規律及び司法事務処理に関する事項について、規則を定める権限を有する")
+rule SupremeCourtMakesRules strict {
+    label ja official "最高裁判所は、訴訟に関する手続、弁護士、裁判所の内部規律及び司法事務処理に関する事項について、規則を定める権限を有する";
+    label en unofficial "Article 77(1). The Supreme Court has the rule-making power over procedure, attorneys, internal discipline and judicial administration";
+    for o: Organ; for r: CourtRule;
+    when supreme_court(o) and rule_matter(r, _);
+    then power SupremeCourtRuleMaking {
+        holder o; over r;
+        exercise makes_rule(o, r);
+        valid_when matter_within_art77(r);
+        effect create(court_rule_in_force(r));
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation disregards_court_rule(p: Person, r: CourtRule) kind empirical {
+    label en unofficial "the prosecutor does not comply with the rule";
+}
+
+@source(JP_CONST_ART77_P2, relation = formalizes, coverage = exact, quote = "検察官は、最高裁判所の定める規則に従はなければならない")
+rule ProsecutorsFollowSupremeCourtRules strict {
+    label ja official "検察官は、最高裁判所の定める規則に従はなければならない";
+    label en unofficial "Article 77(2). Prosecutors must comply with the rules made by the Supreme Court";
+    for p: Person; for r: CourtRule;
+    when j7_prosecutor(p) and court_rule_in_force(r) and rule_addresses_prosecutors(r);
+    then duty ProsecutorComplyWithCourtRule {
+        bearer p;
+        goal maintenance {
+            condition not disregards_court_rule(p, r);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation delegates_rulemaking(o: Organ, c: Organ) kind empirical {
+    label ja official "規則を定める権限を、下級裁判所に委任する"; label en unofficial "the Supreme Court delegates to the lower court c the power to make rules concerning lower courts";
+}
+relation rulemaking_delegated_to(c: Organ) kind institutional {
+    label en unofficial "the lower court has been delegated the power to make rules concerning lower courts";
+}
+
+@source(JP_CONST_ART77_P3, relation = formalizes, coverage = exact, quote = "最高裁判所は、下級裁判所に関する規則を定める権限を、下級裁判所に委任することができる")
+rule SupremeCourtMayDelegateRulemaking strict {
+    label ja official "最高裁判所は、下級裁判所に関する規則を定める権限を、下級裁判所に委任することができる";
+    label en unofficial "Article 77(3). The Supreme Court may delegate to lower courts the power to make rules concerning lower courts";
+    for o: Organ; for c: Organ;
+    when supreme_court(o) and r3a_state_organ(c);
+    then power DelegateRulemakingToLowerCourt {
+        holder o; over c;
+        exercise delegates_rulemaking(o, c);
+        valid_when inferior_court(c);
+        effect create(rulemaking_delegated_to(c));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 78 ---------------------------------------------------------------------------
+relation impeached_by_public_impeachment(p: Person) kind empirical {
+    label ja official "公の弾劾"; label en unofficial "the judge was removed by public impeachment (a decision of the Court of Impeachment, Art. 64; a court fact)";
+}
+relation declared_incapable_by_judicial_decision(p: Person) kind empirical {
+    label ja official "心身の故障のために職務を執ることができないと決定された"; label en unofficial "a judicial decision determined that the judge cannot perform duties because of mental or physical disability (a court fact)";
+}
+relation dismissed_by_popular_review(p: Person) kind institutional {
+    label ja official "国民の審査による罷免"; label en unofficial "the Supreme Court justice is dismissed by the majority of the voters (Art. 79(3))";
+}
+relation removal_ground_established(p: Person) kind institutional {
+    label en unofficial "a ground of removal admitted by the Constitution stands: impeachment, judicial declaration of incapacity, or (for a Supreme Court justice) popular review";
+}
+relation removes_judge(o: Organ, p: Person) kind empirical {
+    label ja official "罷免する"; label en unofficial "the organ removes the judge (act of exercise)";
+}
+relation judge_removed(p: Person) kind institutional {
+    label ja official "罷免"; label en unofficial "the judge is removed from office";
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "公の弾劾によらなければ罷免されない")
+rule GroundImpeachment strict {
+    label en unofficial "Public impeachment is a ground for removing a judge";
+    for p: Person;
+    when j7_judge(p) and impeached_by_public_impeachment(p);
+    then removal_ground_established(p);
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "裁判により、心身の故障のために職務を執ることができないと決定された場合を除いては")
+rule GroundJudicialDeclarationOfIncapacity strict {
+    label en unofficial "A judicial decision of mental or physical incapacity is a ground for removing a judge";
+    for p: Person;
+    when j7_judge(p) and declared_incapable_by_judicial_decision(p);
+    then removal_ground_established(p);
+}
+
+// Article 79(3) is the constitutional exception for Supreme Court justices (lex specialis).
+@source(JP_CONST_ART79_P3, relation = formalizes, coverage = partial, quote = "その裁判官は、罷免される")
+rule GroundPopularReview strict {
+    label en unofficial "Dismissal by popular review is a ground for removing a judge";
+    for p: Person;
+    when dismissed_by_popular_review(p);
+    then removal_ground_established(p);
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "公の弾劾によらなければ罷免されない")
+rule OrganMayRemoveJudge strict {
+    label ja official "裁判官は、公の弾劾によらなければ罷免されない";
+    label en unofficial "Article 78, sentence 1 (the mirror power): removal is valid only on a ground the Constitution admits";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and j7_judge(p);
+    then power RemoveJudge {
+        holder o; over p;
+        exercise removes_judge(o, p);
+        valid_when removal_ground_established(p);
+        effect create(judge_removed(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "裁判官は、裁判により、心身の故障のために職務を執ることができないと決定された場合を除いては、公の弾劾によらなければ罷免されない")
+rule JudgesNotRemovedOtherwise defeasible {
+    label ja official "裁判官は、…公の弾劾によらなければ罷免されない";
+    label en unofficial "Article 78, sentence 1. A judge is not removed unless by impeachment or a judicial decision of incapacity";
+    for p: Person;
+    when j7_judge(p);
+    unless removal_ground_established(p);
+    then immunity JudgeNotRemoved {
+        holder p;
+        protected_effect judge_removed(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority JudgeImmunityOverRemovalPower {
+    prefer JudgesNotRemovedOtherwise over OrganMayRemoveJudge;
+    reason lex_specialis;
+}
+
+relation disciplines_judge(o: Organ, p: Person) kind empirical {
+    label ja official "懲戒処分を行ふ"; label en unofficial "the organ takes a disciplinary measure against the judge";
+}
+relation executive_discipline_in_effect(p: Person) kind institutional {
+    label en unofficial "a disciplinary measure of an executive organ stands against the judge";
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "裁判官の懲戒処分は、行政機関がこれを行ふことはできない")
+rule NoExecutiveDiscipline strict {
+    label ja official "裁判官の懲戒処分は、行政機関がこれを行ふことはできない";
+    label en unofficial "Article 78, sentence 2. Disciplinary action against judges may not be taken by an executive organ";
+    for o: Organ; for p: Person;
+    when j7_executive_organ(o) and j7_judge(p);
+    then prohibition NoExecutiveDisciplineOfJudges {
+        bearer o;
+        action disciplines_judge(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART78_P1, relation = formalizes, coverage = partial, quote = "裁判官の懲戒処分は、行政機関がこれを行ふことはできない")
+rule JudgesImmuneFromExecutiveDiscipline strict {
+    label en unofficial "A judge is immune from disciplinary action by an executive organ";
+    for p: Person;
+    when j7_judge(p);
+    then immunity JudgeImmuneFromExecutiveDiscipline {
+        holder p;
+        protected_effect executive_discipline_in_effect(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 79(1): composition and the Chief Justice ----------------------------------------
+relation act_appoints_person(a: StateAct, p: Person) kind empirical {
+    label en unofficial "the act of appointment concerns the person (link to Art. 6(2), ch01-emperor.law)";
+}
+relation chief_justice(p: Person) kind institutional {
+    label ja official "最高裁判所の長たる裁判官"; label en unofficial "the person is the Chief Justice of the Supreme Court (appointed by the Emperor on the Cabinet's designation, Art. 6(2))";
+}
+
+@source(JP_CONST_ART79_P1, relation = formalizes, coverage = partial, quote = "最高裁判所は、その長たる裁判官及び法律の定める員数のその他の裁判官でこれを構成し")
+rule ChiefJusticeThroughArticle6 strict {
+    label ja official "最高裁判所は、その長たる裁判官…でこれを構成し";
+    label en unofficial "Article 79(1) with Article 6(2). The Chief Justice is the person the Emperor validly appoints";
+    for a: StateAct; for k: StateActKind; for p: Person;
+    when act_kind(a, k) and k == appoint_chief_justice and act_has_legal_effect(a) and act_appoints_person(a, p);
+    then chief_justice(p);
+}
+
+relation statutory_number_of_other_justices(n: Integer) kind empirical {
+    label ja official "法律の定める員数"; label en unofficial "the number of justices other than the Chief Justice fixed by statute (external input)";
+}
+relation sitting_other_justice(p: Person) kind empirical {
+    label en unofficial "the person sits as a justice other than the Chief Justice";
+}
+// The exclusion of the Chief Justice reads a FACT OF OFFICE, not the derived `chief_justice`: the latter is
+// produced by the effect of the Emperor's power (Art. 6(2)), and an effect materialises after all strata
+// (§280.3), so a default over it would be computed without it (LDC-E4103, errata E-0134).
+relation sitting_chief_justice(p: Person) kind empirical {
+    label ja official "その長たる裁判官"; label en unofficial "the person sits as the Chief Justice (fact of office)";
+}
+relation justice_candidate(p: Person) kind empirical {
+    label en unofficial "the person is proposed for appointment as a justice of the Supreme Court";
+}
+relation seat_available_for(p: Person) kind institutional {
+    label en unofficial "the person is not the Chief Justice and the statutory number of other justices is not yet reached";
+}
+relation cabinet_appoints_justice(o: Organ, p: Person) kind empirical {
+    label ja official "内閣でこれを任命する"; label en unofficial "the Cabinet appoints the justice (act of exercise)";
+}
+relation appointed_justice_by_cabinet(p: Person) kind institutional {
+    label en unofficial "the person is validly appointed a justice by the Cabinet";
+}
+
+@source(JP_CONST_ART79_P1, relation = formalizes, coverage = partial, quote = "法律の定める員数のその他の裁判官")
+rule SeatAvailableWithinStatutoryNumber defeasible {
+    label en unofficial "A seat is available for a justice candidate while the number of other justices is below the statutory number";
+    for p: Person; for n: Integer;
+    when justice_candidate(p) and statutory_number_of_other_justices(n)
+        and not_known(sitting_chief_justice(p))
+        and (count distinct q: Person where sitting_other_justice(q)) < n;
+    then seat_available_for(p);
+}
+
+@source(JP_CONST_ART79_P1, relation = formalizes, coverage = partial, quote = "その長たる裁判官以外の裁判官は、内閣でこれを任命する")
+rule CabinetAppointsOtherJustices strict {
+    label ja official "その長たる裁判官以外の裁判官は、内閣でこれを任命する";
+    label en unofficial "Article 79(1). The Cabinet appoints the justices other than the Chief Justice";
+    for o: Organ; for p: Person;
+    when j7_cabinet(o) and justice_candidate(p);
+    then power CabinetAppointJustice {
+        holder o; over p;
+        exercise cabinet_appoints_justice(o, p);
+        valid_when seat_available_for(p);
+        effect create(appointed_justice_by_cabinet(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 79(2)-(3): popular review of the Supreme Court justices ---------------------------
+relation house_general_election_on(d: Date) kind empirical {
+    label ja official "衆議院議員総選挙"; label en unofficial "a general election of the House of Representatives is held on the date (the case lists ALL of them)";
+}
+// G5 (J10b): ONE event, two producers. `general_election_held_on(h, x)` (ch04b, Art. 54(1), 70) and the
+// input `house_general_election_on(d)` above both establish that the general election of the House of
+// Representatives took place on d; Art. 79(2) reads this single derived relation, so an election fixed
+// once for Art. 54(1) is the election of Art. 79(2) with no second fact.
+relation representatives_general_election_on(d: Date) kind institutional {
+    label ja official "衆議院議員総選挙";
+    label en unofficial "a general election of the House of Representatives took place on the date (derived from ch04b `general_election_held_on` or the input `house_general_election_on`)";
+}
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "衆議院議員総選挙の際")
+rule RepresentativesElectionFromInput strict {
+    label en unofficial "A general election of the House given as input is a general election of Representatives";
+    for d: Date;
+    when house_general_election_on(d);
+    then representatives_general_election_on(d);
+}
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "衆議院議員総選挙の際")
+rule RepresentativesElectionFromArt54 strict {
+    label en unofficial "A general election of the House of Representatives is a general election of Representatives";
+    for d: Date;
+    when general_election_held_on(HouseOfRepresentatives, d);
+    then representatives_general_election_on(d);
+}
+relation review_due_on(p: Person, d: Date) kind institutional {
+    label ja official "国民の審査に付す"; label en unofficial "the justice is submitted to popular review at the general election of the date";
+}
+// TECH_GAP (coverage/J7.json): "and thereafter likewise" is unbounded, but a recursive rule
+// review_due_on -> review_due_on is refused (LDC-E4102: the count/negation over the elections is a
+// [status] edge and the cycle is not stratifiable). The schedule is therefore a LADDER of
+// five relations: the first review and four repeats (forty years and more; a justice retires
+// at the statutory age, Art. 79(5)). Every further step would be one more pair of rules.
+relation review1_on(p: Person, d: Date) kind institutional { label en unofficial "the first review (first general election after the appointment)"; }
+relation review2_on(p: Person, d: Date) kind institutional { label en unofficial "the second review"; }
+relation review3_on(p: Person, d: Date) kind institutional { label en unofficial "the third review"; }
+relation review4_on(p: Person, d: Date) kind institutional { label en unofficial "the fourth review"; }
+relation review5_on(p: Person, d: Date) kind institutional { label en unofficial "the fifth review"; }
+relation review1_interval_end(p: Person, t: Date) kind institutional { label en unofficial "ten years have elapsed since the first review on the date t"; }
+relation review2_interval_end(p: Person, t: Date) kind institutional { label en unofficial "ten years have elapsed since the second review on the date t"; }
+relation review3_interval_end(p: Person, t: Date) kind institutional { label en unofficial "ten years have elapsed since the third review on the date t"; }
+relation review4_interval_end(p: Person, t: Date) kind institutional { label en unofficial "ten years have elapsed since the fourth review on the date t"; }
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "最高裁判所の裁判官の任命は、その任命後初めて行はれる衆議院議員総選挙の際国民の審査に付し")
+rule FirstReviewAtFirstGeneralElection strict {
+    label ja official "その任命後初めて行はれる衆議院議員総選挙の際国民の審査に付し";
+    label en unofficial "Article 79(2). First review: the first general election after the appointment";
+    for p: Person; for a: Date; for d: Date;
+    when supreme_court_justice(p) and appointed_on(p, a) and representatives_general_election_on(d) and d > a
+        and (count distinct e: Date where representatives_general_election_on(e) and e > a and e < d) == 0;
+    then review1_on(p, d);
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review1IntervalEnd strict {
+    label en unofficial "The ten-year interval after the first review ends ten years later";
+    for p: Person; for r: Date;
+    when review1_on(p, r);
+    then review1_interval_end(p, add_calendar_period(r, 10 calendar_year));
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review2AfterTenYears strict {
+    label ja official "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする";
+    label en unofficial "Article 79(2). Review no. 2: the first general election after ten years have elapsed since review no. 1";
+    for p: Person; for t: Date; for d: Date;
+    when review1_interval_end(p, t) and representatives_general_election_on(d) and d >= t
+        and (count distinct e: Date where representatives_general_election_on(e) and e >= t and e < d) == 0;
+    then review2_on(p, d);
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review2IntervalEnd strict {
+    label en unofficial "The ten-year interval after the second review ends ten years later";
+    for p: Person; for r: Date;
+    when review2_on(p, r);
+    then review2_interval_end(p, add_calendar_period(r, 10 calendar_year));
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review3AfterTenYears strict {
+    label ja official "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする";
+    label en unofficial "Article 79(2). Review no. 3: the first general election after ten years have elapsed since review no. 2";
+    for p: Person; for t: Date; for d: Date;
+    when review2_interval_end(p, t) and representatives_general_election_on(d) and d >= t
+        and (count distinct e: Date where representatives_general_election_on(e) and e >= t and e < d) == 0;
+    then review3_on(p, d);
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review3IntervalEnd strict {
+    label en unofficial "The ten-year interval after the third review ends ten years later";
+    for p: Person; for r: Date;
+    when review3_on(p, r);
+    then review3_interval_end(p, add_calendar_period(r, 10 calendar_year));
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review4AfterTenYears strict {
+    label ja official "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする";
+    label en unofficial "Article 79(2). Review no. 4: the first general election after ten years have elapsed since review no. 3";
+    for p: Person; for t: Date; for d: Date;
+    when review3_interval_end(p, t) and representatives_general_election_on(d) and d >= t
+        and (count distinct e: Date where representatives_general_election_on(e) and e >= t and e < d) == 0;
+    then review4_on(p, d);
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review4IntervalEnd strict {
+    label en unofficial "The ten-year interval after the fourth review ends ten years later";
+    for p: Person; for r: Date;
+    when review4_on(p, r);
+    then review4_interval_end(p, add_calendar_period(r, 10 calendar_year));
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする")
+rule Review5AfterTenYears strict {
+    label ja official "その後十年を経過した後初めて行はれる衆議院議員総選挙の際更に審査に付し、その後も同様とする";
+    label en unofficial "Article 79(2). Review no. 5: the first general election after ten years have elapsed since review no. 4";
+    for p: Person; for t: Date; for d: Date;
+    when review4_interval_end(p, t) and representatives_general_election_on(d) and d >= t
+        and (count distinct e: Date where representatives_general_election_on(e) and e >= t and e < d) == 0;
+    then review5_on(p, d);
+}
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "国民の審査に付し")
+rule ReviewNo1IsDue strict { label en unofficial "The first popular review of a Supreme Court justice is due at that election"; for p: Person; for d: Date; when review1_on(p, d); then review_due_on(p, d); }
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "国民の審査に付し")
+rule ReviewNo2IsDue strict { label en unofficial "The second popular review of a Supreme Court justice is due at that election"; for p: Person; for d: Date; when review2_on(p, d); then review_due_on(p, d); }
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "国民の審査に付し")
+rule ReviewNo3IsDue strict { label en unofficial "The third popular review of a Supreme Court justice is due at that election"; for p: Person; for d: Date; when review3_on(p, d); then review_due_on(p, d); }
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "国民の審査に付し")
+rule ReviewNo4IsDue strict { label en unofficial "The fourth popular review of a Supreme Court justice is due at that election"; for p: Person; for d: Date; when review4_on(p, d); then review_due_on(p, d); }
+
+@source(JP_CONST_ART79_P2, relation = formalizes, coverage = partial, quote = "国民の審査に付し")
+rule ReviewNo5IsDue strict { label en unofficial "The fifth popular review of a Supreme Court justice is due at that election"; for p: Person; for d: Date; when review5_on(p, d); then review_due_on(p, d); }
+
+relation review_motion(m: Motion, p: Person) kind empirical {
+    label ja official "裁判官の罷免を可とするか否か"; label en unofficial "the question put to the voters: is the justice to be dismissed (votes_for = for dismissal)";
+}
+relation review_vote_on(m: Motion, d: Date) kind empirical {
+    label en unofficial "the review vote is held on the date (the day of the general election)";
+}
+relation retained_after_review(p: Person) kind institutional {
+    label en unofficial "the justice was submitted to review and no majority favoured dismissal: he remains in office";
+}
+
+@source(JP_CONST_ART79_P3, relation = formalizes, coverage = exact, quote = "投票者の多数が裁判官の罷免を可とするときは、その裁判官は、罷免される")
+rule MajorityOfVotersDismissesJustice strict {
+    label ja official "投票者の多数が裁判官の罷免を可とするときは、その裁判官は、罷免される";
+    label en unofficial "Article 79(3). If the majority of the voters is in favour of dismissal, the justice is dismissed";
+    for m: Motion; for p: Person; for d: Date;
+    when review_motion(m, p) and review_vote_on(m, d) and review_due_on(p, d) and majority_of_votes_cast_for(m);
+    then dismissed_by_popular_review(p);
+}
+
+@source(JP_CONST_ART79_P3, relation = formalizes, coverage = partial, quote = "前項の場合において、投票者の多数が裁判官の罷免を可とするときは")
+rule JusticeRetainedWithoutMajority strict {
+    label en unofficial "Art. 79(3), converse (reading of the letter): reviewed and no majority for dismissal -> the justice remains";
+    for m: Motion; for p: Person; for d: Date;
+    when review_motion(m, p) and review_vote_on(m, d) and review_due_on(p, d) and put_to_vote(m) and not_known(majority_of_votes_cast_for(m));
+    then retained_after_review(p);
+}
+
+relation review_statute(l: Statute) kind empirical {
+    label ja official "審査に関する事項を定める法律"; label en unofficial "the statute regulating the review (its content is external)";
+}
+relation review_matters_defined_by(l: Statute) kind institutional {
+    label en unofficial "matters of review are as the statute defines them (no content invented here)";
+}
+
+@source(JP_CONST_ART79_P4, relation = formalizes, coverage = exact, quote = "審査に関する事項は、法律でこれを定める")
+rule ReviewMattersFixedByStatute strict {
+    label ja official "審査に関する事項は、法律でこれを定める";
+    label en unofficial "Article 79(4). Matters concerning the review are fixed by statute";
+    for l: Statute;
+    when review_statute(l);
+    then review_matters_defined_by(l);
+}
+
+// --- Articles 79(5) and 80(1): retirement age; Article 79(6), 80(2): remuneration ------------------
+relation retirement_age_statute(l: Statute) kind empirical {
+    label ja official "法律の定める年齢"; label en unofficial "the statute fixing the retirement age of judges (external input)";
+}
+relation reaches_statutory_age(p: Person, l: Statute) kind empirical {
+    label ja official "法律の定める年齢に達した"; label en unofficial "the person reaches the age the statute fixes";
+}
+relation retires_office(p: Person) kind institutional {
+    label ja official "退官する"; label en unofficial "the judge retires from office";
+}
+
+@source(JP_CONST_ART79_P5, relation = formalizes, coverage = exact, quote = "最高裁判所の裁判官は、法律の定める年齢に達した時に退官する")
+rule SupremeCourtJusticeRetiresAtStatutoryAge strict {
+    label ja official "最高裁判所の裁判官は、法律の定める年齢に達した時に退官する";
+    label en unofficial "Article 79(5). A Supreme Court justice retires at the age fixed by statute";
+    for p: Person; for l: Statute;
+    when supreme_court_justice(p) and retirement_age_statute(l) and reaches_statutory_age(p, l);
+    then retires_office(p);
+}
+
+@source(JP_CONST_ART80_P1, relation = formalizes, coverage = partial, quote = "但し、法律の定める年齢に達した時には退官する")
+rule LowerCourtJudgeRetiresAtStatutoryAge strict {
+    label ja official "但し、法律の定める年齢に達した時には退官する";
+    label en unofficial "Article 80(1) proviso. A lower-court judge retires at the age fixed by statute";
+    for p: Person; for l: Statute;
+    when lower_court_judge(p) and retirement_age_statute(l) and reaches_statutory_age(p, l);
+    then retires_office(p);
+}
+
+relation remuneration_irregular_or_inadequate(o: Organ, p: Person) kind empirical {
+    label ja official "定期に相当額の報酬"; label en unofficial "the judge does not receive periodic and adequate remuneration (adequacy: a court fact, origin adjudicated)";
+}
+relation reduces_remuneration(o: Organ, p: Person) kind empirical {
+    label ja official "報酬を減額する"; label en unofficial "the organ reduces the judge's remuneration";
+}
+relation remuneration_reduction_in_effect(p: Person) kind institutional {
+    label en unofficial "a reduction of the judge's remuneration stands during the term";
+}
+
+@source(JP_CONST_ART79_P6, relation = formalizes, coverage = partial, quote = "最高裁判所の裁判官は、すべて定期に相当額の報酬を受ける")
+rule SupremeCourtJusticesRemunerated strict {
+    label ja official "最高裁判所の裁判官は、すべて定期に相当額の報酬を受ける";
+    label en unofficial "Article 79(6), sentence 1. Supreme Court justices receive periodic and adequate remuneration";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and supreme_court_justice(p);
+    then duty RemunerateSupremeCourtJustice {
+        bearer o; beneficiary p;
+        goal maintenance {
+            condition not remuneration_irregular_or_inadequate(o, p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART79_P6, relation = formalizes, coverage = partial, quote = "この報酬は、在任中、これを減額することができない")
+rule SupremeCourtRemunerationNotReducible strict {
+    label ja official "この報酬は、在任中、これを減額することができない";
+    label en unofficial "Article 79(6), sentence 2. The remuneration may not be reduced during the term of office";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and supreme_court_justice(p);
+    then prohibition NoReductionOfSupremeCourtRemuneration {
+        bearer o; beneficiary p;
+        action reduces_remuneration(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART79_P6, relation = formalizes, coverage = partial, quote = "この報酬は、在任中、これを減額することができない")
+rule SupremeCourtRemunerationImmune strict {
+    label en unofficial "The remuneration of a Supreme Court justice may not be reduced during the term of office";
+    for p: Person;
+    when supreme_court_justice(p);
+    then immunity SupremeCourtRemunerationProtected {
+        holder p;
+        protected_effect remuneration_reduction_in_effect(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 80 ---------------------------------------------------------------------------
+relation on_supreme_court_list(p: Person) kind empirical {
+    label ja official "最高裁判所の指名した者の名簿"; label en unofficial "the person is on the list of persons nominated by the Supreme Court";
+}
+relation lower_judge_candidate(p: Person) kind empirical {
+    label en unofficial "the person is proposed for appointment as a lower-court judge";
+}
+relation cabinet_appoints_lower_judge(o: Organ, p: Person) kind empirical {
+    label ja official "内閣でこれを任命する"; label en unofficial "the Cabinet appoints the lower-court judge (act of exercise)";
+}
+relation cabinet_reappoints_lower_judge(o: Organ, p: Person) kind empirical {
+    label ja official "再任"; label en unofficial "the Cabinet reappoints the lower-court judge (act of exercise)";
+}
+relation validly_appointed_lower_judge(p: Person) kind institutional {
+    label en unofficial "the person is validly appointed a lower-court judge for a term of ten years";
+}
+relation lower_judge_reappointed(p: Person) kind institutional {
+    label en unofficial "the lower-court judge is validly reappointed";
+}
+relation lower_court_term_end(p: Person, t: Date) kind institutional {
+    label ja official "任期を十年とし"; label en unofficial "the term of ten years has elapsed on the date t (the first day after the term)";
+}
+
+@source(JP_CONST_ART80_P1, relation = formalizes, coverage = partial, quote = "下級裁判所の裁判官は、最高裁判所の指名した者の名簿によつて、内閣でこれを任命する")
+rule CabinetAppointsLowerJudgesFromList strict {
+    label ja official "下級裁判所の裁判官は、最高裁判所の指名した者の名簿によつて、内閣でこれを任命する";
+    label en unofficial "Article 80(1). The Cabinet appoints lower-court judges from a list of persons nominated by the Supreme Court";
+    for o: Organ; for p: Person;
+    when j7_cabinet(o) and lower_judge_candidate(p);
+    then power CabinetAppointLowerJudge {
+        holder o; over p;
+        exercise cabinet_appoints_lower_judge(o, p);
+        valid_when on_supreme_court_list(p);
+        effect create(validly_appointed_lower_judge(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART80_P1, relation = formalizes, coverage = partial, quote = "再任されることができる")
+rule CabinetMayReappointLowerJudges strict {
+    label ja official "再任されることができる";
+    label en unofficial "Article 80(1). A lower-court judge may be reappointed (again from the Supreme Court's list)";
+    for o: Organ; for p: Person;
+    when j7_cabinet(o) and lower_judge_candidate(p);
+    then power CabinetReappointLowerJudge {
+        holder o; over p;
+        exercise cabinet_reappoints_lower_judge(o, p);
+        valid_when on_supreme_court_list(p);
+        effect create(lower_judge_reappointed(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART80_P1, relation = formalizes, coverage = partial, quote = "その裁判官は、任期を十年とし")
+rule LowerCourtTermOfTenYears strict {
+    label ja official "その裁判官は、任期を十年とし";
+    label en unofficial "Article 80(1). The term of a lower-court judge is ten years from the appointment";
+    for p: Person; for d: Date;
+    when validly_appointed_lower_judge(p) and appointed_on(p, d);
+    then lower_court_term_end(p, add_calendar_period(d, 10 calendar_year));
+}
+
+@source(JP_CONST_ART80_P2, relation = formalizes, coverage = partial, quote = "下級裁判所の裁判官は、すべて定期に相当額の報酬を受ける")
+rule LowerCourtJudgesRemunerated strict {
+    label ja official "下級裁判所の裁判官は、すべて定期に相当額の報酬を受ける";
+    label en unofficial "Article 80(2), sentence 1. Lower-court judges receive periodic and adequate remuneration";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and lower_court_judge(p);
+    then duty RemunerateLowerCourtJudge {
+        bearer o; beneficiary p;
+        goal maintenance {
+            condition not remuneration_irregular_or_inadequate(o, p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART80_P2, relation = formalizes, coverage = partial, quote = "この報酬は、在任中、これを減額することができない")
+rule LowerCourtRemunerationNotReducible strict {
+    label ja official "この報酬は、在任中、これを減額することができない";
+    label en unofficial "Article 80(2), sentence 2. The remuneration may not be reduced during the term of office";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and lower_court_judge(p);
+    then prohibition NoReductionOfLowerCourtRemuneration {
+        bearer o; beneficiary p;
+        action reduces_remuneration(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART80_P2, relation = formalizes, coverage = partial, quote = "この報酬は、在任中、これを減額することができない")
+rule LowerCourtRemunerationImmune strict {
+    label en unofficial "The remuneration of a lower court judge may not be reduced during the term of office";
+    for p: Person;
+    when lower_court_judge(p);
+    then immunity LowerCourtRemunerationProtected {
+        holder p;
+        protected_effect remuneration_reduction_in_effect(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 81: constitutional review -----------------------------------------------------------
+relation review_object_kind(a: ReviewableAct, k: ReviewableKind) kind empirical {
+    label en unofficial "the kind of the act submitted to review";
+}
+relation in_scope_of_art81(a: ReviewableAct) kind institutional {
+    label ja official "一切の法律、命令、規則又は処分"; label en unofficial "the act is a law, order, regulation or act (処分)";
+}
+external judgment relation act_contradicts_constitution(a: ReviewableAct) {
+    authority SupremeCourtOfJapan;
+    label ja official "憲法に適合しない";
+    label en unofficial "the act does not conform to the Constitution (judgment of the Supreme Court, Art. 81; the court's recognition is an INPUT fact, origin adjudicated; stage J9 builds Art. 98 on it)";
+}
+relation unconstitutionality_recognized(a: ReviewableAct) kind institutional {
+    label ja official "憲法に適合しないとの決定"; label en unofficial "the Supreme Court has determined that an act within the scope of Art. 81 does not conform to the Constitution (public predicate for stage J9, Art. 98)";
+}
+relation court_of_last_resort_on_constitutionality(o: Organ) kind institutional {
+    label ja official "終審裁判所"; label en unofficial "the organ is the court of last resort on the conformity of laws, orders, regulations and acts";
+}
+relation determines_conformity(o: Organ, a: ReviewableAct) kind empirical {
+    label ja official "憲法に適合するかしないかを決定する"; label en unofficial "the organ determines whether the act conforms to the Constitution (act of exercise)";
+}
+relation conformity_finally_determined(a: ReviewableAct) kind institutional {
+    label en unofficial "the conformity of the act has been finally determined by the Supreme Court";
+}
+
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律、命令、規則又は処分")
+rule ScopeStatute strict { label en unofficial "A statute is within the scope of constitutional review"; for a: ReviewableAct; for k: ReviewableKind; when review_object_kind(a, k) and k == statute; then in_scope_of_art81(a); }
+// G7 (J10b): a bill that has become a law (Art. 59, ch04c) IS a "law" of Art. 81. `Proposal` is a subtype of
+// `Enactment`, which is a subtype of `ReviewableAct`, so the law is the same object in ch04c, ch05c, ch06, ch10
+// and needs no `review_object_kind` fact.
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律")
+rule ScopeEnactedLaw strict { label en unofficial "An enacted law is within the scope of constitutional review"; for l: Proposal; when enacted_as_law(l); then in_scope_of_art81(l); }
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律、命令、規則又は処分")
+rule ScopeOrder strict { label en unofficial "An order is within the scope of constitutional review"; for a: ReviewableAct; for k: ReviewableKind; when review_object_kind(a, k) and k == order; then in_scope_of_art81(a); }
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律、命令、規則又は処分")
+rule ScopeRegulation strict { label en unofficial "A regulation is within the scope of constitutional review"; for a: ReviewableAct; for k: ReviewableKind; when review_object_kind(a, k) and k == regulation; then in_scope_of_art81(a); }
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律、命令、規則又は処分")
+rule ScopeDisposition strict { label en unofficial "A disposition is within the scope of constitutional review"; for a: ReviewableAct; for k: ReviewableKind; when review_object_kind(a, k) and k == disposition; then in_scope_of_art81(a); }
+
+// The object of the court's power: an act the case names by kind (any kind), or a law enacted under Art. 59 (G7).
+relation act_open_to_review(a: ReviewableAct) kind institutional {
+    label en unofficial "the act is put before the court: named by kind in the case, or a bill that became a law (Art. 59)";
+}
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律")
+rule NamedActIsOpenToReview strict { label en unofficial "An act of a kind subject to Article 81 is open to constitutional review"; for a: ReviewableAct; for k: ReviewableKind; when review_object_kind(a, k); then act_open_to_review(a); }
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "一切の法律")
+rule EnactedLawIsOpenToReview strict { label en unofficial "An enacted law is open to constitutional review"; for l: Proposal; when enacted_as_law(l); then act_open_to_review(l); }
+
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "終審裁判所")
+rule SupremeCourtIsCourtOfLastResort strict {
+    label ja official "最高裁判所は、…終審裁判所である";
+    label en unofficial "Article 81. The Supreme Court is the court of last resort";
+    for o: Organ;
+    when supreme_court(o);
+    then court_of_last_resort_on_constitutionality(o);
+}
+
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = exact, quote = "最高裁判所は、一切の法律、命令、規則又は処分が憲法に適合するかしないかを決定する権限を有する終審裁判所である")
+rule SupremeCourtDeterminesConstitutionality strict {
+    label ja official "最高裁判所は、一切の法律、命令、規則又は処分が憲法に適合するかしないかを決定する権限を有する";
+    label en unofficial "Article 81. The Supreme Court has the power to determine the conformity of any law, order, regulation or act to the Constitution";
+    for o: Organ; for a: ReviewableAct;
+    when supreme_court(o) and act_open_to_review(a);
+    then power DetermineConstitutionality {
+        holder o; over a;
+        exercise determines_conformity(o, a);
+        valid_when in_scope_of_art81(a);
+        effect create(conformity_finally_determined(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART81_P1, relation = formalizes, coverage = partial, quote = "憲法に適合するかしないかを決定する")
+rule RecognitionOfUnconstitutionality strict {
+    label en unofficial "Article 81. An act within the scope of review that the Supreme Court holds not to conform is recognised as unconstitutional";
+    for a: ReviewableAct;
+    when in_scope_of_art81(a) and act_contradicts_constitution(a);
+    then unconstitutionality_recognized(a);
+}
+
+// --- Article 82: public trial ------------------------------------------------------------------------
+relation court_hears(o: Organ, h: CourtHearing) kind empirical {
+    label ja official "対審"; label en unofficial "the court holds the hearing";
+}
+relation court_delivers(o: Organ, x: CourtJudgment) kind empirical {
+    label ja official "判決"; label en unofficial "the court delivers the judgment";
+}
+relation sits_on_bench(p: Person, h: CourtHearing) kind empirical {
+    label ja official "裁判官"; label en unofficial "the judge sits on the bench for the hearing";
+}
+relation bench_judge_finds_danger(p: Person, h: CourtHearing) kind empirical {
+    label ja official "公の秩序又は善良の風俗を害する虞があると決した"; label en unofficial "the judge decides that the hearing endangers public order or morals (evaluative; a court fact, origin adjudicated)";
+}
+relation unanimous_danger_finding(h: CourtHearing) kind institutional {
+    label ja official "裁判官の全員一致で、公の秩序又は善良の風俗を害する虞があると決した"; label en unofficial "ALL judges of the bench found a danger to public order or morals";
+}
+relation concerns_political_offence(h: CourtHearing) kind empirical {
+    label ja official "政治犯罪"; label en unofficial "the hearing concerns a political offence (classification: a court fact, origin adjudicated)";
+}
+relation concerns_press_offence(h: CourtHearing) kind empirical {
+    label ja official "出版に関する犯罪"; label en unofficial "the hearing concerns an offence relating to publication (classification: a court fact, origin adjudicated)";
+}
+relation puts_right_in_issue(h: CourtHearing, x: ExerciseOfRight) kind empirical {
+    label en unofficial "the hearing puts the exercise of a right in issue (link to ch03a-rights-10-24.law)";
+}
+relation chapter3_right_in_issue_fact(h: CourtHearing) kind empirical {
+    label ja official "この憲法第三章で保障する国民の権利が問題となつてゐる"; label en unofficial "a right guaranteed by Chapter III is in issue (direct court fact; covers rights outside the kinds of ch03a)";
+}
+relation chapter3_right_at_issue(h: CourtHearing) kind institutional {
+    label ja official "この憲法第三章で保障する国民の権利が問題となつてゐる事件"; label en unofficial "the hearing puts a right guaranteed by Chapter III in issue";
+}
+relation public_hearing_required(h: CourtHearing) kind institutional {
+    label ja official "公開法廷"; label en unofficial "the hearing must be held in open court";
+}
+relation closed_hearing_lawful(h: CourtHearing) kind institutional {
+    label en unofficial "closing the hearing is permitted: the unanimous finding stands and no always-public case applies";
+}
+relation orders_closed_hearing(o: Organ, h: CourtHearing) kind empirical {
+    label ja official "対審は、公開しないでこれを行ふ"; label en unofficial "the court orders that the hearing be held without the public (act of exercise; also the act the prohibition forbids)";
+}
+relation hearing_closed_lawfully(h: CourtHearing) kind institutional {
+    label en unofficial "the hearing is validly held closed";
+}
+relation delivers_judgment_closed(o: Organ, x: CourtJudgment) kind empirical {
+    label en unofficial "the court delivers the judgment without the public";
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "裁判官の全員一致で、公の秩序又は善良の風俗を害する虞があると決した場合")
+rule UnanimousDangerFinding strict {
+    label ja official "裁判所が、裁判官の全員一致で、公の秩序又は善良の風俗を害する虞があると決した";
+    label en unofficial "Article 82(2). All judges of the bench found a danger to public order or morals (counted)";
+    for h: CourtHearing;
+    when court_hears(_, h) and (count distinct p: Person where sits_on_bench(p, h)) > 0
+        and (count distinct p: Person where sits_on_bench(p, h))
+            == (count distinct p: Person where sits_on_bench(p, h) and bench_judge_finds_danger(p, h));
+    then unanimous_danger_finding(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "この憲法第三章で保障する国民の権利が問題となつてゐる事件")
+rule Chapter3RightInIssueDirect strict {
+    label en unofficial "A Chapter III right is at issue in a hearing when that is established directly as a fact";
+    for h: CourtHearing;
+    when chapter3_right_in_issue_fact(h);
+    then chapter3_right_at_issue(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "この憲法第三章で保障する国民の権利が問題となつてゐる事件")
+rule Chapter3RightInIssueThroughExercise strict {
+    label en unofficial "A Chapter III right is at issue in a hearing when the hearing puts an exercise of such a right in issue";
+    for h: CourtHearing; for x: ExerciseOfRight; for k: RightKind;
+    when puts_right_in_issue(h, x) and exercise_kind(x, k);
+    then chapter3_right_at_issue(h);
+}
+
+@source(JP_CONST_ART82_P1, relation = formalizes, coverage = partial, quote = "裁判の対審及び判決は、公開法廷でこれを行ふ")
+rule OpenCourtGeneralRule defeasible {
+    label ja official "裁判の対審及び判決は、公開法廷でこれを行ふ";
+    label en unofficial "Article 82(1). Trials are conducted in open court";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h);
+    then public_hearing_required(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "対審は、公開しないでこれを行ふことができる")
+rule ClosedHearingOnUnanimousFinding defeasible {
+    label ja official "対審は、公開しないでこれを行ふことができる";
+    label en unofficial "Article 82(2). Exception: the hearing may be closed on the unanimous finding";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and unanimous_danger_finding(h);
+    then not public_hearing_required(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "政治犯罪")
+rule AlwaysPublicPoliticalOffence defeasible {
+    label ja official "政治犯罪の事件の対審は、常にこれを公開しなければならない";
+    label en unofficial "Article 82(2) proviso. Hearings of political offences are always public";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and concerns_political_offence(h);
+    then public_hearing_required(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "出版に関する犯罪")
+rule AlwaysPublicPressOffence defeasible {
+    label ja official "出版に関する犯罪の事件の対審は、常にこれを公開しなければならない";
+    label en unofficial "Article 82(2) proviso. Hearings of offences relating to publication are always public";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and concerns_press_offence(h);
+    then public_hearing_required(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "この憲法第三章で保障する国民の権利が問題となつてゐる事件の対審は、常にこれを公開しなければならない")
+rule AlwaysPublicChapter3Right defeasible {
+    label ja official "この憲法第三章で保障する国民の権利が問題となつてゐる事件の対審は、常にこれを公開しなければならない";
+    label en unofficial "Article 82(2) proviso. Hearings in which a Chapter III right is in issue are always public";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and chapter3_right_at_issue(h);
+    then public_hearing_required(h);
+}
+
+priority ClosedHearingOverGeneralRule { prefer ClosedHearingOnUnanimousFinding over OpenCourtGeneralRule; reason lex_specialis; }
+priority PoliticalOffenceOverClosure { prefer AlwaysPublicPoliticalOffence over ClosedHearingOnUnanimousFinding; reason lex_specialis; }
+priority PressOffenceOverClosure { prefer AlwaysPublicPressOffence over ClosedHearingOnUnanimousFinding; reason lex_specialis; }
+priority Chapter3RightOverClosure { prefer AlwaysPublicChapter3Right over ClosedHearingOnUnanimousFinding; reason lex_specialis; }
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = partial, quote = "対審は、公開しないでこれを行ふことができる")
+rule ClosureLawfulWhenExceptionStands defeasible {
+    label en unofficial "A closed hearing is lawful when a unanimous danger finding stands and no public hearing is required";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and unanimous_danger_finding(h) and not_known(public_hearing_required(h));
+    then closed_hearing_lawful(h);
+}
+
+@source(JP_CONST_ART82_P2, relation = formalizes, coverage = exact, quote = "裁判所が、裁判官の全員一致で、公の秩序又は善良の風俗を害する虞があると決した場合には、対審は、公開しないでこれを行ふことができる")
+rule CourtMayCloseHearing strict {
+    label ja official "裁判所が、裁判官の全員一致で、…対審は、公開しないでこれを行ふことができる";
+    label en unofficial "Article 82(2). The court may close the hearing when all its judges find a danger to public order or morals, unless the case is one of the always-public ones";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h);
+    then power CloseHearing {
+        holder o; over h;
+        exercise orders_closed_hearing(o, h);
+        valid_when closed_hearing_lawful(h);
+        effect create(hearing_closed_lawfully(h));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART82_P1, relation = formalizes, coverage = partial, quote = "裁判の対審及び判決は、公開法廷でこれを行ふ")
+rule NoClosedHearingWhenPublicRequired strict {
+    label ja official "裁判の対審は、公開法廷でこれを行ふ";
+    label en unofficial "Article 82(1), (2) proviso. A court must not hold the hearing without the public when it is to be public";
+    for o: Organ; for h: CourtHearing;
+    when court_hears(o, h) and public_hearing_required(h);
+    then prohibition NoClosedHearingWhereOpenCourtRequired {
+        bearer o;
+        action orders_closed_hearing(o, h);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART82_P1, relation = formalizes, coverage = partial, quote = "裁判の対審及び判決は、公開法廷でこれを行ふ")
+rule NoClosedJudgment strict {
+    label ja official "裁判の判決は、公開法廷でこれを行ふ";
+    label en unofficial "Article 82(1). A judgment is always delivered in open court: the exception of paragraph 2 concerns the hearing only";
+    for o: Organ; for x: CourtJudgment;
+    when court_delivers(o, x);
+    then prohibition NoJudgmentInClosedCourt {
+        bearer o;
+        action delivers_judgment_closed(o, x);
+        window [@1947-05-03, infinity);
+    };
+}

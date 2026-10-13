@@ -1,0 +1,16 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十条第二号: 災害等の事情で午前八時三十分に措置をとれず、同日に解消して措置をとる場合は原則が及ばない。
+test "urn:query:kanpo-t19" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t19-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-02"), @2025-04-02) { origin case_input; }
+        assert "kanpo-t19-b": measure_taken_same_day_after_disaster_cleared(entity_ref("urn:jp:case:kanpo-2025-04-02"), @2025-04-02) { origin case_input; }
+    }
+    evaluate truth(inspection_measure_due_at_0830_on(entity_ref("urn:jp:case:kanpo-2025-04-02"), @2025-04-02));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

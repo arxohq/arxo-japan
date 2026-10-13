@@ -1,0 +1,745 @@
+// Chapter V, The Cabinet, Articles 72-75: the functions of the Prime Minister, the
+// functions of the Cabinet, the countersignature of laws and cabinet orders and the
+// immunity of Ministers from prosecution. Articles 65-68 are in ch05a-cabinet-status.law,
+// Articles 69-71 in ch05b-cabinet-resignation.law.
+//
+// BUILT ON (public producers, not redefined): ch05a `is_prime_minister`, `state_minister`,
+// `cabinet_organ`, `CabinetAct`; ch05b `cabinet_competent`, `cabinet_act_dated`;
+// ch04c `proposal_kind`, `diet_resolution`, `pk_budget`, `pk_treaty_approval`;
+// ch01 `StateAct` (promulgation is a power of the Emperor there; not duplicated here).
+//
+// MODEL
+//   * ARTICLE 72. Three powers of the Prime Minister, each over a concrete act `PmAct` with
+//     its `PmActKind`: (1) submit bills to the Diet on behalf of the Cabinet; (2) report to the
+//     Diet on general affairs of state and on foreign relations (two kinds); (3) direct and
+//     supervise the administrative branches. The validity condition of each is what the text
+//     names: on behalf of the Cabinet and addressed to the Diet; addressed to the Diet; directed
+//     at an administrative branch. "On behalf of the Cabinet" needs the Cabinet's decision only
+//     as far as the text says (it says nothing more): no decision procedure is invented.
+//   * ARTICLE 73. "Besides other general administrative affairs" the Cabinet's functions are a
+//     list. Each is a `power` of the Cabinet over a `CabinetAct` of the listed `CabinetActKind`,
+//     valid when the Cabinet is competent on the day of the act (`cabinet_competent`,
+//     ch05b: in office, or a caretaker under Art. 71) and when the conditions of the item hold:
+//       item 1  the faithful execution of the laws is a `duty` of the Cabinet (a maintenance goal;
+//               "faithfully" (誠実に) is evaluative: its finding is a fact of a court or organ
+//               `origin adjudicated`, channel 2 of DECISION-0194; VIOLATED only on an asserted
+//               negation); the superintendence of the affairs of state is a power;
+//       item 2  foreign relations: a power;
+//       item 3  the treaty: a power valid when the Diet approved it BEFORE the conclusion, or,
+//               "depending on the circumstances" (時宜によつては), AFTER it. The Diet's approval is
+//               the producer `diet_resolution` of ch04c for a proposal of kind
+//               `pk_treaty_approval` (Art. 61) with the day of the approval. Whether the circumstances
+//               warrant approval afterwards is an EVALUATIVE element and an `external judgment
+//               relation`; the text names no organ that judges it, and the Diet that gives the
+//               approval is the organ in whose hands the matter is, so the authority named is the
+//               Diet (judgment call; no primary source that names another authority was
+//               retrieved). Absent an answer, the query is REQUIRES_JUDGMENT;
+//       item 4  civil service: a power valid when it follows the standards set by law (external
+//               contract: `civil_service_standards_of_law_met`);
+//       item 5  the budget: a power to prepare it and to submit it to the Diet (Art. 60(1) makes the
+//               submission to the Representatives first: a prohibition of ch04c);
+//       item 6  cabinet orders: a power valid when the order implements the Constitution or a law
+//               AND has no penal provision without the special delegation of the law (a proviso
+//               of the text: the positive predicate `penal_clause_without_delegation`);
+//       item 7  clemency (amnesty, special pardon, commutation of sentence, remission of the
+//               execution of sentence, restoration of rights): a power over a `ClemencyAct` of one
+//               of the five listed kinds. The attestation by the Emperor (Art. 7(6)) is ch01.
+//   * ARTICLE 74. Every law and cabinet order needs the signature of the competent Minister and the
+//     countersignature of the Prime Minister. It is a CONDITION OF VALIDITY of the enactment (a
+//     formality), not a duty of anyone: `enactment_formalities_complete`. The link to the
+//     promulgation of ch01 (whose power is valid on the advice and approval of the Cabinet, Art.
+//     3) is the derived `promulgation_lacks_formalities(a)`; the power of ch01 is not
+//     duplicated and is not changed. Judgment call: whether promulgation without the formalities is
+//     void is not asserted; the model records the lack.
+//   * ARTICLE 75. The immunity of a Minister in office from prosecution, unless the Prime Minister
+//     consents: the device of Art. 50 (ch04a): the power to prosecute under the ordinary law (content
+//     external: `prosecution_authorised_by_law`) and the `immunity` of the Minister that blocks its
+//     effect, with a `priority` (§116) in favour of the immunity; the consent of the Prime Minister is a
+//     positive predicate, the exception of the immunity. The proviso "the right of prosecution is not
+//     impaired" is the institutional fact `prosecution_right_not_impaired`; its effect on limitation
+//     periods belongs to the ordinary law and is not asserted. "Prosecution" (訴追) is read as the
+//     institution of a prosecution; whether it includes arrest is not asserted (no source retrieved).
+//     The immunity is bound to the term of office (在任中): only while the person is a Minister.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    CabinetAct,
+    JP_CONST_ART72_P1,
+    JP_CONST_ART73_P1,
+    JP_CONST_ART74_P1,
+    JP_CONST_ART75_P1,
+    JP_CONST_ART7_P1,
+    Organ,
+    Person,
+    Proposal,
+    ProposalKind,
+    StateAct,
+    act_has_legal_effect,
+    cabinet_act_dated,
+    cabinet_competent,
+    cabinet_organ,
+    diet_resolution,
+    enacted_as_law,
+    prime_minister_in_office,
+    proposal_kind,
+    state_minister,
+};
+
+// --- Article 72 --------------------------------------------------------------------------
+entity PmAct { label ja official "内閣総理大臣の行為"; label en unofficial "an act of the Prime Minister under Art. 72"; }
+
+enum PmActKind {
+    label en unofficial "kinds of acts of the Prime Minister";
+    pm_submit_bill;
+    pm_report_general_affairs;
+    pm_report_foreign_relations;
+    pm_direct_administration;
+}
+
+relation pm_act_kind(a: PmAct, k: PmActKind) kind empirical {
+    label en unofficial "the kind of the act of the Prime Minister";
+}
+relation pm_performs(p: Person, a: PmAct) kind empirical {
+    label ja official "行ふ";
+    label en unofficial "the Prime Minister performs the act (the act of exercise)";
+}
+relation on_behalf_of_cabinet(a: PmAct) kind empirical {
+    label ja official "内閣を代表して";
+    label en unofficial "the act is done on behalf of the Cabinet";
+}
+relation addressed_to_diet(a: PmAct) kind empirical {
+    label ja official "国会に";
+    label en unofficial "the act is addressed to the Diet";
+}
+relation directed_at_administrative_branch(a: PmAct) kind empirical {
+    label ja official "行政各部";
+    label en unofficial "the act is directed at an administrative branch";
+}
+relation pm_bill_submission_regular(a: PmAct) kind institutional {
+    label en unofficial "the submission is made on behalf of the Cabinet to the Diet";
+}
+relation pm_act_effective(a: PmAct) kind institutional {
+    label en unofficial "the act of the Prime Minister has legal effect (the effect of the power)";
+}
+
+@source(JP_CONST_ART72_P1, relation = formalizes, coverage = partial, quote = "内閣を代表して議案を国会に提出し")
+rule BillSubmissionRegularEstablished strict {
+    label en unofficial "The Prime Minister's submission of a bill to the Diet is regular when made on behalf of the Cabinet";
+    for a: PmAct;
+    when on_behalf_of_cabinet(a) and addressed_to_diet(a);
+    then pm_bill_submission_regular(a);
+}
+
+@source(JP_CONST_ART72_P1, relation = formalizes, coverage = partial, quote = "内閣を代表して議案を国会に提出し")
+rule PrimeMinisterSubmitsBills strict {
+    label ja official "内閣総理大臣は、内閣を代表して議案を国会に提出し";
+    label en unofficial "Article 72. The Prime Minister submits bills to the Diet on behalf of the Cabinet";
+    for p: Person; for a: PmAct; for k: PmActKind;
+    when prime_minister_in_office(p) and pm_act_kind(a, k) and k == pm_submit_bill;
+    then power PmSubmitBill {
+        holder p; over a;
+        exercise pm_performs(p, a);
+        valid_when pm_bill_submission_regular(a);
+        effect create(pm_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART72_P1, relation = formalizes, coverage = partial, quote = "一般国務及び外交関係について国会に報告し")
+rule PrimeMinisterReportsOnGeneralAffairs strict {
+    label ja official "一般国務について国会に報告し";
+    label en unofficial "Article 72. The Prime Minister reports to the Diet on general affairs of state";
+    for p: Person; for a: PmAct; for k: PmActKind;
+    when prime_minister_in_office(p) and pm_act_kind(a, k) and k == pm_report_general_affairs;
+    then power PmReportGeneralAffairs {
+        holder p; over a;
+        exercise pm_performs(p, a);
+        valid_when addressed_to_diet(a);
+        effect create(pm_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART72_P1, relation = formalizes, coverage = partial, quote = "一般国務及び外交関係について国会に報告し")
+rule PrimeMinisterReportsOnForeignRelations strict {
+    label ja official "外交関係について国会に報告し";
+    label en unofficial "Article 72. The Prime Minister reports to the Diet on foreign relations";
+    for p: Person; for a: PmAct; for k: PmActKind;
+    when prime_minister_in_office(p) and pm_act_kind(a, k) and k == pm_report_foreign_relations;
+    then power PmReportForeignRelations {
+        holder p; over a;
+        exercise pm_performs(p, a);
+        valid_when addressed_to_diet(a);
+        effect create(pm_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART72_P1, relation = formalizes, coverage = partial, quote = "行政各部を指揮監督する")
+rule PrimeMinisterDirectsAdministration strict {
+    label ja official "行政各部を指揮監督する";
+    label en unofficial "Article 72. The Prime Minister directs and supervises the administrative branches";
+    for p: Person; for a: PmAct; for k: PmActKind;
+    when prime_minister_in_office(p) and pm_act_kind(a, k) and k == pm_direct_administration;
+    then power PmDirectAdministration {
+        holder p; over a;
+        exercise pm_performs(p, a);
+        valid_when directed_at_administrative_branch(a);
+        effect create(pm_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 73 ---------------------------------------------------------------------------
+enum CabinetActKind {
+    label en unofficial "kinds of Cabinet acts";
+    ck_general_administration;
+    ck_state_affairs;
+    ck_foreign_affairs;
+    ck_conclude_treaty;
+    ck_civil_service;
+    ck_budget;
+    ck_cabinet_order;
+    ck_clemency;
+}
+
+enum ClemencyKind {
+    label en unofficial "kinds of clemency decided by the Cabinet";
+    cl_general_amnesty;
+    cl_special_pardon;
+    cl_commutation;
+    cl_remission_of_execution;
+    cl_restoration_of_rights;
+}
+
+entity Treaty { label ja official "条約"; label en unofficial "a treaty"; }
+entity CabinetOrder { label ja official "政令"; label en unofficial "a cabinet order"; }
+
+relation cabinet_act_kind(a: CabinetAct, k: CabinetActKind) kind empirical {
+    label en unofficial "the kind of the act of the Cabinet";
+}
+relation cabinet_performs(a: CabinetAct) kind empirical {
+    label ja official "内閣が行ふ";
+    label en unofficial "the Cabinet does the act (the act of exercise)";
+}
+relation cabinet_act_effective(a: CabinetAct) kind institutional {
+    label en unofficial "the act of the Cabinet has legal effect (the effect of the power)";
+}
+
+// Item 1 (execution of the laws) and the other general affairs -------------------------------
+relation laws_faithfully_executed(o: Organ) kind empirical {
+    label ja official "法律を誠実に執行し";
+    label en unofficial "the Cabinet executes the laws faithfully (evaluative; a finding of a court or organ, origin adjudicated)";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "法律を誠実に執行し")
+rule CabinetMustExecuteLawsFaithfully strict {
+    label ja official "法律を誠実に執行し、国務を総理すること";
+    label en unofficial "Article 73(1). The Cabinet faithfully executes the laws";
+    for o: Organ;
+    when cabinet_organ(o);
+    then duty ExecuteLawsFaithfully {
+        bearer Cabinet;
+        goal maintenance {
+            condition laws_faithfully_executed(o);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "他の一般行政事務の外")
+rule CabinetGeneralAdministration strict {
+    label ja official "他の一般行政事務";
+    label en unofficial "Article 73, chapeau. Besides the listed items, the Cabinet manages other general administrative affairs";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_general_administration;
+    then power CabinetManagesGeneralAdministration {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when cabinet_competent(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "国務を総理すること")
+rule CabinetSuperintendsStateAffairs strict {
+    label ja official "国務を総理すること";
+    label en unofficial "Article 73(1). The Cabinet superintends the affairs of state";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_state_affairs;
+    then power CabinetSuperintendsAffairsOfState {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when cabinet_competent(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 2 ---------------------------------------------------------------------------------------
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "外交関係を処理すること")
+rule CabinetConductsForeignAffairs strict {
+    label ja official "外交関係を処理すること";
+    label en unofficial "Article 73(2). The Cabinet manages foreign affairs";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_foreign_affairs;
+    then power CabinetManagesForeignAffairs {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when cabinet_competent(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 3: treaties ---------------------------------------------------------------------------------
+relation treaty_of_act(a: CabinetAct, t: Treaty) kind empirical {
+    label en unofficial "the act is the conclusion of the treaty";
+}
+relation treaty_approval_proposal(t: Treaty, p: Proposal) kind empirical {
+    label en unofficial "the proposal is the request for the Diet's approval of the treaty (Art. 61)";
+}
+relation approval_resolved_on(p: Proposal, d: Date) kind empirical {
+    key(p);
+    label ja official "国会の承認";
+    label en unofficial "the Diet gave its approval on the day";
+}
+relation treaty_approved_on(t: Treaty, d: Date) kind institutional {
+    label ja official "国会の承認";
+    label en unofficial "the Diet approved the treaty on the day d";
+}
+external judgment relation subsequent_approval_warranted(a: CabinetAct) {
+    authority Diet;
+    label ja official "時宜によつては事後に";
+    label en unofficial "the circumstances of the conclusion warrant approval after it (evaluative; authority: the Diet, which gives the approval; judgment call)";
+}
+relation treaty_conclusion_authorised(a: CabinetAct) kind institutional {
+    label ja official "事前に、時宜によつては事後に、国会の承認を経る";
+    label en unofficial "the Cabinet is competent and the Diet approved before the conclusion, or after it when the circumstances warrant";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "国会の承認を経ることを必要とする")
+rule TreatyApprovedByDiet strict {
+    label en unofficial "A treaty is approved by the Diet by a Diet resolution on the approval proposal";
+    for t: Treaty; for p: Proposal; for d: Date;
+    when treaty_approval_proposal(t, p) and proposal_kind(p, pk_treaty_approval)
+        and diet_resolution(p) and approval_resolved_on(p, d);
+    then treaty_approved_on(t, d);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "事前に")
+rule TreatyPriorApproval strict {
+    label en unofficial "A treaty conclusion is authorised when the Diet approved it before the Cabinet act";
+    for a: CabinetAct; for t: Treaty; for c: Date; for d: Date;
+    when cabinet_competent(a) and treaty_of_act(a, t) and cabinet_act_dated(a, c)
+        and treaty_approved_on(t, d) and d <= c;
+    then treaty_conclusion_authorised(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "時宜によつては事後に")
+rule TreatySubsequentApproval strict {
+    label en unofficial "A treaty conclusion is authorised by subsequent Diet approval where circumstances warrant";
+    for a: CabinetAct; for t: Treaty; for c: Date; for d: Date;
+    when cabinet_competent(a) and treaty_of_act(a, t) and cabinet_act_dated(a, c)
+        and treaty_approved_on(t, d) and d > c and subsequent_approval_warranted(a);
+    then treaty_conclusion_authorised(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "条約を締結すること")
+rule CabinetConcludesTreaties strict {
+    label ja official "条約を締結すること。但し、事前に、時宜によつては事後に、国会の承認を経ることを必要とする";
+    label en unofficial "Article 73(3). The Cabinet concludes treaties, with the approval of the Diet before or, depending on the circumstances, after";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_conclude_treaty;
+    then power CabinetConcludesTreaty {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when treaty_conclusion_authorised(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 4: civil service ---------------------------------------------------------------------------------
+relation civil_service_standards_of_law_met(a: CabinetAct) kind empirical {
+    label ja official "法律の定める基準に従ひ";
+    label en unofficial "the act follows the standards fixed by law (content of the statute is an external contract)";
+}
+relation civil_service_act_lawful(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet is competent and the act follows the standards of law";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "法律の定める基準に従ひ")
+rule CivilServiceActLawfulEstablished strict {
+    label en unofficial "A Cabinet act on civil service is lawful when it meets the standards fixed by law";
+    for a: CabinetAct;
+    when cabinet_competent(a) and civil_service_standards_of_law_met(a);
+    then civil_service_act_lawful(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "官吏に関する事務を掌理すること")
+rule CabinetAdministersCivilService strict {
+    label ja official "法律の定める基準に従ひ、官吏に関する事務を掌理すること";
+    label en unofficial "Article 73(4). The Cabinet administers the affairs of officials in accordance with the standards fixed by law";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_civil_service;
+    then power CabinetAdministersCivilServiceAffairs {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when civil_service_act_lawful(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 5: the budget ---------------------------------------------------------------------------------------
+relation budget_act_of(a: CabinetAct, p: Proposal) kind empirical {
+    label en unofficial "the act is the preparation and submission of the budget proposal";
+}
+relation budget_act_valid(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet is competent and the act concerns a budget proposal";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "予算を作成して国会に提出すること")
+rule BudgetActValidEstablished strict {
+    label en unofficial "A Cabinet act preparing and submitting a budget to the Diet is valid when the Cabinet is competent";
+    for a: CabinetAct; for p: Proposal;
+    when cabinet_competent(a) and budget_act_of(a, p) and proposal_kind(p, pk_budget);
+    then budget_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "予算を作成して国会に提出すること")
+rule CabinetPreparesAndSubmitsBudget strict {
+    label ja official "予算を作成して国会に提出すること";
+    label en unofficial "Article 73(5). The Cabinet prepares the budget and submits it to the Diet";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_budget;
+    then power CabinetSubmitsBudget {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when budget_act_valid(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 6: cabinet orders -------------------------------------------------------------------------------------
+relation cabinet_order_of(a: CabinetAct, o: CabinetOrder) kind empirical {
+    label en unofficial "the act is the enactment of the cabinet order";
+}
+relation order_implements_law(o: CabinetOrder) kind empirical {
+    label ja official "この憲法及び法律の規定を実施するために";
+    label en unofficial "the order implements the provisions of the Constitution or of a law";
+}
+relation order_has_penal_clause(o: CabinetOrder) kind empirical {
+    label ja official "罰則";
+    label en unofficial "the order contains a penal provision";
+}
+relation penal_clause_delegated_by_law(o: CabinetOrder) kind empirical {
+    label ja official "その法律の委任がある";
+    label en unofficial "the law specially delegates the penal provision to the order";
+}
+relation penal_clause_without_delegation(o: CabinetOrder) kind institutional {
+    label en unofficial "the order has a penal provision without the special delegation of the law";
+}
+relation cabinet_order_within_competence(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet is competent, the order implements the Constitution or a law and has no penal provision without delegation";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "政令には、特にその法律の委任がある場合を除いては、罰則を設けることができない")
+rule PenalClauseWithoutDelegationEstablished strict {
+    label en unofficial "A Cabinet order has a penal clause without delegation by law";
+    for o: CabinetOrder;
+    when order_has_penal_clause(o) and not_known(penal_clause_delegated_by_law(o));
+    then penal_clause_without_delegation(o);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "この憲法及び法律の規定を実施するために、政令を制定すること")
+rule CabinetOrderWithinCompetenceEstablished strict {
+    label en unofficial "A Cabinet order implementing the Constitution and laws is within Cabinet competence unless it has a penal clause without delegation";
+    for a: CabinetAct; for o: CabinetOrder;
+    when cabinet_competent(a) and cabinet_order_of(a, o) and order_implements_law(o)
+        and not_known(penal_clause_without_delegation(o));
+    then cabinet_order_within_competence(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "政令を制定すること")
+rule CabinetEnactsCabinetOrders strict {
+    label ja official "この憲法及び法律の規定を実施するために、政令を制定すること。但し、政令には、特にその法律の委任がある場合を除いては、罰則を設けることができない";
+    label en unofficial "Article 73(6). The Cabinet enacts cabinet orders to implement the Constitution and the laws; without a special delegation an order has no penal provisions";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_cabinet_order;
+    then power CabinetEnactsCabinetOrder {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when cabinet_order_within_competence(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Item 7: clemency ---------------------------------------------------------------------------------------------
+relation clemency_kind_of(a: CabinetAct, k: ClemencyKind) kind empirical {
+    label en unofficial "the kind of clemency the act decides";
+}
+relation clemency_act_valid(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet is competent and the act decides one of the five listed kinds of clemency";
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule ClemencyAmnestyListed strict {
+    label en unofficial "General amnesty is a listed Cabinet clemency act";
+    for a: CabinetAct; for k: ClemencyKind;
+    when cabinet_competent(a) and clemency_kind_of(a, k) and k == cl_general_amnesty;
+    then clemency_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule ClemencySpecialPardonListed strict {
+    label en unofficial "Special pardon is a listed Cabinet clemency act";
+    for a: CabinetAct; for k: ClemencyKind;
+    when cabinet_competent(a) and clemency_kind_of(a, k) and k == cl_special_pardon;
+    then clemency_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule ClemencyCommutationListed strict {
+    label en unofficial "Commutation of punishment is a listed Cabinet clemency act";
+    for a: CabinetAct; for k: ClemencyKind;
+    when cabinet_competent(a) and clemency_kind_of(a, k) and k == cl_commutation;
+    then clemency_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule ClemencyRemissionListed strict {
+    label en unofficial "Remission of execution of a sentence is a listed Cabinet clemency act";
+    for a: CabinetAct; for k: ClemencyKind;
+    when cabinet_competent(a) and clemency_kind_of(a, k) and k == cl_remission_of_execution;
+    then clemency_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule ClemencyRestorationListed strict {
+    label en unofficial "Restoration of rights is a listed Cabinet clemency act";
+    for a: CabinetAct; for k: ClemencyKind;
+    when cabinet_competent(a) and clemency_kind_of(a, k) and k == cl_restoration_of_rights;
+    then clemency_act_valid(a);
+}
+
+@source(JP_CONST_ART73_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること")
+rule CabinetDecidesClemency strict {
+    label ja official "大赦、特赦、減刑、刑の執行の免除及び復権を決定すること";
+    label en unofficial "Article 73(7). The Cabinet decides amnesty, special pardon, commutation of sentence, remission of the execution of sentence and restoration of rights";
+    for a: CabinetAct; for k: CabinetActKind;
+    when cabinet_act_kind(a, k) and k == ck_clemency;
+    then power CabinetDecidesClemencyAct {
+        holder Cabinet; over a;
+        exercise cabinet_performs(a);
+        valid_when clemency_act_valid(a);
+        effect create(cabinet_act_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 74: signature and countersignature ------------------------------------------------------------------------
+entity Enactment : ReviewableAct { label ja official "法律及び政令"; label en unofficial "a law or a cabinet order awaiting its formalities"; }
+
+enum EnactmentKind {
+    label en unofficial "kinds of enactment requiring signature and countersignature";
+    en_law;
+    en_cabinet_order;
+}
+
+relation enactment_kind(e: Enactment, k: EnactmentKind) kind empirical {
+    label en unofficial "whether the enactment is a law or a cabinet order";
+}
+relation competent_minister_for(m: Person, e: Enactment) kind empirical {
+    label ja official "主任の国務大臣";
+    label en unofficial "the Minister of State is the competent (主任) Minister for the enactment";
+}
+relation signed_by(m: Person, e: Enactment) kind empirical {
+    label ja official "署名";
+    label en unofficial "the person signed the enactment";
+}
+relation countersigned_by(p: Person, e: Enactment) kind empirical {
+    label ja official "連署";
+    label en unofficial "the person countersigned the enactment";
+}
+relation formalities_required(e: Enactment) kind institutional {
+    label ja official "法律及び政令には、すべて";
+    label en unofficial "the enactment is a law or a cabinet order: signature and countersignature are required";
+}
+relation signed_by_competent_minister(e: Enactment) kind institutional {
+    label ja official "主任の国務大臣が署名し";
+    label en unofficial "the competent Minister of State signed";
+}
+relation countersigned_by_prime_minister(e: Enactment) kind institutional {
+    label ja official "内閣総理大臣が連署する";
+    label en unofficial "the Prime Minister countersigned";
+}
+relation enactment_formalities_complete(e: Enactment) kind institutional {
+    label ja official "署名及び連署";
+    label en unofficial "signature of the competent Minister and countersignature of the Prime Minister are both present";
+}
+relation promulgation_of(a: StateAct, e: Enactment) kind empirical {
+    label ja official "公布";
+    label en unofficial "the Emperor's act of promulgation (Art. 7(1)) concerns the enactment";
+}
+relation promulgation_lacks_formalities(a: StateAct) kind institutional {
+    label en unofficial "the enactment promulgated by the act lacks the signature or the countersignature of Art. 74";
+}
+
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "法律及び政令には、すべて")
+rule LawIsSubjectToFormalities strict {
+    label en unofficial "A law is subject to the formalities of signature and countersignature";
+    for e: Enactment; for k: EnactmentKind;
+    when enactment_kind(e, k) and k == en_law;
+    then formalities_required(e);
+}
+
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "法律及び政令には、すべて")
+rule CabinetOrderIsSubjectToFormalities strict {
+    label en unofficial "A Cabinet order is subject to the formalities of signature and countersignature";
+    for e: Enactment; for k: EnactmentKind;
+    when enactment_kind(e, k) and k == en_cabinet_order;
+    then formalities_required(e);
+}
+
+// G3 (J10b): `Proposal` is a subtype of `Enactment` (ch04a), so the bill that became a law under Art. 59
+// IS the enactment awaiting signature, countersignature and promulgation: one object, no identity fact.
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "法律及び政令には、すべて")
+rule EnactedLawIsSubjectToFormalities strict {
+    label en unofficial "An enacted law is subject to the formalities of signature and countersignature";
+    for l: Proposal;
+    when enacted_as_law(l);
+    then formalities_required(l);
+}
+
+relation law_promulgated(l: Proposal) kind institutional {
+    label ja official "法律を公布すること";
+    label en unofficial "the law (Art. 59) was promulgated by the Emperor's act of Art. 7(1) that has legal effect";
+}
+relation promulgation_of_unenacted_bill(a: StateAct) kind institutional {
+    label ja official "法律を公布すること";
+    label en unofficial "the act purports to promulgate a bill that has not become a law: there is no law to promulgate (a defect flagged, not a change of the validity of the power)";
+}
+@source(JP_CONST_ART7_P1, relation = applies, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule LawPromulgatedByValidAct strict {
+    label en unofficial "A law is promulgated by a legally effective act of promulgation";
+    for a: StateAct; for l: Proposal;
+    when enacted_as_law(l) and promulgation_of(a, l) and act_has_legal_effect(a);
+    then law_promulgated(l);
+}
+@source(JP_CONST_ART7_P1, relation = applies, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule PromulgationOfABillThatIsNotALaw strict {
+    label en unofficial "Promulgating a bill that was not enacted as a law is promulgation of an unenacted bill";
+    for a: StateAct; for l: Proposal;
+    when promulgation_of(a, l) and proposal_kind(l, pk_bill) and not_known(enacted_as_law(l));
+    then promulgation_of_unenacted_bill(a);
+}
+
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "主任の国務大臣が署名し")
+rule CompetentMinisterSignedEstablished strict {
+    label en unofficial "An enactment is signed by the competent minister when a Minister of State responsible for it signed";
+    for e: Enactment; for m: Person;
+    when signed_by(m, e) and competent_minister_for(m, e) and state_minister(m);
+    then signed_by_competent_minister(e);
+}
+
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣が連署する")
+rule PrimeMinisterCountersignedEstablished strict {
+    label en unofficial "An enactment is countersigned by the Prime Minister in office";
+    for e: Enactment; for p: Person;
+    when countersigned_by(p, e) and prime_minister_in_office(p);
+    then countersigned_by_prime_minister(e);
+}
+
+@source(JP_CONST_ART74_P1)
+rule EnactmentFormalitiesComplete strict {
+    label ja official "法律及び政令には、すべて主任の国務大臣が署名し、内閣総理大臣が連署することを必要とする";
+    label en unofficial "Article 74. A law or cabinet order needs the signature of the competent Minister and the countersignature of the Prime Minister (a condition of validity)";
+    for e: Enactment;
+    when formalities_required(e) and signed_by_competent_minister(e) and countersigned_by_prime_minister(e);
+    then enactment_formalities_complete(e);
+}
+
+@source(JP_CONST_ART74_P1, relation = formalizes, coverage = partial, quote = "署名し、内閣総理大臣が連署することを必要とする")
+rule PromulgationLacksFormalitiesEstablished strict {
+    label en unofficial "The link to Art. 7(1) (ch01): a promulgation of an enactment without the complete signature and countersignature";
+    for a: StateAct; for e: Enactment;
+    when promulgation_of(a, e) and formalities_required(e) and not_known(enactment_formalities_complete(e));
+    then promulgation_lacks_formalities(a);
+}
+
+// --- Article 75: immunity of Ministers from prosecution ----------------------------------------------------------------
+relation prosecuting_authority(o: Organ) kind empirical {
+    label en unofficial "the organ has the ordinary-law power to prosecute (content external)";
+}
+relation prosecutable_person(m: Person) kind empirical {
+    label en unofficial "the person is a person who may be prosecuted";
+}
+relation prosecutes(o: Organ, m: Person) kind empirical {
+    label ja official "訴追";
+    label en unofficial "the organ institutes a prosecution of the person (the act of exercise)";
+}
+relation prosecution_authorised_by_law(m: Person) kind empirical {
+    label en unofficial "the prosecution is authorised by the ordinary law (content external)";
+}
+relation prosecution_takes_effect(m: Person) kind institutional {
+    label ja official "訴追";
+    label en unofficial "the prosecution of the person takes legal effect";
+}
+relation consent_of_prime_minister(m: Person) kind empirical {
+    label ja official "内閣総理大臣の同意";
+    label en unofficial "the Prime Minister has consented to the prosecution of the Minister";
+}
+relation prosecution_right_not_impaired(m: Person) kind institutional {
+    label ja official "訴追の権利は、害されない";
+    label en unofficial "the right of prosecution is not impaired by the immunity of the Minister";
+}
+
+@source(JP_CONST_ART75_P1, relation = formalizes, coverage = partial, quote = "訴追されない")
+rule ProsecutionByOrdinaryLaw strict {
+    label en unofficial "Device: the ordinary-law power to prosecute, so that the immunity has an effect to block";
+    for o: Organ; for m: Person;
+    when prosecuting_authority(o) and prosecutable_person(m);
+    then power ProsecutePerson {
+        holder o; over m;
+        exercise prosecutes(o, m);
+        valid_when prosecution_authorised_by_law(m);
+        effect create(prosecution_takes_effect(m));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART75_P1, relation = formalizes, coverage = partial, quote = "国務大臣は、その在任中、内閣総理大臣の同意がなければ、訴追されない")
+rule MinisterImmuneFromProsecutionInOffice defeasible {
+    label ja official "国務大臣は、その在任中、内閣総理大臣の同意がなければ、訴追されない";
+    label en unofficial "Article 75. A Minister of State is not prosecuted during his term of office without the consent of the Prime Minister";
+    for m: Person;
+    when state_minister(m);
+    unless (consent_of_prime_minister(m) and state_minister(m));
+    then immunity MinisterImmunityFromProsecution {
+        holder m;
+        protected_effect prosecution_takes_effect(m);
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority MinisterImmunityOverProsecutionPower {
+    prefer MinisterImmuneFromProsecutionInOffice over ProsecutionByOrdinaryLaw;
+    reason lex_specialis;
+}
+
+@source(JP_CONST_ART75_P1, relation = formalizes, coverage = partial, quote = "但し、これがため、訴追の権利は、害されない")
+rule ProsecutionRightNotImpaired strict {
+    label en unofficial "The right to prosecute a Minister of State is not impaired";
+    for m: Person;
+    when state_minister(m);
+    then prosecution_right_not_impaired(m);
+}

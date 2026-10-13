@@ -1,0 +1,720 @@
+// Chapter I, The Emperor (第一章 天皇), Articles 1-8.
+//
+// THE CENTRAL NORM IS ARTICLE 3: every act of the Emperor in matters of state
+// (国事に関する行為) needs the advice and approval of the Cabinet, and the Cabinet
+// bears the responsibility. It is a condition of VALIDITY of every power of the
+// chapter (`valid_when`), not a duty of anyone: an act without the advice and
+// approval is an invalid exercise (issue POWER_INVALID_EXERCISE) and has no
+// legal effect (`act_has_legal_effect` stays NEITHER).
+//
+// MODEL
+//   * `StateAct` is a concrete act of the Emperor (or of a regent in his name);
+//     `act_kind` classifies it by `StateActKind`: the acts of Arts. 6 and 7 plus
+//     `governance_act` for an act in matters of government (国政) that the
+//     Constitution does not list.
+//   * Every Article 7 item and both Article 6 appointments is its own `power`
+//     of the Emperor (holder: the organ `Emperor`; exercise: `performs_act`;
+//     valid_when: `cabinet_advised_and_approved`; effect: `act_has_legal_effect`).
+//   * ARTICLE 4(1), "the Emperor has no powers related to government", is
+//     modelled as the ABSENCE of a power, not as a prohibition: no power exists
+//     for an act outside the list, so such an act produces no effect, and the
+//     derived `act_ultra_vires` records it. Checked by scenarios ART4-*.
+//   * Article 5: the regent's power (`RegentActsInEmperorsName`) applies
+//     Article 4(1) mutatis mutandis: its `valid_when` requires that the act
+//     be enumerated AND advised and approved; the regency itself is a fact
+//     established under the Imperial House Law (an external contract).
+//   * External contracts (content NOT invented): the Imperial House Law
+//     (Art. 2, Art. 5), the statute delegating acts (Art. 4(2)); the Diet
+//     designation of the Prime Minister is an input fact `designated_by_diet`
+//     (its producer is Art. 67, stage J6) and the Cabinet designation of the
+//     Chief Justice is `designated_by_cabinet`.
+//   * ARTICLE 3, "the Cabinet bears the responsibility": the text names no
+//     addressee or beneficiary; the accountability of the Cabinet to the Diet
+//     is Article 66(3) (stage J6). Chapter I therefore records only the
+//     institutional fact `cabinet_responsible_for(a)`, not a `duty` with an
+//     invented beneficiary.
+//   * "for the people" (国民のために, Art. 7): a purpose clause with no organ
+//     named to judge it and no consequence attached; recorded as
+//     DECLARED_NON_RULE in coverage/J2.json, NOT in `valid_when`.
+//   * THE DISSOLUTION (Art. 7(3)): the LETTER is only a power of the Emperor
+//     exercised on the advice and approval of the Cabinet. Whether the Cabinet
+//     may advise dissolution at its discretion ("under Art. 7") or only on the
+//     Art. 69 ground are two competing readings (`interpretation`) over
+//     `dissolution_substantively_lawful`, selected by the scenario. Primary
+//     sources retrieved (Diet minutes, House of Representatives plenary,
+//     December 1948; kokkai.ndl.go.jp): both readings were argued by MEMBERS of
+//     the Diet (Uehara Etsujiro for Art. 7, 23 Dec 1948; Uchimura Seiji citing
+//     Katayama Tetsu for Art. 69 only, 7 Dec 1948), while Prime Minister Yoshida
+//     stated on 8 Dec 1948 that the Government had never declared an
+//     interpretation. The readings are therefore recorded as positions in the
+//     debate, NOT as the Government's or a court's holding. The Supreme Court
+//     Grand Bench decision of 8 June 1960 (Tomabechi) was not retrieved and is
+//     not asserted. See docs/foundations/jp-constitution/coverage/J2-interpretations.md.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    JP_CONST_ART1_P1,
+    JP_CONST_ART2_P1,
+    JP_CONST_ART3_P1,
+    JP_CONST_ART4_P1,
+    JP_CONST_ART4_P2,
+    JP_CONST_ART5_P1,
+    JP_CONST_ART6_P1,
+    JP_CONST_ART6_P2,
+    JP_CONST_ART7_P1,
+    JP_CONST_ART8_P1,
+    Organ,
+    Person,
+    cabinet_advice_effective,
+};
+
+const Emperor: Organ = entity_ref("urn:jp:constitution:clir#Emperor") {
+    label ja official "天皇";
+    label en unofficial "the Emperor";
+};
+
+entity StateAct {
+    label ja official "国事に関する行為";
+    label en unofficial "act in matters of state";
+}
+entity Statute { label ja official "法律"; label en unofficial "statute"; }
+entity PropertyTransfer {
+    label ja official "皇室との財産の授受";
+    label en unofficial "transfer or gift of property to or from the Imperial House";
+}
+
+enum StateActKind {
+    label en unofficial "kinds of acts of the Emperor in matters of state";
+    promulgate_amendment;
+    promulgate_law;
+    promulgate_cabinet_order;
+    promulgate_treaty;
+    convoke_diet;
+    dissolve_house;
+    proclaim_general_election;
+    attest_appointments_and_credentials;
+    attest_amnesty_and_restoration;
+    award_honours;
+    attest_ratification_and_documents;
+    receive_ambassadors;
+    perform_ceremonies;
+    appoint_prime_minister;
+    appoint_chief_justice;
+    governance_act;
+}
+
+relation emperor(o: Organ) kind institutional {
+    label ja official "天皇";
+    label en unofficial "the organ is the Emperor";
+}
+@source(JP_CONST_ART1_P1, relation = formalizes, coverage = partial, quote = "天皇は、日本国の象徴であり日本国民統合の象徴")
+assert emperor(Emperor);
+
+// --- Article 1 ---------------------------------------------------------------
+relation symbol_of_state_and_unity(o: Organ) kind institutional {
+    label ja official "日本国の象徴であり日本国民統合の象徴";
+    label en unofficial "symbol of the State and of the unity of the people";
+}
+relation position_grounded_in_will_of_sovereign_people(o: Organ) kind institutional {
+    label ja official "主権の存する日本国民の総意に基く";
+    label en unofficial "the position is grounded in the will of the people with whom sovereignty resides";
+}
+
+@source(JP_CONST_ART1_P1, relation = formalizes, coverage = partial, quote = "天皇は、日本国の象徴であり日本国民統合の象徴であつて")
+rule EmperorIsSymbol strict {
+    label ja official "天皇は、日本国の象徴であり日本国民統合の象徴である";
+    label en unofficial "Article 1. The Emperor is the symbol of the State and of the unity of the people";
+    for o: Organ;
+    when emperor(o);
+    then symbol_of_state_and_unity(o);
+}
+
+@source(JP_CONST_ART1_P1, relation = formalizes, coverage = partial, quote = "この地位は、主権の存する日本国民の総意に基く")
+rule EmperorPositionGroundedInPopularWill strict {
+    label ja official "この地位は、主権の存する日本国民の総意に基く";
+    label en unofficial "Article 1. The position derives from the will of the sovereign people";
+    for o: Organ;
+    when emperor(o);
+    then position_grounded_in_will_of_sovereign_people(o);
+}
+
+// --- Article 2: succession (external: Imperial House Law) --------------------
+relation imperial_house_law(l: Statute) kind empirical {
+    label ja official "皇室典範";
+    label en unofficial "the statute is the Imperial House Law";
+}
+relation adopted_by_diet_resolution(l: Statute) kind empirical {
+    label ja official "国会の議決した";
+    label en unofficial "the statute was adopted by resolution of the Diet";
+}
+relation in_hereditary_line(p: Person) kind empirical {
+    label ja official "世襲";
+    label en unofficial "the person belongs to the hereditary line (defined by the Imperial House Law)";
+}
+relation succession_defined_by(p: Person, l: Statute) kind empirical {
+    label ja official "皇室典範の定めるところにより";
+    label en unofficial "the Imperial House Law designates the person as successor (its content is an external input)";
+}
+relation succeeds_to_throne(p: Person) kind institutional {
+    label ja official "皇位を継承する";
+    label en unofficial "the person succeeds to the Imperial Throne";
+}
+
+@source(JP_CONST_ART2_P1)
+rule ThroneSuccession strict {
+    label ja official "皇位は、世襲のものであつて、国会の議決した皇室典範の定めるところにより、これを継承する";
+    label en unofficial "Article 2. The throne is dynastic and passes according to the Diet-adopted Imperial House Law";
+    for p: Person; for l: Statute;
+    when in_hereditary_line(p) and succession_defined_by(p, l) and imperial_house_law(l) and adopted_by_diet_resolution(l);
+    then succeeds_to_throne(p);
+}
+
+// --- Article 3 and the shared vocabulary of acts ------------------------------
+relation state_matter_act(a: StateAct) kind empirical {
+    label ja official "国事に関する行為";
+    label en unofficial "the act is an act in matters of state";
+}
+relation act_kind(a: StateAct, k: StateActKind) kind empirical {
+    label ja official "行為の種類";
+    label en unofficial "the kind of the act";
+}
+relation performs_act(o: Organ, a: StateAct) kind empirical {
+    label ja official "行為を行ふ";
+    label en unofficial "the organ performs the act (act of exercise)";
+}
+relation cabinet_advised_and_approved(a: StateAct) kind empirical {
+    label ja official "内閣の助言と承認";
+    label en unofficial "the Cabinet gave advice and approval for the act";
+}
+relation act_has_legal_effect(a: StateAct) kind institutional {
+    label ja official "行為の法的効果";
+    label en unofficial "the act has legal effect";
+}
+relation cabinet_responsible_for(a: StateAct) kind institutional {
+    label ja official "内閣が、その責任を負ふ";
+    label en unofficial "the Cabinet bears the responsibility for the act (accountability to the Diet: Art. 66(3), stage J6)";
+}
+relation act_enumerated(a: StateAct) kind institutional {
+    label ja official "この憲法の定める国事に関する行為";
+    label en unofficial "the act is one of the acts in matters of state listed in Arts. 6 and 7";
+}
+relation act_ultra_vires(a: StateAct) kind institutional {
+    label ja official "国政に関する権能を有しない";
+    label en unofficial "the act lies outside the enumerated acts: no power, no effect (Art. 4(1))";
+}
+
+@source(JP_CONST_ART3_P1, relation = formalizes, coverage = partial, quote = "内閣が、その責任を負ふ")
+rule CabinetResponsibleForActs strict {
+    label ja official "天皇の国事に関するすべての行為について、内閣が、その責任を負ふ";
+    label en unofficial "Article 3. The Cabinet bears the responsibility for every act of the Emperor in matters of state";
+    for a: StateAct;
+    when state_matter_act(a);
+    then cabinet_responsible_for(a);
+}
+
+// --- Article 4(1): enumerated acts and the absence of power --------------------
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EnumeratedAct_promulgate_amendment strict {
+    label en unofficial "Promulgating amendments of the Constitution is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == promulgate_amendment;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EnumeratedAct_promulgate_law strict {
+    label en unofficial "Promulgating laws is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == promulgate_law;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EnumeratedAct_promulgate_cabinet_order strict {
+    label en unofficial "Promulgating Cabinet orders is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == promulgate_cabinet_order;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EnumeratedAct_promulgate_treaty strict {
+    label en unofficial "Promulgating treaties is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == promulgate_treaty;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国会を召集すること")
+rule EnumeratedAct_convoke_diet strict {
+    label en unofficial "Convoking the Diet is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == convoke_diet;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "衆議院を解散すること")
+rule EnumeratedAct_dissolve_house strict {
+    label en unofficial "Dissolving the House of Representatives is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == dissolve_house;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国会議員の総選挙の施行を公示すること")
+rule EnumeratedAct_proclaim_general_election strict {
+    label en unofficial "Proclaiming general elections of members of the Diet is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == proclaim_general_election;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国務大臣及び法律の定めるその他の官吏の任免並びに全権委任状及び大使及び公使の信任状を認証すること")
+rule EnumeratedAct_attest_appointments_and_credentials strict {
+    label en unofficial "Attesting appointments and dismissals of officials and credentials is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == attest_appointments_and_credentials;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を認証すること")
+rule EnumeratedAct_attest_amnesty_and_restoration strict {
+    label en unofficial "Attesting amnesty, commutation, remission and restoration of rights is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == attest_amnesty_and_restoration;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "栄典を授与すること")
+rule EnumeratedAct_award_honours strict {
+    label en unofficial "Awarding honours is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == award_honours;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "批准書及び法律の定めるその他の外交文書を認証すること")
+rule EnumeratedAct_attest_ratification_and_documents strict {
+    label en unofficial "Attesting instruments of ratification and other diplomatic documents is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == attest_ratification_and_documents;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "外国の大使及び公使を接受すること")
+rule EnumeratedAct_receive_ambassadors strict {
+    label en unofficial "Receiving foreign ambassadors and ministers is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == receive_ambassadors;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "儀式を行ふこと")
+rule EnumeratedAct_perform_ceremonies strict {
+    label en unofficial "Performing ceremonial functions is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == perform_ceremonies;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART6_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣を任命する")
+rule EnumeratedAct_appoint_prime_minister strict {
+    label en unofficial "Appointing the Prime Minister is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == appoint_prime_minister;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART6_P2, relation = formalizes, coverage = partial, quote = "最高裁判所の長たる裁判官を任命する")
+rule EnumeratedAct_appoint_chief_justice strict {
+    label en unofficial "Appointing the Chief Justice of the Supreme Court is an enumerated act of the Emperor";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == appoint_chief_justice;
+    then act_enumerated(a);
+}
+
+@source(JP_CONST_ART4_P1, relation = formalizes, coverage = partial, quote = "国政に関する権能を有しない")
+rule EmperorActOutsideListIsUltraVires strict {
+    label ja official "天皇は、この憲法の定める国事に関する行為のみを行ひ、国政に関する権能を有しない";
+    label en unofficial "Article 4(1). An act of the Emperor outside the listed acts has no power behind it";
+    for o: Organ; for a: StateAct;
+    when emperor(o) and performs_act(o, a) and not_known(act_enumerated(a));
+    then act_ultra_vires(a);
+}
+
+// --- Article 6: appointments -------------------------------------------------
+relation designated_by_diet(a: StateAct) kind empirical {
+    label ja official "国会の指名";
+    label en unofficial "the appointee was designated by the Diet (producer: Art. 67, stage J6)";
+}
+relation designated_by_cabinet(a: StateAct) kind empirical {
+    label ja official "内閣の指名";
+    label en unofficial "the appointee was designated by the Cabinet";
+}
+
+@source(JP_CONST_ART6_P1)
+rule EmperorAppointsPrimeMinister strict {
+    label ja official "天皇は、国会の指名に基いて、内閣総理大臣を任命する";
+    label en unofficial "Article 6(1). The Emperor appoints the Prime Minister on the designation of the Diet";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == appoint_prime_minister;
+    then power EmperorAppointPrimeMinister {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when (designated_by_diet(a) and cabinet_advice_effective(a));
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART6_P2)
+rule EmperorAppointsChiefJustice strict {
+    label ja official "天皇は、内閣の指名に基いて、最高裁判所の長たる裁判官を任命する";
+    label en unofficial "Article 6(2). The Emperor appoints the Chief Judge of the Supreme Court on the designation of the Cabinet";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == appoint_chief_justice;
+    then power EmperorAppointChiefJustice {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when (designated_by_cabinet(a) and cabinet_advice_effective(a));
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 7: the ten acts (each its own power) -----------------------------
+// "on the advice and approval of the Cabinet" is the Art. 3 condition;
+// "for the people" is a purpose clause (see the header).
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EmperorPromulgatesAmendment strict {
+    label ja official "憲法改正、法律、政令及び条約を公布すること";
+    label en unofficial "Article 7, item 1: promulgation of constitutional amendments";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == promulgate_amendment;
+    then power EmperorPromulgateAmendment {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EmperorPromulgatesLaw strict {
+    label ja official "憲法改正、法律、政令及び条約を公布すること";
+    label en unofficial "Article 7, item 1: promulgation of laws";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == promulgate_law;
+    then power EmperorPromulgateLaw {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EmperorPromulgatesCabinetOrder strict {
+    label ja official "憲法改正、法律、政令及び条約を公布すること";
+    label en unofficial "Article 7, item 1: promulgation of cabinet orders";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == promulgate_cabinet_order;
+    then power EmperorPromulgateCabinetOrder {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "憲法改正、法律、政令及び条約を公布すること")
+rule EmperorPromulgatesTreaty strict {
+    label ja official "憲法改正、法律、政令及び条約を公布すること";
+    label en unofficial "Article 7, item 1: promulgation of treaties";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == promulgate_treaty;
+    then power EmperorPromulgateTreaty {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国会を召集すること")
+rule EmperorConvokesDiet strict {
+    label ja official "国会を召集すること";
+    label en unofficial "Article 7, item 2: convocation of the Diet";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == convoke_diet;
+    then power EmperorConvokeDiet {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "衆議院を解散すること")
+rule EmperorDissolvesHouse strict {
+    label ja official "衆議院を解散すること";
+    label en unofficial "Article 7, item 3: dissolution of the House of Representatives";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == dissolve_house;
+    then power EmperorDissolveHouse {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国会議員の総選挙の施行を公示すること")
+rule EmperorProclaimsGeneralElection strict {
+    label ja official "国会議員の総選挙の施行を公示すること";
+    label en unofficial "Article 7, item 4: proclamation of a general election of members of the Diet";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == proclaim_general_election;
+    then power EmperorProclaimGeneralElection {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "国務大臣及び法律の定めるその他の官吏の任免並びに全権委任状及び大使及び公使の信任状を認証すること")
+rule EmperorAttestsAppointments strict {
+    label ja official "国務大臣及び法律の定めるその他の官吏の任免並びに全権委任状及び大使及び公使の信任状を認証すること";
+    label en unofficial "Article 7, item 5: attestation of appointment and dismissal of ministers and officials and of credentials";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == attest_appointments_and_credentials;
+    then power EmperorAttestAppointments {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "大赦、特赦、減刑、刑の執行の免除及び復権を認証すること")
+rule EmperorAttestsAmnesty strict {
+    label ja official "大赦、特赦、減刑、刑の執行の免除及び復権を認証すること";
+    label en unofficial "Article 7, item 6: attestation of amnesty, pardon, commutation, remission of execution and restoration of rights";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == attest_amnesty_and_restoration;
+    then power EmperorAttestAmnesty {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "栄典を授与すること")
+rule EmperorAwardsHonours strict {
+    label ja official "栄典を授与すること";
+    label en unofficial "Article 7, item 7: awarding of honours";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == award_honours;
+    then power EmperorAwardHonours {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "批准書及び法律の定めるその他の外交文書を認証すること")
+rule EmperorAttestsRatification strict {
+    label ja official "批准書及び法律の定めるその他の外交文書を認証すること";
+    label en unofficial "Article 7, item 8: attestation of instruments of ratification and other diplomatic documents";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == attest_ratification_and_documents;
+    then power EmperorAttestRatification {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "外国の大使及び公使を接受すること")
+rule EmperorReceivesAmbassadors strict {
+    label ja official "外国の大使及び公使を接受すること";
+    label en unofficial "Article 7, item 9: reception of foreign ambassadors and ministers";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == receive_ambassadors;
+    then power EmperorReceiveAmbassadors {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "儀式を行ふこと")
+rule EmperorPerformsCeremonies strict {
+    label ja official "儀式を行ふこと";
+    label en unofficial "Article 7, item 10: performance of ceremonies";
+    for o: Organ; for a: StateAct; for k: StateActKind;
+    when emperor(o) and act_kind(a, k) and k == perform_ceremonies;
+    then power EmperorPerformCeremonies {
+        holder o; over a;
+        exercise performs_act(o, a);
+        valid_when cabinet_advice_effective(a);
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 4(2): delegation (external: the statute) ---------------------------
+relation emperor_delegates_act(o: Organ, a: StateAct) kind empirical {
+    label ja official "国事に関する行為を委任する";
+    label en unofficial "the Emperor delegates the act";
+}
+relation delegation_authorized_by_statute(a: StateAct) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "a statute authorizes the delegation (content of the statute is an external input)";
+}
+relation act_delegated(a: StateAct) kind institutional {
+    label ja official "委任された行為";
+    label en unofficial "the act has been validly delegated";
+}
+
+@source(JP_CONST_ART4_P2)
+rule EmperorMayDelegateActs strict {
+    label ja official "天皇は、法律の定めるところにより、その国事に関する行為を委任することができる";
+    label en unofficial "Article 4(2). The Emperor may delegate his acts as provided by law";
+    for o: Organ; for a: StateAct;
+    when emperor(o) and state_matter_act(a);
+    then power EmperorDelegateAct {
+        holder o; over a;
+        exercise emperor_delegates_act(o, a);
+        valid_when delegation_authorized_by_statute(a);
+        effect create(act_delegated(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 5: regency -------------------------------------------------------
+relation regency_established_under_house_law(r: Organ) kind empirical {
+    label ja official "皇室典範の定めるところにより摂政を置く";
+    label en unofficial "the regency is established under the Imperial House Law (external input)";
+}
+relation regent_performs_act_in_emperors_name(r: Organ, a: StateAct) kind empirical {
+    label ja official "天皇の名でその国事に関する行為を行ふ";
+    label en unofficial "the regent performs the act in the name of the Emperor";
+}
+
+@source(JP_CONST_ART5_P1, relation = formalizes, coverage = partial, quote = "摂政は、天皇の名でその国事に関する行為を行ふ")
+rule RegentActsInEmperorsName strict {
+    label ja official "摂政は、天皇の名でその国事に関する行為を行ふ";
+    label en unofficial "Article 5, sentence 1. The regent performs the acts in matters of state in the name of the Emperor";
+    for r: Organ; for a: StateAct;
+    when regency_established_under_house_law(r) and state_matter_act(a);
+    then power RegentPerformAct {
+        holder r; over a;
+        exercise regent_performs_act_in_emperors_name(r, a);
+        valid_when (act_enumerated(a) and cabinet_advice_effective(a));
+        effect create(act_has_legal_effect(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART5_P1, relation = formalizes, coverage = partial, quote = "この場合には、前条第一項の規定を準用する")
+rule RegentActOutsideListIsUltraVires strict {
+    label ja official "この場合には、前条第一項の規定を準用する";
+    label en unofficial "Article 5, sentence 2. Article 4(1) applies mutatis mutandis to the regent";
+    for r: Organ; for a: StateAct;
+    when regency_established_under_house_law(r) and regent_performs_act_in_emperors_name(r, a) and not_known(act_enumerated(a));
+    then act_ultra_vires(a);
+}
+
+// --- Article 7(3): competing readings on the basis of dissolution -------------
+relation no_confidence_resolution_basis(a: StateAct) kind empirical {
+    label ja official "内閣不信任の決議（第六十九条）";
+    label en unofficial "a resolution of no confidence of Art. 69 preceded the dissolution (producer: stage J6)";
+}
+relation dissolution_substantively_lawful(a: StateAct) kind institutional {
+    label ja official "衆議院の解散の実質的根拠";
+    label en unofficial "the dissolution has a substantive basis under the selected reading";
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "衆議院を解散すること")
+rule DissolutionByCabinetDiscretionArt7 strict {
+    label en unofficial "Reading 'Art. 7 at Cabinet discretion': the Cabinet may advise dissolution at its discretion";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == dissolve_house and cabinet_advised_and_approved(a);
+    then dissolution_substantively_lawful(a);
+}
+
+@source(JP_CONST_ART7_P1, relation = formalizes, coverage = partial, quote = "衆議院を解散すること")
+rule DissolutionOnlyAfterNoConfidenceArt69 strict {
+    label en unofficial "Reading 'Art. 69 only': dissolution only on the ground of the no-confidence procedure";
+    for a: StateAct; for k: StateActKind;
+    when act_kind(a, k) and k == dissolve_house and cabinet_advised_and_approved(a) and no_confidence_resolution_basis(a);
+    then dissolution_substantively_lawful(a);
+}
+
+interpretation Article7DissolutionPractice of JP_CONST_ART7_P1 {
+    status disputed;
+    include DissolutionByCabinetDiscretionArt7;
+    label ja unofficial "七条解散（実務）";
+    label en unofficial "Dissolution under Art. 7 at Cabinet discretion (reading argued in the Diet, Dec 1948; not a Government holding)";
+}
+
+interpretation Article69OnlyDissolution of JP_CONST_ART7_P1 {
+    status disputed;
+    include DissolutionOnlyAfterNoConfidenceArt69;
+    label ja unofficial "六十九条限定説";
+    label en unofficial "Dissolution only under Art. 69 (reading argued in the Diet, Dec 1948; not a Government holding)";
+}
+
+// --- Article 8: property of the Imperial House ---------------------------------
+relation imperial_house_transfer(t: PropertyTransfer) kind empirical {
+    label ja official "皇室への（又は皇室による）財産の譲渡、譲受け、賜与";
+    label en unofficial "the transfer or gift is to or from the Imperial House";
+}
+relation party_to_transfer(p: Person, t: PropertyTransfer) kind empirical {
+    label ja official "財産の授受の当事者";
+    label en unofficial "the person is a party to the transfer";
+}
+relation performs_transfer(p: Person, t: PropertyTransfer) kind empirical {
+    label ja official "財産を譲り渡し、譲り受け、又は賜与する";
+    label en unofficial "the person performs the transfer";
+}
+relation diet_resolution_basis(t: PropertyTransfer) kind empirical {
+    label ja official "国会の議決に基く";
+    label en unofficial "the transfer is based on a resolution of the Diet";
+}
+
+@source(JP_CONST_ART8_P1)
+rule ImperialHousePropertyNeedsDietResolution strict {
+    label ja official "皇室に財産を譲り渡し、又は皇室が、財産を譲り受け、若しくは賜与することは、国会の議決に基かなければならない";
+    label en unofficial "Article 8. Transfers of property to or from the Imperial House are forbidden without a resolution of the Diet";
+    for p: Person; for t: PropertyTransfer;
+    when imperial_house_transfer(t) and party_to_transfer(p, t) and not_known(diet_resolution_basis(t));
+    then prohibition ImperialHouseTransferWithoutDietResolution {
+        bearer p;
+        action performs_transfer(p, t);
+        window [@1947-05-03, infinity);
+    };
+}

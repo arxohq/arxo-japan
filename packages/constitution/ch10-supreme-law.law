@@ -1,0 +1,334 @@
+// Chapter X, Supreme Law (第十章 最高法規), Articles 97-99.
+//
+// MODEL
+//   * ARTICLE 97. The article has one operative predicate and a statement of origin.
+//     - Operative: the fundamental human rights that the Constitution guarantees to the people
+//       are ENTRUSTED (信託) to the present and future people as inviolable, eternal rights.
+//       Recorded as the institutional fact `fundamental_rights_entrusted_to(p)` for every holder
+//       of the rights of Art. 11 (`holds_fundamental_rights`, ch03a). The INVIOLABILITY itself is
+//       the immunity `FundamentalRightsInviolable` of Art. 11 in ch03a and is NOT duplicated here:
+//       Art. 97 gives its ground, Art. 11 gives its protected effect.
+//     - Statement of origin ("the fruit of the long struggle of mankind for freedom", "have
+//       withstood many trials"): it names no bearer, no action and no consequence.
+//       DECLARED_NON_RULE in coverage/J9.json, reason taken from the text.
+//   * ARTICLE 98(1). The Constitution is the supreme law of the State; a law, order, imperial
+//     rescript or other act concerning affairs of state that is contrary to its provisions has
+//     no force, in whole or in part. The effect is `act_lacks_force`, reached by two routes:
+//     (a) an act in the scope of Article 81 (statute, order, regulation, disposition): through the
+//         recognition of the Supreme Court (`unconstitutionality_recognized`, ch06; the input is the
+//         court's answer to the judgment relation `act_contradicts_constitution`,
+//         `origin adjudicated`). No recognition: the act keeps its force in the model (its
+//         invalidity is not asserted from silence); no answer: REQUIRES_JUDGMENT.
+//     (b) an act of the kind `other_act` (the imperial rescript and the other acts concerning
+//         affairs of state, outside the four kinds of Art. 81): the text names no decider; the
+//         contradiction is a FACT with `origin adjudicated` (channel 2 of DECISION-0194,
+//         `contradiction_established`).
+//     Whole or part (全部又は一部): the extent is an adjudicated fact (`contradiction_extent`).
+//     Modelling choice, no primary source asserted: the four kinds of Art. 81 are read as the
+//     "law" and "order" of Art. 98 and, for the regulation and the disposition, as "other acts
+//     concerning affairs of state"; only the effect on force is stated.
+//     "The Constitution is the supreme law" (最高法規) is a status: the institutional fact
+//     `constitution_is_supreme_law(n)`; its operative content is the nullity of the contrary acts.
+//   * ARTICLE 98(2). Treaties concluded by Japan and established rules of international law
+//     must be faithfully observed: a DUTY of the State (two duties: a treaty and an established
+//     rule). 「誠実に」 is an evaluative element (DECISION-0194, channel 2: the text names no decider);
+//     the finding that the observance is in good faith is a FACT with `origin adjudicated`
+//     (`observed_in_good_faith`); an asserted negation is the breach (VIOLATED), silence is not.
+//   * ARTICLE 99. The Emperor or the regent, the Ministers of State, the members of the Diet,
+//     the judges and all other public officials are under a duty to respect and uphold the
+//     Constitution: one DUTY per class of bearer. The Emperor and the regent are organs; the
+//     others are persons (two duty relations, `organ_respects_constitution` and
+//     `person_respects_constitution`). The beneficiary is not named by the text: the duty
+//     carries no `beneficiary`.
+//
+// Public producers: act_lacks_force(a), fundamental_rights_entrusted_to(p).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Enactment,
+    House,
+    JP_CONST_ART97_P1,
+    JP_CONST_ART98_P1,
+    JP_CONST_ART98_P2,
+    JP_CONST_ART99_P1,
+    Nation,
+    Organ,
+    Person,
+    Proposal,
+    ReviewableAct,
+    ReviewableKind,
+    Treaty,
+    emperor,
+    enacted_as_law,
+    holds_fundamental_rights,
+    j7_judge,
+    member_of,
+    minister_of_state,
+    nation,
+    public_official,
+    regency_established_under_house_law,
+    review_object_kind,
+    unconstitutionality_recognized,
+};
+
+entity InternationalLawRule {
+    label ja official "確立された国際法規";
+    label en unofficial "an established rule of international law";
+}
+
+enum NullityExtent {
+    label en unofficial "extent of nullity of an act contrary to the Constitution";
+    whole;
+    part;
+}
+
+// --- Article 97 -------------------------------------------------------------------------
+relation fundamental_rights_entrusted_to(p: Person) kind institutional {
+    label ja official "現在及び将来の国民に対し、侵すことのできない永久の権利として信託されたもの";
+    label en unofficial "the fundamental human rights are entrusted to the person (a present or future national) as inviolable, eternal rights";
+}
+
+@source(JP_CONST_ART97_P1, relation = formalizes, coverage = partial, quote = "現在及び将来の国民に対し、侵すことのできない永久の権利として信託されたものである")
+rule FundamentalRightsEntrustedToNationals strict {
+    label ja official "現在及び将来の国民に対し、侵すことのできない永久の権利として信託されたものである";
+    label en unofficial "Article 97. The fundamental human rights are entrusted to the present and future people as inviolable, eternal rights (the inviolability is the immunity of Art. 11)";
+    for p: Person;
+    when holds_fundamental_rights(p);
+    then fundamental_rights_entrusted_to(p);
+}
+
+// --- Article 98(1) ----------------------------------------------------------------------
+relation constitution_is_supreme_law(n: Nation) kind institutional {
+    label ja official "この憲法は、国の最高法規";
+    label en unofficial "the Constitution is the supreme law of the State";
+}
+relation contradiction_established(a: ReviewableAct) kind empirical {
+    label ja official "その条規に反する";
+    label en unofficial "it is established (fact with origin adjudicated) that the act is contrary to the provisions of the Constitution";
+}
+relation contradiction_extent(a: ReviewableAct, e: NullityExtent) kind empirical {
+    label ja official "全部又は一部";
+    label en unofficial "the contradiction extends to the whole or to a part of the act (adjudicated)";
+}
+relation act_lacks_force(a: ReviewableAct) kind institutional {
+    label ja official "その効力を有しない";
+    label en unofficial "the act, in whole or in part, has no force (Art. 98(1))";
+}
+relation act_lacks_force_in_whole(a: ReviewableAct) kind institutional {
+    label ja official "全部";
+    label en unofficial "the act has no force as a whole";
+}
+relation act_lacks_force_in_part(a: ReviewableAct) kind institutional {
+    label ja official "一部";
+    label en unofficial "the act has no force in a part";
+}
+
+@source(JP_CONST_ART98_P1, relation = formalizes, coverage = partial, quote = "この憲法は、国の最高法規であつて")
+rule ConstitutionIsSupremeLaw strict {
+    label ja official "この憲法は、国の最高法規である";
+    label en unofficial "Article 98(1). The Constitution is the supreme law of the State";
+    for n: Nation;
+    when nation(n);
+    then constitution_is_supreme_law(n);
+}
+
+@source(JP_CONST_ART98_P1, relation = formalizes, coverage = partial, quote = "その条規に反する法律、命令、詔勅及び国務に関するその他の行為の全部又は一部は、その効力を有しない")
+rule ActRecognisedUnconstitutionalLacksForce strict {
+    label ja official "その条規に反する法律、命令、…は、その効力を有しない";
+    label en unofficial "Article 98(1). An act within Art. 81 that the Supreme Court has recognised as contrary to the Constitution has no force";
+    for a: ReviewableAct;
+    when unconstitutionality_recognized(a);
+    then act_lacks_force(a);
+}
+
+@source(JP_CONST_ART98_P1, relation = formalizes, coverage = partial, quote = "詔勅及び国務に関するその他の行為")
+rule OtherActOfStateContraryLacksForce strict {
+    label ja official "詔勅及び国務に関するその他の行為は、その効力を有しない";
+    label en unofficial "Article 98(1). An imperial rescript or another act concerning affairs of state that is established as contrary to the Constitution has no force";
+    for a: ReviewableAct; for k: ReviewableKind;
+    when review_object_kind(a, k) and k == other_act and contradiction_established(a);
+    then act_lacks_force(a);
+}
+
+@source(JP_CONST_ART98_P1, relation = formalizes, coverage = partial, quote = "全部又は一部は、その効力を有しない")
+rule ActLacksForceInWhole strict {
+    label en unofficial "An act contradicting the Constitution in its entirety lacks force in whole";
+    for a: ReviewableAct; for e: NullityExtent;
+    when act_lacks_force(a) and contradiction_extent(a, e) and e == whole;
+    then act_lacks_force_in_whole(a);
+}
+
+@source(JP_CONST_ART98_P1, relation = formalizes, coverage = partial, quote = "全部又は一部は、その効力を有しない")
+rule ActLacksForceInPart strict {
+    label en unofficial "An act contradicting the Constitution only in part lacks force in that part";
+    for a: ReviewableAct; for e: NullityExtent;
+    when act_lacks_force(a) and contradiction_extent(a, e) and e == part;
+    then act_lacks_force_in_part(a);
+}
+
+// G6 (J10b): a law that lacks force (Art. 98(1)) is not a law in force for the consumers of `enacted_as_law`
+// (Art. 84: `tax_authorized_by_law`). `enacted_as_law` records only that the bill passed by Art. 59; the
+// force of the enacted law is `law_in_force`. Whole or part: the text does not say which part a tax law
+// still holds, so a law that lacks force in any extent is not a safe basis (the conservative reading).
+relation law_in_force(l: Proposal) kind institutional {
+    label ja official "法律となり、効力を有する";
+    label en unofficial "the bill has become a law (Art. 59) and has not been held to lack force (Art. 98(1)): the law the consumers of `enacted_as_law` may rely on";
+}
+@source(JP_CONST_ART98_P1, relation = applies, coverage = partial, quote = "その効力を有しない")
+rule EnactedLawKeepingItsForceIsInForce strict {
+    label en unofficial "An enacted law not known to lack force is in force";
+    for l: Proposal;
+    when enacted_as_law(l) and not_known(act_lacks_force(l));
+    then law_in_force(l);
+}
+
+// --- Article 98(2) ----------------------------------------------------------------------
+relation treaty_concluded_by(t: Treaty, n: Nation) kind empirical {
+    label ja official "日本国が締結した条約";
+    label en unofficial "the treaty was concluded by the State";
+}
+relation established_rule_binding(r: InternationalLawRule, n: Nation) kind empirical {
+    label ja official "確立された国際法規";
+    label en unofficial "the established rule of international law binds the State";
+}
+relation observed_in_good_faith(x: Treaty) kind empirical {
+    label ja official "誠実に遵守";
+    label en unofficial "the treaty is observed in good faith (finding with origin adjudicated; text names no decider)";
+}
+relation rule_observed_in_good_faith(r: InternationalLawRule) kind empirical {
+    label ja official "誠実に遵守";
+    label en unofficial "the established rule is observed in good faith (finding with origin adjudicated)";
+}
+
+@source(JP_CONST_ART98_P2, relation = formalizes, coverage = partial, quote = "日本国が締結した条約")
+rule StateMustObserveTreatiesInGoodFaith strict {
+    label ja official "日本国が締結した条約は、これを誠実に遵守することを必要とする";
+    label en unofficial "Article 98(2). Treaties concluded by Japan must be faithfully observed";
+    for n: Nation; for t: Treaty;
+    when nation(n) and treaty_concluded_by(t, n);
+    then duty ObserveTreatiesFaithfully {
+        bearer n;
+        goal maintenance {
+            condition observed_in_good_faith(t);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART98_P2, relation = formalizes, coverage = partial, quote = "確立された国際法規")
+rule StateMustObserveEstablishedInternationalLaw strict {
+    label ja official "確立された国際法規は、これを誠実に遵守することを必要とする";
+    label en unofficial "Article 98(2). Established rules of international law must be faithfully observed";
+    for n: Nation; for r: InternationalLawRule;
+    when nation(n) and established_rule_binding(r, n);
+    then duty ObserveInternationalLawFaithfully {
+        bearer n;
+        goal maintenance {
+            condition rule_observed_in_good_faith(r);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 99 -------------------------------------------------------------------------
+relation organ_respects_constitution(o: Organ) kind empirical {
+    label ja official "この憲法を尊重し擁護する";
+    label en unofficial "the organ respects and upholds the Constitution (conduct; an asserted negation is the breach)";
+}
+relation person_respects_constitution(p: Person) kind empirical {
+    label ja official "この憲法を尊重し擁護する";
+    label en unofficial "the person respects and upholds the Constitution (conduct; an asserted negation is the breach)";
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "天皇又は摂政")
+rule EmperorMustRespectConstitution strict {
+    label ja official "天皇は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. The Emperor is under a duty to respect and uphold the Constitution";
+    for o: Organ;
+    when emperor(o);
+    then duty EmperorRespectsConstitution {
+        bearer o;
+        goal maintenance {
+            condition organ_respects_constitution(o);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "天皇又は摂政")
+rule RegentMustRespectConstitution strict {
+    label ja official "摂政は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. The regent is under a duty to respect and uphold the Constitution";
+    for o: Organ;
+    when regency_established_under_house_law(o);
+    then duty RegentRespectsConstitution {
+        bearer o;
+        goal maintenance {
+            condition organ_respects_constitution(o);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "国務大臣")
+rule MinisterMustRespectConstitution strict {
+    label ja official "国務大臣は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. A Minister of State is under a duty to respect and uphold the Constitution";
+    for p: Person;
+    when minister_of_state(p);
+    then duty MinisterRespectsConstitution {
+        bearer p;
+        goal maintenance {
+            condition person_respects_constitution(p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "国会議員")
+rule DietMemberMustRespectConstitution strict {
+    label ja official "国会議員は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. A member of the Diet is under a duty to respect and uphold the Constitution";
+    for p: Person; for h: House;
+    when member_of(p, h);
+    then duty DietMemberRespectsConstitution {
+        bearer p;
+        goal maintenance {
+            condition person_respects_constitution(p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "裁判官")
+rule JudgeMustRespectConstitution strict {
+    label ja official "裁判官は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. A judge is under a duty to respect and uphold the Constitution";
+    for p: Person;
+    when j7_judge(p);
+    then duty JudgeRespectsConstitution {
+        bearer p;
+        goal maintenance {
+            condition person_respects_constitution(p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART99_P1, relation = formalizes, coverage = partial, quote = "その他の公務員")
+rule PublicOfficialMustRespectConstitution strict {
+    label ja official "その他の公務員は、この憲法を尊重し擁護する義務を負ふ";
+    label en unofficial "Article 99. Every other public official is under a duty to respect and uphold the Constitution";
+    for p: Person;
+    when public_official(p);
+    then duty PublicOfficialRespectsConstitution {
+        bearer p;
+        goal maintenance {
+            condition person_respects_constitution(p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}

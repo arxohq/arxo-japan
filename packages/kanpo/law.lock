@@ -1,0 +1,15 @@
+{
+  "dependencyEdges": [],
+  "languageSemantics": "law.core/0.2.11",
+  "lockVersion": "0.4",
+  "packages": [],
+  "resolutionHash": "sha256:d6c5c68cd86a90188c8656894c79be3a9b34b39ac749a68a2580e346f9a081ab",
+  "resources": [],
+  "root": {
+    "artifactHash": "sha256:a11766d3e5f25f30ccd4d61d5b708dfaab1c43b27000cc194681603fae2d42a6",
+    "name": "jp.kanpo",
+    "namespace": "urn:jp:corpus:clir:kanpo",
+    "sourceHash": "sha256:a0567dc59d8d36f78de854bd31d8ea65614e8c133941aada200c9a31f0dae5ce",
+    "version": "0.1.0"
+  }
+}

@@ -1,0 +1,15 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 附則第二条、境界の対: 施行日当日に発行された官報にはこの法律が適用される。
+test "urn:query:kanpo-t06" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t06-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01"), @2025-04-01) { origin case_input; }
+    }
+    evaluate truth(act_applies_to(entity_ref("urn:jp:case:kanpo-2025-04-01")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

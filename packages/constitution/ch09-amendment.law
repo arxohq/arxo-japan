@@ -1,0 +1,300 @@
+// Chapter IX, Amendments (第九章 改正), Article 96.
+//
+// MODEL
+//   * ARTICLE 96(1) has TWO stages and each is its own predicate:
+//       (1) INITIATION. The Diet initiates the amendment (発議) and proposes it to the people
+//           on the votes of at least two thirds of ALL the members of EACH House. The vote of
+//           each House is a `Motion` of 01-voting.law and the threshold is `two_thirds_of_all_for`
+//           (denominator: the statutory total of the House, `member_count`; NOT the members
+//           present and NOT the votes cast). A power of the Diet: the exercise
+//           (`diet_initiates_amendment_act`) is a case fact, `valid_when` both Houses carried
+//           the amendment; otherwise POWER_INVALID_EXERCISE and no effect
+//           (`amendment_proposed_to_people` stays unestablished).
+//       (2) RATIFICATION. The people's approval needs a majority of the votes in a special
+//           referendum or in a vote held at an election that the Diet determines. The vote is a
+//           `Motion` of 01-voting.law (`majority_of_votes_cast_for`). Only the two kinds of vote
+//           named by the text count (`ratification_vote_kind`); a poll of another kind is no
+//           approval. The election and the referendum procedure are defined by statute: an
+//           EXTERNAL contract (the content of the statute is an input, not modelled).
+//     DENOMINATOR (judgment call with a primary source): 「その過半数の賛成」 is read as a
+//     majority of the votes CAST (for + against; abstentions and non-voters do not count).
+//     The reading is not the model's invention: the Referendum Act (日本国憲法の改正手続に関する法律,
+//     平成十九年法律第五十一号) Art. 98(2) defines the 投票総数 as the sum of the votes for and
+//     the votes against the bill and Art. 126(1) gives the approval when the votes for exceed
+//     one half of that total (coverage/J9-interpretations.md, verbatim quotes, e-Gov text
+//     retrieved 2026-09-25). A tie is therefore no approval and an empty vote is no approval.
+//     The model states only the constitutional test, not the procedure of the Act.
+//   * ARTICLE 96(2): after the approval the Emperor promulgates the amendment IMMEDIATELY, in the
+//     name of the people, as an integral part of the Constitution. A DUTY of the Emperor
+//     (two positions, as Art. 34 in ch03b): (a) to promulgate it in that manner; (b) to do it
+//     immediately. The BRIDGE to the power of Art. 7(1) in ch01 (`EmperorPromulgateAmendment`)
+//     is a rule that reads that power's effect: `amendment_promulgated` holds when a StateAct
+//     of kind `promulgate_amendment` for the amendment has legal effect (`act_has_legal_effect`);
+//     the power itself is NOT duplicated. 「直ちに」 is an EVALUATIVE element (DECISION-0194),
+//     not a zero term: channel 1, a judgment relation. The text names no decider; the authority
+//     is the Supreme Court of Japan (a modelling choice from Art. 81, the same as ch03b and ch08;
+//     no reading is asserted).
+//   * The flag `amendment_promulgated_without_approval` records the defect "promulgated with no
+//     completed approval"; the effect of such a promulgation is decided in ch01 (Art. 3 is the
+//     condition of the power) and is not changed.
+//
+// Public producers for other stages: amendment_adopted(x), amendment_proposed_to_people(x),
+// amendment_promulgated(x).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Diet,
+    Emperor,
+    House,
+    HouseOfCouncillors,
+    HouseOfRepresentatives,
+    JP_CONST_ART96_P1,
+    JP_CONST_ART96_P2,
+    Motion,
+    StateAct,
+    StateActKind,
+    ThePeople,
+    act_has_legal_effect,
+    act_kind,
+    majority_of_votes_cast_for,
+    motion_before,
+    two_thirds_of_all_for,
+};
+
+entity ConstitutionalAmendment {
+    label ja official "憲法改正";
+    label en unofficial "an amendment of the Constitution";
+}
+
+enum RatificationVoteKind {
+    label en unofficial "kinds of vote for ratifying a constitutional amendment";
+    special_referendum;
+    vote_at_election_set_by_diet;
+    other_poll;
+}
+
+relation amendment_before_diet(x: ConstitutionalAmendment) kind empirical {
+    label ja official "憲法改正案";
+    label en unofficial "the amendment bill is before the Diet";
+}
+relation amendment_initiation_vote(m: Motion, x: ConstitutionalAmendment) kind empirical {
+    label ja official "発議の議決";
+    label en unofficial "the motion is the vote of a House on initiating the amendment (the House is fixed by motion_before)";
+}
+relation house_carried_amendment(x: ConstitutionalAmendment, h: House) kind institutional {
+    label ja official "総議員の三分の二以上の賛成";
+    label en unofficial "the House carried the amendment by at least two thirds of all its members";
+}
+relation amendment_carried_by_both_houses(x: ConstitutionalAmendment) kind institutional {
+    label ja official "各議院の総議員の三分の二以上の賛成";
+    label en unofficial "each House carried the amendment by at least two thirds of all its members";
+}
+relation diet_initiates_amendment_act(x: ConstitutionalAmendment) kind empirical {
+    label ja official "国会が、これを発議し、国民に提案して";
+    label en unofficial "the Diet initiates the amendment and proposes it to the people (act of exercise)";
+}
+relation amendment_proposed_to_people(x: ConstitutionalAmendment) kind institutional {
+    label ja official "国民に提案";
+    label en unofficial "the amendment is initiated and proposed to the people (legal effect of a valid initiation)";
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "各議院の総議員の三分の二以上の賛成で")
+rule HouseCarriesAmendmentByTwoThirdsOfAll strict {
+    label ja official "各議院の総議員の三分の二以上の賛成";
+    label en unofficial "Article 96(1). A House carries the amendment when the votes for are at least two thirds of ALL its members";
+    for m: Motion; for x: ConstitutionalAmendment; for h: House;
+    when amendment_initiation_vote(m, x) and motion_before(m, h) and two_thirds_of_all_for(m);
+    then house_carried_amendment(x, h);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "各議院の総議員の三分の二以上の賛成で")
+rule AmendmentCarriedByBothHouses strict {
+    label en unofficial "Article 96(1). Both Houses carried the amendment (each by two thirds of all its members)";
+    for x: ConstitutionalAmendment;
+    when house_carried_amendment(x, HouseOfRepresentatives) and house_carried_amendment(x, HouseOfCouncillors);
+    then amendment_carried_by_both_houses(x);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "国会が、これを発議し、国民に提案して")
+rule DietInitiatesAmendment strict {
+    label ja official "国会が、これを発議し、国民に提案して";
+    label en unofficial "Article 96(1). The Diet initiates the amendment and proposes it to the people, on the votes of two thirds of all the members of each House";
+    for x: ConstitutionalAmendment;
+    when amendment_before_diet(x);
+    then power DietInitiateAmendment {
+        holder Diet; over x;
+        exercise diet_initiates_amendment_act(x);
+        valid_when amendment_carried_by_both_houses(x);
+        effect create(amendment_proposed_to_people(x));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- ratification by the people ------------------------------------------------------
+relation ratification_vote(m: Motion, x: ConstitutionalAmendment) kind empirical {
+    label ja official "国民の承認の投票";
+    label en unofficial "the motion is the vote of the people on the amendment";
+}
+relation ratification_vote_kind(m: Motion, k: RatificationVoteKind) kind empirical {
+    label ja official "特別の国民投票又は国会の定める選挙の際行はれる投票";
+    label en unofficial "the kind of the vote: a special referendum, a vote at an election that the Diet determines, or another poll (statute-defined content: external)";
+}
+relation ratification_vote_of_kind_named_by_text(m: Motion) kind institutional {
+    label ja official "特別の国民投票又は国会の定める選挙の際行はれる投票";
+    label en unofficial "the vote is a special referendum or a vote held at an election that the Diet determines";
+}
+relation people_majority_approves(x: ConstitutionalAmendment) kind institutional {
+    label ja official "その過半数の賛成";
+    label en unofficial "a majority of the votes cast approves the amendment in a vote of a kind named by the text";
+}
+relation amendment_people_approved(x: ConstitutionalAmendment) kind institutional {
+    label ja official "その承認を経";
+    label en unofficial "the amendment was proposed to the people and approved by them";
+}
+relation amendment_adopted(x: ConstitutionalAmendment) kind institutional {
+    label ja official "この憲法の改正";
+    label en unofficial "both stages of Art. 96(1) are complete: the amendment is adopted and awaits promulgation";
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "特別の国民投票又は国会の定める選挙の際行はれる投票")
+rule SpecialReferendumIsRatificationVote strict {
+    label en unofficial "A special referendum is a ratification vote named by the text";
+    for m: Motion; for k: RatificationVoteKind;
+    when ratification_vote_kind(m, k) and k == special_referendum;
+    then ratification_vote_of_kind_named_by_text(m);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "特別の国民投票又は国会の定める選挙の際行はれる投票")
+rule VoteAtElectionSetByDietIsRatificationVote strict {
+    label en unofficial "A vote at an election set by the Diet is a ratification vote named by the text";
+    for m: Motion; for k: RatificationVoteKind;
+    when ratification_vote_kind(m, k) and k == vote_at_election_set_by_diet;
+    then ratification_vote_of_kind_named_by_text(m);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "その過半数の賛成を必要とする")
+rule PeopleMajorityApproves strict {
+    label ja official "この承認には、…その過半数の賛成を必要とする";
+    label en unofficial "Article 96(1). The approval needs a majority of the votes cast (for + against) in a vote of a kind named by the text";
+    for m: Motion; for x: ConstitutionalAmendment;
+    when ratification_vote(m, x) and ratification_vote_of_kind_named_by_text(m) and majority_of_votes_cast_for(m);
+    then people_majority_approves(x);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "国民に提案してその承認を経なければならない")
+rule AmendmentProposedAndApproved strict {
+    label en unofficial "A constitutional amendment is approved by the people when it was proposed to them and a majority approves";
+    for x: ConstitutionalAmendment;
+    when amendment_proposed_to_people(x) and people_majority_approves(x);
+    then amendment_people_approved(x);
+}
+
+@source(JP_CONST_ART96_P1, relation = formalizes, coverage = partial, quote = "この憲法の改正は、各議院の総議員の三分の二以上の賛成で、国会が、これを発議し、国民に提案してその承認を経なければならない")
+rule AmendmentAdopted strict {
+    label ja official "この憲法の改正は、…発議し、国民に提案してその承認を経なければならない";
+    label en unofficial "Article 96(1). An amendment is adopted when it was initiated by two thirds of all the members of each House, proposed to the people and approved by them";
+    for x: ConstitutionalAmendment;
+    when amendment_carried_by_both_houses(x) and amendment_people_approved(x);
+    then amendment_adopted(x);
+}
+
+// --- Article 96(2): promulgation --------------------------------------------------------
+relation promulgation_act_of(a: StateAct, x: ConstitutionalAmendment) kind empirical {
+    label ja official "憲法改正の公布";
+    label en unofficial "the act of state is the promulgation of the amendment";
+}
+relation promulgated_in_name_of_people(a: StateAct) kind empirical {
+    label ja official "国民の名で";
+    label en unofficial "the promulgation is made in the name of the people";
+}
+relation promulgated_as_integral_part(a: StateAct) kind empirical {
+    label ja official "この憲法と一体を成すものとして";
+    label en unofficial "the promulgation declares the amendment an integral part of the Constitution";
+}
+relation amendment_promulgated(x: ConstitutionalAmendment) kind institutional {
+    label ja official "公布";
+    label en unofficial "the Emperor validly promulgated the amendment (an act of Art. 7(1), with legal effect) in the name of the people as an integral part of the Constitution";
+}
+relation amendment_integral_part_of_constitution(x: ConstitutionalAmendment) kind institutional {
+    label ja official "この憲法と一体を成す";
+    label en unofficial "the promulgated, adopted amendment is an integral part of the Constitution";
+}
+relation amendment_promulgated_without_approval(x: ConstitutionalAmendment) kind institutional {
+    label en unofficial "the amendment was promulgated although the two-thirds votes of both Houses or the majority of the people is not established (the missing act of initiation itself is not flagged)";
+}
+external judgment relation amendment_promulgated_immediately(x: ConstitutionalAmendment) {
+    authority SupremeCourtOfJapan;
+    label ja official "直ちに";
+    label en unofficial "the amendment was promulgated immediately (evaluative element, DECISION-0194 channel 1)";
+}
+
+// The bridge to ch01: the power of Art. 7(1) creates `act_has_legal_effect`; Art. 96(2) reads it.
+@source(JP_CONST_ART96_P2, relation = formalizes, coverage = partial, quote = "天皇は、国民の名で、この憲法と一体を成すものとして")
+rule AmendmentPromulgatedByEmperor strict {
+    label en unofficial "Article 96(2). The amendment is promulgated when an act of Art. 7(1) of kind promulgate_amendment has legal effect and is made in the name of the people as an integral part of the Constitution";
+    for a: StateAct; for x: ConstitutionalAmendment; for k: StateActKind;
+    when promulgation_act_of(a, x) and act_kind(a, k) and k == promulgate_amendment
+        and act_has_legal_effect(a) and promulgated_in_name_of_people(a) and promulgated_as_integral_part(a);
+    then amendment_promulgated(x);
+}
+
+@source(JP_CONST_ART96_P2, relation = formalizes, coverage = partial, quote = "この憲法と一体を成すものとして")
+rule PromulgatedAdoptedAmendmentIsIntegralPart strict {
+    label en unofficial "A promulgated amendment that was adopted forms an integral part of the Constitution";
+    for x: ConstitutionalAmendment;
+    when amendment_adopted(x) and amendment_promulgated(x);
+    then amendment_integral_part_of_constitution(x);
+}
+
+// Two positive premises that are NOT produced by the effect of a power (§280.3, LDC-E4103):
+// the missing vote of the people and the missing two-thirds votes of the Houses.
+@source(JP_CONST_ART96_P1, relation = applies, coverage = partial, quote = "国民に提案してその承認を経なければならない")
+rule PromulgatedWithoutPeoplesMajority strict {
+    label en unofficial "An amendment promulgated without approval of a majority of the people lacks approval";
+    for x: ConstitutionalAmendment;
+    when amendment_promulgated(x) and not_known(people_majority_approves(x));
+    then amendment_promulgated_without_approval(x);
+}
+
+@source(JP_CONST_ART96_P1, relation = applies, coverage = partial, quote = "各議院の総議員の三分の二以上の賛成で")
+rule PromulgatedWithoutTwoThirdsOfBothHouses strict {
+    label en unofficial "An amendment promulgated without two-thirds of both Houses lacks approval";
+    for x: ConstitutionalAmendment;
+    when amendment_promulgated(x) and not_known(amendment_carried_by_both_houses(x));
+    then amendment_promulgated_without_approval(x);
+}
+
+@source(JP_CONST_ART96_P2, relation = formalizes, coverage = partial, quote = "天皇は、国民の名で、この憲法と一体を成すものとして、直ちにこれを公布する")
+rule EmperorMustPromulgateAdoptedAmendment strict {
+    label ja official "天皇は、国民の名で、この憲法と一体を成すものとして、…これを公布する";
+    label en unofficial "Article 96(2). After the approval the Emperor promulgates the amendment in the name of the people as an integral part of the Constitution";
+    for x: ConstitutionalAmendment;
+    when amendment_people_approved(x);
+    then duty PromulgateAmendmentDuty {
+        bearer Emperor;
+        beneficiary ThePeople;
+        goal achievement {
+            condition amendment_promulgated(x);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART96_P2, relation = formalizes, coverage = partial, quote = "直ちにこれを公布する")
+rule EmperorMustPromulgateImmediately strict {
+    label ja official "直ちにこれを公布する";
+    label en unofficial "Article 96(2). The promulgation must follow immediately (evaluative element: judgment relation, not a zero term)";
+    for x: ConstitutionalAmendment;
+    when amendment_people_approved(x);
+    then duty PromulgateAmendmentImmediatelyDuty {
+        bearer Emperor;
+        beneficiary ThePeople;
+        goal maintenance {
+            condition amendment_promulgated_immediately(x);
+            window [@1947-05-03, infinity);
+        }
+    };
+}

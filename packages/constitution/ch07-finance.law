@@ -1,0 +1,639 @@
+// Chapter VII, Finance (第七章 財政), Articles 83-91: the fiscal power and the
+// Diet, taxation, expenditure and obligations, the budget, the reserve fund, the
+// property and expenses of the Imperial House, the ban on public funds for religious
+// bodies and for private charitable/educational/benevolent enterprises, the audit of
+// the final accounts, and the report on the finances of the State.
+//
+// MODEL
+//   * ARTICLES 83, 84, 85 and 89 are BANS addressed to the organs of the State:
+//     `prohibition` (bearer = the organ, action = the act). The premise names the
+//     act and the bearer and holds only where the lawful basis is NOT known
+//     (`not_known`): an act that has its basis stays outside the ban, and the position
+//     appears only where it can matter (as in Art. 8 of ch01). The lawful basis is
+//     always a POSITIVE predicate: a resolution of the Diet (`diet_resolution`, the
+//     public producer of ch04c), an enacted statute (`enacted_as_law`, ch04c). The act
+//     itself is established by a fact of the case (VIOLATED on itself, ACTIVE otherwise).
+//   * ARTICLE 83 is the general principle (every exercise of the fiscal power of the
+//     State rests on a resolution of the Diet); Arts. 84 (taxes) and 85 (expenditure and
+//     obligations) are its two specific bans. An act that falls under Art. 85 falls under
+//     Art. 83 as well: two positions, both established from the same act.
+//   * ARTICLE 84. A new tax or a change of an existing one requires a statute or the
+//     conditions fixed by a statute (法律又は法律の定める条件による). Two positive routes to
+//     the basis: the measure is laid by an enacted statute, or under the conditions of an
+//     enacted statute. The CONTENT of the tax statutes is external and is not modelled.
+//   * ARTICLE 86. A duty of the Cabinet for EACH fiscal year: prepare the budget, submit
+//     it to the Diet, undergo its deliberation and obtain its resolution. The text sets
+//     no date. A fiscal year is data of the case (`fiscal_year_span`; its dates are set by
+//     a statute outside the Constitution and are not invented). WINDOW (judgment call):
+//     from the entry into force of the Constitution to the last day of the fiscal year: the
+//     text fixes no opening day, and the fiscal year is the only bound the text itself
+//     supplies (a budget cannot be resolved "for" a fiscal year that is over). Silence
+//     after the window is UNDETERMINED; the breach is an ASSERTED negation (§113).
+//   * ARTICLE 87. (1) The Diet MAY resolve a reserve fund to cover an unforeseeable
+//     shortfall of the budget (a power of the Diet, valid only if the shortfall is such
+//     that it could not be foreseen: 予見し難い is an EVALUATIVE element, channel 1 of
+//     DECISION-0194: judgment relation, the authority is the Diet, which decides it by
+//     the very resolution the text requires; a modelling choice, no primary source
+//     asserts anything about it) and the Cabinet MAY spend the fund on its own
+//     responsibility (a liberty of the Cabinet). (2) EVERY expenditure of the reserve is
+//     followed by a duty of the Cabinet to obtain the Diet's approval AFTER it; the text
+//     names no term, the window is open (from the day of expenditure). The approval
+//     satisfies the duty only when it is not earlier than the expenditure (事後に).
+//   * ARTICLE 88. The property of the Imperial House belongs to the State (a derivation)
+//     and every expense of the Imperial House must be entered in the budget and pass the
+//     resolution of the Diet (a duty of the Cabinet, the budget-maker of Art. 86). The
+//     gifts and transfers of property are Art. 8 in ch01 and are NOT duplicated here.
+//   * ARTICLE 89. Two bans on the disposal of public funds or other public property:
+//     (a) for the use, benefit or maintenance of a religious organization or body;
+//     (b) for a charitable, educational or benevolent enterprise that is NOT under public
+//     control. The exception is a POSITIVE predicate (`under_public_control`): the
+//     enterprise is under public control when the case says so. 公の支配 is EVALUATIVE
+//     (channel 2 of DECISION-0194: the text names no decider, so the classification is a
+//     fact of a court or organ, `origin adjudicated`); the readings of the Government and
+//     of the courts are NOT asserted (no primary source retrieved:
+//     coverage/J8-interpretations.md). Whether a body is religious is also a fact.
+//   * ARTICLE 90. The final accounts of the State are inspected EVERY YEAR by the Board of
+//     Audit (a duty of the Board, window from the day after the fiscal year to the last
+//     day of the following fiscal year: the Cabinet must submit the report with them in
+//     that year, so an inspection later than that is of no use to the text: judgment
+//     call) and the Cabinet submits them, with the audit report, to the Diet IN THE NEXT
+//     fiscal year (a duty of the Cabinet, window = the following fiscal year). Paragraph 2
+//     (organization and powers of the Board of Audit by statute) is an external contract.
+//   * ARTICLE 91. The Cabinet reports on the finances of the State to the Diet and to the
+//     people periodically, at least once a year. A report made on the day d starts a year:
+//     the next report is due by `add_calendar_period(d, 1 calendar_year)` (the anniversary
+//     day is inside, judgment call; 29 February goes to the last day of February under the
+//     month-end convention of DIET_CALENDAR_STEP of ch04a). The chain starts from an
+//     observed report; the text sets no day of the FIRST report and none is invented.
+//     One duty is stated for the Diet and one for the people (two addressees named).
+//
+// Public producers for other stages: fiscal_act_based_on_diet_resolution(a),
+// tax_authorized_by_law(t), reserve_fund_established(rf), budget_process_complete(fy),
+// state_property(x), final_accounts_properly_submitted(a), finance_report_due(d, due).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    Diet,
+    JP_CONST_ART83_P1,
+    JP_CONST_ART84_P1,
+    JP_CONST_ART85_P1,
+    JP_CONST_ART86_P1,
+    JP_CONST_ART87_P1,
+    JP_CONST_ART87_P2,
+    JP_CONST_ART88_P1,
+    JP_CONST_ART89_P1,
+    JP_CONST_ART90_P1,
+    JP_CONST_ART90_P2,
+    JP_CONST_ART91_P1,
+    Organ,
+    Proposal,
+    ProposalKind,
+    diet_resolution,
+    law_in_force,
+    proposal_kind,
+};
+
+entity FiscalAct { label ja official "国の財政を処理する権限の行使"; label en unofficial "an exercise of the fiscal power of the State"; }
+entity TaxMeasure { label ja official "新たに租税を課し、又は現行の租税を変更すること"; label en unofficial "a measure that imposes a new tax or changes an existing tax"; }
+entity FiscalYear { label ja official "会計年度"; label en unofficial "a fiscal year"; }
+entity ReserveFund { label ja official "予備費"; label en unofficial "a reserve fund"; }
+entity ReserveExpenditure { label ja official "予備費の支出"; label en unofficial "an expenditure of the reserve fund"; }
+entity ImperialHouseExpense { label ja official "皇室の費用"; label en unofficial "an expense of the Imperial House"; }
+entity ImperialHouseProperty { label ja official "皇室財産"; label en unofficial "a property of the Imperial House"; }
+entity PublicDisposition : FiscalAct { label ja official "公金その他の公の財産の支出又は利用に供すること"; label en unofficial "a disbursement of public money or a making available of other public property"; }
+entity Beneficiary { label ja official "支出又は利用の相手方"; label en unofficial "a body or enterprise that receives a public disposition"; }
+entity FinalAccounts { label ja official "国の収入支出の決算"; label en unofficial "the final accounts of the revenue and expenditure of the State"; }
+entity FinanceReport { label ja official "国の財政状況についての報告"; label en unofficial "a report on the financial condition of the State"; }
+entity Public { label ja official "国民"; label en unofficial "the people, the addressee of a report of Art. 91"; }
+
+const BoardOfAudit: Organ = entity_ref("urn:jp:constitution:clir#BoardOfAudit") {
+    label ja official "会計検査院";
+    label en unofficial "the Board of Audit";
+};
+const ThePeople: Public = entity_ref("urn:jp:constitution:clir#ThePeople") {
+    label ja official "国民";
+    label en unofficial "the people";
+};
+
+// --- Shared: fiscal years, the budget, the basis of an act -----------------------
+relation fiscal_year_span(fy: FiscalYear, first: Date, last: Date) kind empirical {
+    key(fy);
+    label ja official "会計年度";
+    label en unofficial "the fiscal year runs from the first to the last day (the dates are set by a statute outside the Constitution: an input, not invented)";
+}
+relation following_fiscal_year(fy: FiscalYear, next: FiscalYear) kind empirical {
+    label ja official "次の年度";
+    label en unofficial "the next fiscal year after the fiscal year";
+}
+relation budget_for_year(b: Proposal, fy: FiscalYear) kind empirical {
+    label ja official "毎会計年度の予算";
+    label en unofficial "the proposal is the budget for the fiscal year";
+}
+relation cabinet_prepared_budget(b: Proposal) kind empirical {
+    label ja official "予算を作成し";
+    label en unofficial "the Cabinet prepared the budget";
+}
+relation cabinet_submitted_budget_to_diet(b: Proposal) kind empirical {
+    label ja official "国会に提出して";
+    label en unofficial "the Cabinet submitted the budget to the Diet";
+}
+relation budget_process_complete(fy: FiscalYear) kind institutional {
+    label ja official "予算を作成し、国会に提出して、その審議を受け議決を経た";
+    label en unofficial "the budget for the fiscal year was prepared and submitted by the Cabinet and the Diet resolved on it (Art. 86 achieved)";
+}
+
+@source(JP_CONST_ART86_P1, relation = formalizes, coverage = partial, quote = "予算を作成し、国会に提出して、その審議を受け議決を経なければならない")
+rule BudgetProcessCompleteForYear strict {
+    label en unofficial "Article 86. The process of the fiscal year is complete when the budget of that year was prepared, submitted, and resolved by the Diet (diet_resolution of ch04c)";
+    for b: Proposal; for fy: FiscalYear;
+    when budget_for_year(b, fy) and proposal_kind(b, pk_budget) and cabinet_prepared_budget(b)
+        and cabinet_submitted_budget_to_diet(b) and diet_resolution(b);
+    then budget_process_complete(fy);
+}
+
+// The basis of an act: a resolution of the Diet on a proposal that covers it.
+relation act_covered_by_resolution(a: FiscalAct, r: Proposal) kind empirical {
+    label ja official "国会の議決に基く";
+    label en unofficial "the act rests on the proposal (budget, reserve fund, obligation) on which the Diet has resolved";
+}
+relation fiscal_act_based_on_diet_resolution(a: FiscalAct) kind institutional {
+    label ja official "国会の議決に基く";
+    label en unofficial "the act rests on a resolution of the Diet (producer: the resolution exists, ch04c diet_resolution)";
+}
+
+@source(JP_CONST_ART83_P1, relation = formalizes, coverage = partial, quote = "国会の議決に基いて")
+rule ActBasedOnDietResolution strict {
+    label en unofficial "A fiscal act is based on a Diet resolution when it is covered by a resolution of the Diet";
+    for a: FiscalAct; for r: Proposal;
+    when act_covered_by_resolution(a, r) and diet_resolution(r);
+    then fiscal_act_based_on_diet_resolution(a);
+}
+
+// --- Article 83 -------------------------------------------------------------------
+relation fiscal_act_of(a: FiscalAct, o: Organ) kind empirical {
+    label ja official "国の財政を処理する権限";
+    label en unofficial "the act belongs to the exercise of the fiscal power of the State by the organ";
+}
+relation exercises_fiscal_power(o: Organ, a: FiscalAct) kind empirical {
+    label ja official "国の財政を処理する権限を行使する";
+    label en unofficial "the organ exercises the fiscal power by the act (the action)";
+}
+
+@source(JP_CONST_ART83_P1)
+rule FiscalPowerOnlyOnDietResolution strict {
+    label ja official "国の財政を処理する権限は、国会の議決に基いて、これを行使しなければならない";
+    label en unofficial "Article 83. The power to administer national finances is to be exercised only upon a resolution of the Diet: a ban on exercising it without such a basis";
+    for o: Organ; for a: FiscalAct;
+    when fiscal_act_of(a, o) and not_known(fiscal_act_based_on_diet_resolution(a));
+    then prohibition NoFiscalActWithoutDietResolution {
+        bearer o;
+        action exercises_fiscal_power(o, a);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 84 -------------------------------------------------------------------
+relation tax_measure_of(t: TaxMeasure, o: Organ) kind empirical {
+    label ja official "租税を課し、又は変更する機関";
+    label en unofficial "the organ lays the tax or changes it (binds the bearer)";
+}
+relation imposes_or_changes_tax(o: Organ, t: TaxMeasure) kind empirical {
+    label ja official "あらたに租税を課し、又は現行の租税を変更する";
+    label en unofficial "the organ imposes a new tax or changes an existing one (the action)";
+}
+relation tax_laid_by_statute(t: TaxMeasure, l: Proposal) kind empirical {
+    label ja official "法律による";
+    label en unofficial "the tax measure is laid down by the statute";
+}
+relation tax_laid_on_statutory_conditions(t: TaxMeasure, l: Proposal) kind empirical {
+    label ja official "法律の定める条件による";
+    label en unofficial "the tax measure is taken on the conditions fixed by the statute";
+}
+relation tax_authorized_by_law(t: TaxMeasure) kind institutional {
+    label ja official "法律又は法律の定める条件による";
+    label en unofficial "the tax measure rests on an enacted statute or on the conditions of an enacted statute";
+}
+
+@source(JP_CONST_ART84_P1, relation = formalizes, coverage = partial, quote = "法律")
+rule TaxByEnactedStatute strict {
+    label en unofficial "A tax laid by an enacted statute in force is authorized by law";
+    for t: TaxMeasure; for l: Proposal;
+    when tax_laid_by_statute(t, l) and law_in_force(l);
+    then tax_authorized_by_law(t);
+}
+
+@source(JP_CONST_ART84_P1, relation = formalizes, coverage = partial, quote = "法律の定める条件による")
+rule TaxOnConditionsOfEnactedStatute strict {
+    label en unofficial "A tax laid on the conditions of an enacted statute in force is authorized by law";
+    for t: TaxMeasure; for l: Proposal;
+    when tax_laid_on_statutory_conditions(t, l) and law_in_force(l);
+    then tax_authorized_by_law(t);
+}
+
+@source(JP_CONST_ART84_P1)
+rule TaxRequiresStatute strict {
+    label ja official "あらたに租税を課し、又は現行の租税を変更するには、法律又は法律の定める条件によることを必要とする";
+    label en unofficial "Article 84. A new tax may be imposed, or an existing tax changed, only by a statute or on the conditions of a statute";
+    for o: Organ; for t: TaxMeasure;
+    when tax_measure_of(t, o) and not_known(tax_authorized_by_law(t));
+    then prohibition NoTaxWithoutLaw {
+        bearer o;
+        action imposes_or_changes_tax(o, t);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 85 -------------------------------------------------------------------
+relation state_expenditure_or_obligation_of(a: FiscalAct, o: Organ) kind empirical {
+    label ja official "国費の支出又は国の債務の負担";
+    label en unofficial "the act is an expenditure of national funds or an assumption of an obligation by the State, by the organ (binds the bearer)";
+}
+relation spends_or_incurs_obligation(o: Organ, a: FiscalAct) kind empirical {
+    label ja official "国費を支出し、又は国が債務を負担する";
+    label en unofficial "the organ spends national funds or binds the State by an obligation (the action)";
+}
+
+@source(JP_CONST_ART85_P1)
+rule ExpenditureRequiresDietResolution strict {
+    label ja official "国費を支出し、又は国が債務を負担するには、国会の議決に基くことを必要とする";
+    label en unofficial "Article 85. National funds may be spent, and the State may assume an obligation, only on the basis of a resolution of the Diet";
+    for o: Organ; for a: FiscalAct;
+    when state_expenditure_or_obligation_of(a, o) and not_known(fiscal_act_based_on_diet_resolution(a));
+    then prohibition NoExpenditureOrObligationWithoutDietResolution {
+        bearer o;
+        action spends_or_incurs_obligation(o, a);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 86: the budget -------------------------------------------------------
+@source(JP_CONST_ART86_P1)
+rule CabinetMustPrepareSubmitAndObtainBudget strict {
+    label ja official "内閣は、毎会計年度の予算を作成し、国会に提出して、その審議を受け議決を経なければならない";
+    label en unofficial "Article 86. The Cabinet prepares and submits to the Diet the budget of every fiscal year and obtains its deliberation and resolution";
+    for fy: FiscalYear; for f: Date; for l: Date;
+    when fiscal_year_span(fy, f, l);
+    then duty CabinetBudgetForFiscalYear {
+        bearer Cabinet; beneficiary Diet;
+        goal achievement {
+            condition budget_process_complete(fy);
+            window [@1947-05-03, l];
+        }
+    };
+}
+
+// --- Article 87: the reserve fund -------------------------------------------------
+external judgment relation shortfall_unforeseeable(rf: ReserveFund) {
+    authority Diet;
+    label ja official "予見し難い予算の不足";
+    label en unofficial "the shortfall of the budget the fund is to cover is hard to foresee (judgment of the Diet, which resolves the fund; modelling choice)";
+}
+relation reserve_fund_proposed(rf: ReserveFund) kind empirical {
+    label ja official "予備費を設ける";
+    label en unofficial "a reserve fund is proposed to the Diet";
+}
+relation diet_resolves_reserve_fund(rf: ReserveFund) kind empirical {
+    label ja official "国会の議決に基いて予備費を設け";
+    label en unofficial "the Diet resolves the reserve fund (the act of exercise)";
+}
+relation reserve_fund_established(rf: ReserveFund) kind institutional {
+    label ja official "予備費";
+    label en unofficial "the reserve fund is established (producer: the Cabinet may spend it)";
+}
+relation reserve_expenditure_of(x: ReserveExpenditure, rf: ReserveFund, d: Date) kind empirical {
+    key(x);
+    label ja official "予備費の支出";
+    label en unofficial "the expenditure x of the reserve fund rf was made on the day d";
+}
+relation cabinet_spends_reserve(x: ReserveExpenditure) kind empirical {
+    label ja official "内閣の責任でこれを支出する";
+    label en unofficial "the Cabinet spends the reserve on its own responsibility (the action)";
+}
+relation diet_approval_of(x: ReserveExpenditure, d: Date) kind empirical {
+    key(x);
+    label ja official "事後に国会の承諾を得る";
+    label en unofficial "the Diet gave its approval of the expenditure on the day d";
+}
+relation diet_approved_after_the_fact(x: ReserveExpenditure) kind institutional {
+    label ja official "事後に国会の承諾を得た";
+    label en unofficial "the Diet's approval of the expenditure was given on or after the day of the expenditure";
+}
+
+@source(JP_CONST_ART87_P1, relation = formalizes, coverage = partial, quote = "予見し難い予算の不足に充てるため、国会の議決に基いて予備費を設け")
+rule DietMayResolveReserveFund strict {
+    label ja official "予見し難い予算の不足に充てるため、国会の議決に基いて予備費を設け";
+    label en unofficial "Article 87(1). To meet an unforeseeable shortfall of the budget the Diet may resolve a reserve fund";
+    for rf: ReserveFund;
+    when reserve_fund_proposed(rf);
+    then power DietEstablishesReserveFund {
+        holder Diet; over rf;
+        exercise diet_resolves_reserve_fund(rf);
+        valid_when shortfall_unforeseeable(rf);
+        effect create(reserve_fund_established(rf));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART87_P1, relation = formalizes, coverage = partial, quote = "内閣の責任でこれを支出することができる")
+rule CabinetMaySpendReserveOnItsOwnResponsibility strict {
+    label ja official "内閣の責任でこれを支出することができる";
+    label en unofficial "Article 87(1). The Cabinet may spend the established reserve fund on its own responsibility";
+    for x: ReserveExpenditure; for rf: ReserveFund; for d: Date;
+    when reserve_expenditure_of(x, rf, d) and reserve_fund_established(rf);
+    then liberty CabinetSpendsReserve {
+        holder Cabinet;
+        action cabinet_spends_reserve(x);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART87_P2, relation = formalizes, coverage = partial, quote = "事後に国会の承諾を得なければならない")
+rule ApprovalAfterTheFactRecognised strict {
+    label en unofficial "Diet approval given after the reserve fund expenditure counts as subsequent approval";
+    for x: ReserveExpenditure; for e: Date; for a: Date;
+    when reserve_expenditure_of(x, _, e) and diet_approval_of(x, a) and a >= e;
+    then diet_approved_after_the_fact(x);
+}
+
+@source(JP_CONST_ART87_P2)
+rule CabinetMustObtainApprovalOfEveryReserveExpenditure strict {
+    label ja official "すべて予備費の支出については、内閣は、事後に国会の承諾を得なければならない";
+    label en unofficial "Article 87(2). For every expenditure of the reserve fund the Cabinet must obtain the approval of the Diet afterwards";
+    for x: ReserveExpenditure; for rf: ReserveFund; for d: Date;
+    when reserve_expenditure_of(x, rf, d);
+    then duty CabinetObtainsApprovalOfReserveSpending {
+        bearer Cabinet; beneficiary Diet;
+        goal achievement {
+            condition diet_approved_after_the_fact(x);
+            window [d, infinity);
+        }
+    };
+}
+
+// --- Article 88: the Imperial House ----------------------------------------------
+relation imperial_house_property(x: ImperialHouseProperty) kind empirical {
+    label ja official "皇室財産";
+    label en unofficial "the property belongs to the Imperial House";
+}
+relation state_property(x: ImperialHouseProperty) kind institutional {
+    label ja official "国に属する";
+    label en unofficial "the property belongs to the State";
+}
+relation imperial_house_expense_of_year(e: ImperialHouseExpense, fy: FiscalYear) kind empirical {
+    label ja official "皇室の費用";
+    label en unofficial "the expense of the Imperial House is incurred in the fiscal year";
+}
+relation expense_entered_in_budget(e: ImperialHouseExpense, b: Proposal) kind empirical {
+    label ja official "予算に計上して";
+    label en unofficial "the expense is entered in the budget";
+}
+relation imperial_expense_in_resolved_budget(e: ImperialHouseExpense) kind institutional {
+    label ja official "予算に計上して国会の議決を経た";
+    label en unofficial "the expense is entered in a budget of its fiscal year on which the Diet has resolved";
+}
+
+@source(JP_CONST_ART88_P1, relation = formalizes, coverage = partial, quote = "すべて皇室財産は、国に属する")
+rule ImperialHousePropertyBelongsToState strict {
+    label ja official "すべて皇室財産は、国に属する";
+    label en unofficial "Article 88, first sentence. All property of the Imperial House belongs to the State";
+    for x: ImperialHouseProperty;
+    when imperial_house_property(x);
+    then state_property(x);
+}
+
+@source(JP_CONST_ART88_P1, relation = formalizes, coverage = partial, quote = "予算に計上して国会の議決を経なければならない")
+rule ImperialExpenseInResolvedBudget strict {
+    label en unofficial "Expenses of the Imperial Household are entered in a budget resolved by the Diet";
+    for e: ImperialHouseExpense; for b: Proposal; for fy: FiscalYear;
+    when imperial_house_expense_of_year(e, fy) and expense_entered_in_budget(e, b) and budget_for_year(b, fy)
+        and proposal_kind(b, pk_budget) and diet_resolution(b);
+    then imperial_expense_in_resolved_budget(e);
+}
+
+@source(JP_CONST_ART88_P1, relation = formalizes, coverage = partial, quote = "すべて皇室の費用は、予算に計上して国会の議決を経なければならない")
+rule CabinetMustBudgetEveryImperialExpense strict {
+    label ja official "すべて皇室の費用は、予算に計上して国会の議決を経なければならない";
+    label en unofficial "Article 88, second sentence. Every expense of the Imperial House must be entered in the budget and pass a resolution of the Diet (a duty of the Cabinet, the maker of the budget, Art. 86)";
+    for e: ImperialHouseExpense; for fy: FiscalYear; for f: Date; for l: Date;
+    when imperial_house_expense_of_year(e, fy) and fiscal_year_span(fy, f, l);
+    then duty CabinetBudgetsImperialExpense {
+        bearer Cabinet; beneficiary Diet;
+        goal achievement {
+            condition imperial_expense_in_resolved_budget(e);
+            window [@1947-05-03, l];
+        }
+    };
+}
+
+// --- Article 89: public funds ------------------------------------------------------
+relation disposition_by(d: PublicDisposition, o: Organ) kind empirical {
+    label ja official "公金その他の公の財産を支出し、又はその利用に供する機関";
+    label en unofficial "the organ disposes of public money or other public property (binds the bearer)";
+}
+relation disposition_to(d: PublicDisposition, r: Beneficiary) kind empirical {
+    label ja official "支出又は利用の相手方";
+    label en unofficial "the disposition is made to the body or enterprise";
+}
+relation disposition_for_use_benefit_or_maintenance(d: PublicDisposition) kind empirical {
+    label ja official "使用、便益若しくは維持のため";
+    label en unofficial "the disposition serves the use, benefit or maintenance of the recipient";
+}
+relation disposes_of_public_property(o: Organ, d: PublicDisposition) kind empirical {
+    label ja official "これを支出し、又はその利用に供する";
+    label en unofficial "the organ spends the money or makes the property available (the action)";
+}
+relation recipient_is_religious_organization(r: Beneficiary) kind empirical {
+    label ja official "宗教上の組織若しくは団体";
+    label en unofficial "the recipient is a religious organization or body (a classification: a fact of the case)";
+}
+relation charitable_educational_or_benevolent_enterprise(r: Beneficiary) kind empirical {
+    label ja official "慈善、教育若しくは博愛の事業";
+    label en unofficial "the recipient is a charitable, educational or benevolent enterprise";
+}
+// EVALUATIVE (DECISION-0194, channel 2): the text names no decider. A fact of the court or organ
+// that classified the enterprise; the caller supplies it with `origin adjudicated`.
+relation under_public_control(r: Beneficiary) kind empirical {
+    label ja official "公の支配に属する";
+    label en unofficial "the enterprise is under public control (公の支配; a fact of the court or organ, origin adjudicated; the readings are not asserted)";
+}
+
+@source(JP_CONST_ART89_P1, relation = formalizes, coverage = partial, quote = "宗教上の組織若しくは団体の使用、便益若しくは維持のため")
+rule NoPublicFundsForReligiousBodies strict {
+    label ja official "公金その他の公の財産は、宗教上の組織若しくは団体の使用、便益若しくは維持のため、これを支出し、又はその利用に供してはならない";
+    label en unofficial "Article 89, first limb. Public money or other public property may not be spent or made available for the use, benefit or maintenance of a religious organization or body";
+    for o: Organ; for d: PublicDisposition; for r: Beneficiary;
+    when disposition_by(d, o) and disposition_to(d, r) and recipient_is_religious_organization(r) and disposition_for_use_benefit_or_maintenance(d);
+    then prohibition NoPublicFundsToReligiousBody {
+        bearer o;
+        action disposes_of_public_property(o, d);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART89_P1, relation = formalizes, coverage = partial, quote = "公の支配に属しない慈善、教育若しくは博愛の事業に対し")
+rule NoPublicFundsForUncontrolledEnterprises strict {
+    label ja official "公金その他の公の財産は、公の支配に属しない慈善、教育若しくは博愛の事業に対し、これを支出し、又はその利用に供してはならない";
+    label en unofficial "Article 89, second limb. Public money or other public property may not be spent or made available for a charitable, educational or benevolent enterprise that is not under public control";
+    for o: Organ; for d: PublicDisposition; for r: Beneficiary;
+    when disposition_by(d, o) and disposition_to(d, r) and charitable_educational_or_benevolent_enterprise(r)
+        and not_known(under_public_control(r));
+    then prohibition NoPublicFundsToUncontrolledEnterprise {
+        bearer o;
+        action disposes_of_public_property(o, d);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 90: final accounts ---------------------------------------------------
+relation final_accounts_of(a: FinalAccounts, fy: FiscalYear) kind empirical {
+    label ja official "国の収入支出の決算";
+    label en unofficial "the final accounts of the fiscal year";
+}
+relation final_accounts_inspected(a: FinalAccounts) kind empirical {
+    label ja official "会計検査院がこれを検査し";
+    label en unofficial "the Board of Audit has inspected the final accounts";
+}
+relation cabinet_submits_final_accounts(a: FinalAccounts) kind empirical {
+    label ja official "国会に提出する";
+    label en unofficial "the Cabinet submitted the final accounts to the Diet";
+}
+relation audit_report_accompanies(a: FinalAccounts) kind empirical {
+    label ja official "その検査報告とともに";
+    label en unofficial "the audit report accompanied the submission";
+}
+relation final_accounts_properly_submitted(a: FinalAccounts) kind institutional {
+    label ja official "検査報告とともに国会に提出した";
+    label en unofficial "the final accounts were submitted to the Diet with the audit report, after inspection";
+}
+relation audit_of_final_accounts_window(a: FinalAccounts, s: Date, e: Date) kind institutional {
+    key(a);
+    label en unofficial "the window of the inspection: from the day after the fiscal year to the last day of the following fiscal year";
+}
+relation board_of_audit_statute_applies(o: Organ) kind empirical {
+    label ja official "会計検査院の組織及び権限は、法律でこれを定める";
+    label en unofficial "a statute governs the organization and powers of the Board of Audit (content external)";
+}
+relation board_of_audit_matters_set_by_statute(o: Organ) kind institutional {
+    label ja official "会計検査院の組織及び権限";
+    label en unofficial "the organization and powers of the Board of Audit are those of the statute";
+}
+
+@source(JP_CONST_ART90_P1, relation = formalizes, coverage = partial, quote = "その検査報告とともに、これを国会に提出しなければならない")
+rule FinalAccountsSubmittedWithReport strict {
+    label en unofficial "The final accounts are properly submitted when inspected and accompanied by the audit report";
+    for a: FinalAccounts;
+    when cabinet_submits_final_accounts(a) and audit_report_accompanies(a) and final_accounts_inspected(a);
+    then final_accounts_properly_submitted(a);
+}
+
+@source(JP_CONST_ART90_P1, relation = formalizes, coverage = partial, quote = "毎年会計検査院がこれを検査し")
+rule InspectionWindowOfFinalAccounts strict {
+    label en unofficial "The audit window for the final accounts runs through the following fiscal year";
+    for a: FinalAccounts; for fy: FiscalYear; for ny: FiscalYear; for l: Date; for f2: Date; for l2: Date;
+    when final_accounts_of(a, fy) and fiscal_year_span(fy, _, l) and following_fiscal_year(fy, ny) and fiscal_year_span(ny, f2, l2);
+    then audit_of_final_accounts_window(a, add_calendar_period(l, 1 calendar_day), l2);
+}
+
+@source(JP_CONST_ART90_P1, relation = formalizes, coverage = partial, quote = "毎年会計検査院がこれを検査し")
+rule BoardOfAuditMustInspectFinalAccountsEveryYear strict {
+    label ja official "国の収入支出の決算は、すべて毎年会計検査院がこれを検査し";
+    label en unofficial "Article 90(1), first limb. The final accounts of the State are inspected every year by the Board of Audit";
+    for a: FinalAccounts; for s: Date; for e: Date;
+    when audit_of_final_accounts_window(a, s, e);
+    then duty BoardInspectsFinalAccounts {
+        bearer BoardOfAudit; beneficiary Diet;
+        goal achievement {
+            condition final_accounts_inspected(a);
+            window [s, e];
+        }
+    };
+}
+
+@source(JP_CONST_ART90_P1, relation = formalizes, coverage = partial, quote = "内閣は、次の年度に、その検査報告とともに、これを国会に提出しなければならない")
+rule CabinetMustSubmitFinalAccountsInNextYear strict {
+    label ja official "内閣は、次の年度に、その検査報告とともに、これを国会に提出しなければならない";
+    label en unofficial "Article 90(1), second limb. The Cabinet submits the final accounts, with the audit report, to the Diet in the next fiscal year";
+    for a: FinalAccounts; for fy: FiscalYear; for ny: FiscalYear; for f2: Date; for l2: Date;
+    when final_accounts_of(a, fy) and following_fiscal_year(fy, ny) and fiscal_year_span(ny, f2, l2);
+    then duty CabinetSubmitsFinalAccounts {
+        bearer Cabinet; beneficiary Diet;
+        goal achievement {
+            condition final_accounts_properly_submitted(a);
+            window [f2, l2];
+        }
+    };
+}
+
+@source(JP_CONST_ART90_P2)
+rule BoardOfAuditMattersSetByStatute strict {
+    label ja official "会計検査院の組織及び権限は、法律でこれを定める";
+    label en unofficial "Article 90(2). The organization and powers of the Board of Audit are fixed by statute";
+    for o: Organ;
+    when board_of_audit_statute_applies(o);
+    then board_of_audit_matters_set_by_statute(o);
+}
+
+// --- Article 91: the report on finances ------------------------------------------
+relation finance_report_made_on(d: Date) kind empirical {
+    label ja official "国の財政状況についての報告";
+    label en unofficial "the Cabinet reported on the financial condition of the State on the day (to the Diet and the people)";
+}
+relation finance_report_due(d: Date, due: Date) kind institutional {
+    key(d);
+    label ja official "少くとも毎年一回";
+    label en unofficial "after the report of the day d the next report is due on the day due at the latest (one calendar year, the anniversary inside)";
+}
+relation next_finance_report_in_time(d: Date) kind institutional {
+    label ja official "少くとも毎年一回報告した";
+    label en unofficial "a further report was made after the day d and not later than one calendar year after it";
+}
+
+@source(JP_CONST_ART91_P1, relation = formalizes, coverage = partial, quote = "少くとも毎年一回")
+rule NextFinanceReportDue strict {
+    label en unofficial "The next report on the state of finances is due within one year of the previous one";
+    for d: Date;
+    when finance_report_made_on(d);
+    then finance_report_due(d, add_calendar_period(d, 1 calendar_year));
+}
+
+@source(JP_CONST_ART91_P1, relation = formalizes, coverage = partial, quote = "少くとも毎年一回")
+rule NextFinanceReportInTime strict {
+    label en unofficial "The next report on finances was made within one year of the previous report";
+    for d: Date; for due: Date; for x: Date;
+    when finance_report_due(d, due) and finance_report_made_on(x) and x > d and x <= due;
+    then next_finance_report_in_time(d);
+}
+
+@source(JP_CONST_ART91_P1, relation = formalizes, coverage = partial, quote = "国会及び国民に対し")
+rule CabinetMustReportToTheDietAtLeastYearly strict {
+    label ja official "内閣は、国会及び国民に対し、定期に、少くとも毎年一回、国の財政状況について報告しなければならない";
+    label en unofficial "Article 91. The Cabinet reports to the Diet on the finances of the State at least once a year (addressee: the Diet)";
+    for d: Date; for due: Date;
+    when finance_report_due(d, due);
+    then duty CabinetReportsFinancesToDiet {
+        bearer Cabinet; beneficiary Diet;
+        goal achievement {
+            condition next_finance_report_in_time(d);
+            window [d, due];
+        }
+    };
+}
+
+@source(JP_CONST_ART91_P1, relation = formalizes, coverage = partial, quote = "国会及び国民に対し")
+rule CabinetMustReportToThePeopleAtLeastYearly strict {
+    label ja official "内閣は、国会及び国民に対し、定期に、少くとも毎年一回、国の財政状況について報告しなければならない";
+    label en unofficial "Article 91. The Cabinet reports to the people on the finances of the State at least once a year (addressee: the people)";
+    for d: Date; for due: Date;
+    when finance_report_due(d, due);
+    then duty CabinetReportsFinancesToPeople {
+        bearer Cabinet; beneficiary ThePeople;
+        goal achievement {
+            condition next_finance_report_in_time(d);
+            window [d, due];
+        }
+    };
+}

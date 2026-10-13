@@ -1,0 +1,910 @@
+// Chapter III, Rights and Duties of the People (第三章 国民の権利及び義務),
+// Articles 10-24 (stage J3; Articles 25-40 are stage J4, module ch03b).
+//
+// HOW THE CHAPTER IS MODELLED (modality chosen by WHOSE conduct the text describes)
+//   * liberty     the holder's own freedom (Arts. 15, 16, 19-23);
+//   * prohibition a ban addressed to a bearer: state organs (Arts. 13, 14, 18,
+//                 19, 20(3), 21(2)), a religious body (Art. 20(1)), the holder
+//                 of a right (Art. 12, abuse);
+//   * immunity    protection from an act of authority (Arts. 11, 15(4), 16, 20(2),
+//                 21(2)); only Art. 11 has a competing power in the model
+//                 (see below), the others are observed as positions;
+//   * duty        a claim on the state (Arts. 13, 17);
+//   * power       Art. 24(2): the legislature's capacity to enact family
+//                 statutes, VALID only if they rest on individual dignity and
+//                 the essential equality of the sexes (a condition of validity,
+//                 not a duty), and the modelling device of Art. 11 (below).
+//
+// THE EVALUATIVE ELEMENT 公共の福祉 (Arts. 12, 13, 22(1); DECISION-0194).
+//   The text names no organ that decides what is contrary to the public welfare.
+//   The authority is taken from Article 81 (JP_CONST_ART81_P1: the Supreme Court
+//   is the court of last resort with the power to determine the conformity of any
+//   law, order, regulation or act to the Constitution): `authority SupremeCourt`
+//   (not the default of Article 76). The judgment attaches to an EXERCISE of a
+//   right (`ExerciseOfRight`): `exercise_contradicts_public_welfare(x)`.
+//   Channel 1 (judgment §47.3): with no answer the query is REQUIRES_JUDGMENT.
+//   Channel 2: the court's decision is a case fact `origin adjudicated`.
+//   Where the judgment is unanswered the norms that depend on it stay silent
+//   (REQUIRES_JUDGMENT); they never default to "contrary" or "not contrary".
+//
+// MODELLING DEVICE M1 (judgment call, see coverage/J3-interpretations.md, QUESTIONS):
+//   Article 11 makes the fundamental rights inviolable; Articles 12, 13 and 22(1)
+//   admit the public welfare as their limit. To make the immunity of Article 11
+//   OBSERVABLE (`EFFECT_BLOCKED_BY_IMMUNITY`) the model has ONE power,
+//   `LimitRightForPublicWelfare` of a state organ, valid only when the limited
+//   exercise contradicts the public welfare (judgment). The text grants no
+//   such power in so many words; it is the mirror image of the limit clause and
+//   is flagged as a construction. The immunity is defeated (`unless`) exactly when
+//   the judgment is affirmative, and outranks the power (`priority` §116).
+//
+// EXTERNAL DEPENDENCIES ("as provided by law"): Art. 10 (statute fixing the
+//   requirements of nationality), Art. 15(3) (adulthood), Art. 17 (statute on
+//   compensation), Art. 24(2). The content of these statutes is an INPUT fact,
+//   never invented here.
+//
+// ADDRESSEES. Chapter III speaks of rights of the people; the addressee of the
+//   prohibitions is named only in some sentences. Where the text names none
+//   (Arts. 13, 14, 18, 19) the bearer is a state organ (`r3a_state_organ`); the
+//   direct effect on private persons is NOT asserted (open question).
+//
+// ARTICLE 20(3) purpose-and-effect test: the readings of the Supreme Court
+//   (Tsu ground-breaking ceremony 1977, Ehime tamagushi 1997) were found only on
+//   a SECONDARY host; primary texts (courts.go.jp) were not retrieved. They are
+//   therefore NOT asserted as interpretations here (see J3-interpretations.md).
+//   The letter (any religious activity) is the base.
+//
+// Names with the prefix `r3a_` are helpers that a neighbouring stage could
+// also need; grep before adding.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    JP_CONST_ART10_P1,
+    JP_CONST_ART11_P1,
+    JP_CONST_ART12_P1,
+    JP_CONST_ART13_P1,
+    JP_CONST_ART14_P1,
+    JP_CONST_ART14_P2,
+    JP_CONST_ART14_P3,
+    JP_CONST_ART15_P1,
+    JP_CONST_ART15_P2,
+    JP_CONST_ART15_P3,
+    JP_CONST_ART15_P4,
+    JP_CONST_ART16_P1,
+    JP_CONST_ART17_P1,
+    JP_CONST_ART18_P1,
+    JP_CONST_ART19_P1,
+    JP_CONST_ART20_P1,
+    JP_CONST_ART20_P2,
+    JP_CONST_ART20_P3,
+    JP_CONST_ART21_P1,
+    JP_CONST_ART21_P2,
+    JP_CONST_ART22_P1,
+    JP_CONST_ART22_P2,
+    JP_CONST_ART23_P1,
+    JP_CONST_ART24_P1,
+    JP_CONST_ART24_P2,
+    Organ,
+    Person,
+    Statute,
+};
+
+// --- shared vocabulary ---------------------------------------------------------
+entity ExerciseOfRight {
+    label ja official "権利の行使";
+    label en unofficial "a concrete exercise of a right (the object of the public-welfare judgment)";
+}
+entity RightLimitation {
+    label ja official "権利の制限";
+    label en unofficial "an act limiting a right for the public welfare";
+}
+entity StateOrPublicBody {
+    label ja official "国又は公共団体";
+    label en unofficial "the State or a public body";
+}
+entity Marriage { label ja official "婚姻"; label en unofficial "a marriage"; }
+entity Honour { label ja official "栄典"; label en unofficial "honour, decoration or other distinction"; }
+entity ReligiousBody { label ja official "宗教団体"; label en unofficial "religious organization"; }
+entity StateActivity { label ja official "国及びその機関の活動"; label en unofficial "an activity of the State or its organs"; }
+entity Petition { label ja official "請願"; label en unofficial "a petition"; }
+entity Election { label ja official "公務員の選挙"; label en unofficial "an election of public officials"; }
+entity OfficialWrong { label ja official "公務員の不法行為"; label en unofficial "an unlawful act of a public official"; }
+
+enum RightKind {
+    label en unofficial "kinds of rights under Chapter III";
+    life_liberty_pursuit;
+    residence;
+    movement;
+    occupation;
+}
+enum DiscriminationGround { label en unofficial "grounds of discrimination under Article 14"; race; creed; sex; social_status; family_origin; other_ground; }
+enum DiscriminationSphere { label en unofficial "spheres of discrimination under Article 14"; political; economic; social; other_sphere; }
+
+relation r3a_state_organ(o: Organ) kind empirical {
+    label ja official "国及びその機関";
+    label en unofficial "the organ belongs to the State (bearer of Chapter III prohibitions)";
+}
+relation r3a_national(p: Person) kind institutional {
+    label ja official "日本国民";
+    label en unofficial "the person is a Japanese national (status derived from the statute of Art. 10)";
+}
+relation exercise_by(x: ExerciseOfRight, p: Person) kind empirical {
+    label ja official "権利の行使者"; label en unofficial "the person exercising the right";
+}
+relation exercise_kind(x: ExerciseOfRight, k: RightKind) kind empirical {
+    label ja official "権利の種類"; label en unofficial "the kind of right exercised";
+}
+relation performs_exercise(p: Person, x: ExerciseOfRight) kind empirical {
+    label ja official "権利を行使する"; label en unofficial "the person carries out the exercise";
+}
+external judgment relation exercise_contradicts_public_welfare(x: ExerciseOfRight) {
+    authority SupremeCourt;
+    label ja official "公共の福祉に反する";
+    label en unofficial "the exercise is contrary to the public welfare (authority: the Supreme Court, Art. 81)";
+}
+relation right_exercise_curtailed_by_public_welfare(p: Person, x: ExerciseOfRight) kind institutional {
+    label en unofficial "the exercise x of p is curtailed because it is contrary to the public welfare";
+}
+
+// --- Article 10 ----------------------------------------------------------------
+relation nationality_statute(l: Statute) kind empirical {
+    label ja official "日本国民たる要件を定める法律";
+    label en unofficial "the statute fixing the requirements of Japanese nationality (content external)";
+}
+relation meets_statutory_nationality_requirements(p: Person, l: Statute) kind empirical {
+    label en unofficial "the person meets the requirements set by the statute (external input)";
+}
+
+@source(JP_CONST_ART10_P1)
+rule NationalityRequirementsSetByStatute strict {
+    label ja official "日本国民たる要件は、法律でこれを定める";
+    label en unofficial "Article 10. The requirements for being a Japanese national are fixed by law";
+    for p: Person; for l: Statute;
+    when nationality_statute(l) and meets_statutory_nationality_requirements(p, l);
+    then r3a_national(p);
+}
+
+// --- Article 11: inviolable fundamental rights -----------------------------------
+relation limitation_affects(l: RightLimitation, p: Person) kind empirical {
+    label en unofficial "the limitation affects the rights of the person";
+}
+relation limitation_of_exercise(l: RightLimitation, x: ExerciseOfRight) kind empirical {
+    label en unofficial "the limitation is directed at this exercise of a right";
+}
+relation imposes_limitation(o: Organ, l: RightLimitation) kind empirical {
+    label en unofficial "the organ imposes the limitation (act of exercise)";
+}
+relation limitation_takes_effect(l: RightLimitation) kind institutional {
+    label en unofficial "the limitation takes legal effect";
+}
+relation limitation_curtailed_by_public_welfare(p: Person, l: RightLimitation) kind institutional {
+    label en unofficial "the limited exercise is contrary to the public welfare, so the inviolability yields";
+}
+relation holds_fundamental_rights(p: Person) kind institutional {
+    label ja official "基本的人権の享有";
+    label en unofficial "the person holds the fundamental human rights the Constitution guarantees";
+}
+
+@source(JP_CONST_ART11_P1, relation = formalizes, coverage = partial, quote = "この憲法が国民に保障する基本的人権は、侵すことのできない永久の権利として、現在及び将来の国民に与へられる")
+rule FundamentalRightsGrantedToPresentAndFutureNationals strict {
+    label ja official "基本的人権は、現在及び将来の国民に与へられる";
+    label en unofficial "Article 11, sentence 2. Fundamental rights are granted to present and future nationals (no end date)";
+    for p: Person;
+    when r3a_national(p);
+    then holds_fundamental_rights(p);
+}
+
+@source(JP_CONST_ART13_P1, relation = formalizes, coverage = partial, quote = "公共の福祉に反しない限り")
+rule PublicWelfareCurtailsExercise strict {
+    label en unofficial "An exercise the Supreme Court holds contrary to the public welfare is curtailed";
+    for p: Person; for x: ExerciseOfRight;
+    when exercise_by(x, p) and exercise_contradicts_public_welfare(x);
+    then right_exercise_curtailed_by_public_welfare(p, x);
+}
+
+@source(JP_CONST_ART11_P1, relation = formalizes, coverage = partial, quote = "国民は、すべての基本的人権の享有を妨げられない")
+rule LimitationCurtailedByPublicWelfare strict {
+    label en unofficial "A limitation of an exercise of a right is curtailed by the public welfare when that exercise is so curtailed";
+    for p: Person; for l: RightLimitation; for x: ExerciseOfRight;
+    when limitation_of_exercise(l, x) and right_exercise_curtailed_by_public_welfare(p, x);
+    then limitation_curtailed_by_public_welfare(p, l);
+}
+
+@source(JP_CONST_ART11_P1, relation = formalizes, coverage = partial, quote = "国民は、すべての基本的人権の享有を妨げられない")
+rule NationalsFundamentalRightsImmune defeasible {
+    label ja official "国民は、すべての基本的人権の享有を妨げられない";
+    label en unofficial "Article 11, sentence 1. Nationals are not prevented from enjoying fundamental human rights";
+    for p: Person; for l: RightLimitation;
+    when r3a_national(p) and limitation_affects(l, p);
+    unless limitation_curtailed_by_public_welfare(p, l);
+    then immunity FundamentalRightsInviolable {
+        holder p;
+        protected_effect limitation_takes_effect(l);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// Device M1 (see the header): the mirror image of the public-welfare clause.
+@source(JP_CONST_ART13_P1, relation = formalizes, coverage = partial, quote = "公共の福祉に反しない限り")
+rule OrganMayLimitExerciseForPublicWelfare strict {
+    label en unofficial "A state organ may limit an exercise of a right when it is contrary to the public welfare (device M1)";
+    for o: Organ; for l: RightLimitation; for x: ExerciseOfRight;
+    when r3a_state_organ(o) and limitation_of_exercise(l, x);
+    then power LimitRightForPublicWelfare {
+        holder o; over l;
+        exercise imposes_limitation(o, l);
+        valid_when exercise_contradicts_public_welfare(x);
+        effect create(limitation_takes_effect(l));
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority FundamentalRightsOverLimitation {
+    prefer NationalsFundamentalRightsImmune over OrganMayLimitExerciseForPublicWelfare;
+    reason lex_specialis;
+}
+
+// --- Article 12 ------------------------------------------------------------------
+// s1 ("must be maintained by the constant endeavour of the people") is recorded
+// as DECLARED_NON_RULE in coverage/J3.json: no organ, beneficiary, criterion of
+// effort or consequence in the text.
+relation abusive_exercise(p: Person, x: ExerciseOfRight) kind institutional {
+    label ja official "自由及び権利の濫用";
+    label en unofficial "the exercise is an abuse: it is contrary to the public welfare";
+}
+
+@source(JP_CONST_ART12_P1, relation = formalizes, coverage = partial, quote = "国民は、これを濫用してはならないのであつて、常に公共の福祉のためにこれを利用する責任を負ふ")
+rule ExerciseContraryToPublicWelfareIsAbuse strict {
+    label en unofficial "Article 12. An exercise contrary to the public welfare is an abuse";
+    for p: Person; for x: ExerciseOfRight;
+    when exercise_by(x, p) and exercise_contradicts_public_welfare(x);
+    then abusive_exercise(p, x);
+}
+
+@source(JP_CONST_ART12_P1, relation = formalizes, coverage = partial, quote = "国民は、これを濫用してはならない")
+rule NoAbuseOfRights strict {
+    label ja official "国民は、これを濫用してはならない";
+    label en unofficial "Article 12, sentence 2. Nationals must not abuse the freedoms and rights (also carries the responsibility to use them for the public welfare)";
+    for p: Person; for x: ExerciseOfRight;
+    when r3a_national(p) and exercise_by(x, p);
+    then prohibition NoAbuseOfFreedomsAndRights {
+        bearer p;
+        action abusive_exercise(p, x);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 13 ------------------------------------------------------------------
+relation disregards_individual(o: Organ, p: Person) kind empirical {
+    label en unofficial "the organ fails to respect the person as an individual";
+}
+relation disregards_exercise(o: Organ, x: ExerciseOfRight) kind empirical {
+    label en unofficial "the organ, in legislation or other government, fails to give utmost respect to the exercise";
+}
+
+@source(JP_CONST_ART13_P1, relation = formalizes, coverage = partial, quote = "すべて国民は、個人として尊重される")
+rule NationalsRespectedAsIndividuals strict {
+    label ja official "すべて国民は、個人として尊重される";
+    label en unofficial "Article 13, sentence 1. Nationals are respected as individuals";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and r3a_national(p);
+    then duty RespectIndividual {
+        bearer o; beneficiary p;
+        goal maintenance {
+            condition not disregards_individual(o, p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART13_P1, relation = formalizes, coverage = partial, quote = "生命、自由及び幸福追求に対する国民の権利については、公共の福祉に反しない限り、立法その他の国政の上で、最大の尊重を必要とする")
+rule UtmostRespectRule strict {
+    label ja official "生命、自由及び幸福追求に対する国民の権利は、公共の福祉に反しない限り、最大の尊重を必要とする";
+    label en unofficial "Article 13, sentence 2. The right to life, liberty and the pursuit of happiness requires utmost respect in legislation and other government, unless contrary to the public welfare";
+    for o: Organ; for p: Person; for x: ExerciseOfRight; for k: RightKind;
+    when r3a_state_organ(o) and r3a_national(p) and exercise_by(x, p) and exercise_kind(x, k) and k == life_liberty_pursuit and not_known(right_exercise_curtailed_by_public_welfare(p, x));
+    then duty UtmostRespectForLifeLibertyHappiness {
+        bearer o; beneficiary p;
+        goal maintenance {
+            condition not disregards_exercise(o, x);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 14 ------------------------------------------------------------------
+relation ground_listed_in_art14(g: DiscriminationGround) kind institutional { label ja official "人種、信条、性別、社会的身分又は門地"; label en unofficial "a ground named in Art. 14(1)"; }
+relation sphere_listed_in_art14(s: DiscriminationSphere) kind institutional { label ja official "政治的、経済的又は社会的関係"; label en unofficial "a sphere named in Art. 14(1)"; }
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地")
+assert ground_listed_in_art14(race);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地")
+assert ground_listed_in_art14(creed);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地")
+assert ground_listed_in_art14(sex);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地")
+assert ground_listed_in_art14(social_status);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地")
+assert ground_listed_in_art14(family_origin);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "政治的、経済的又は社会的関係")
+assert sphere_listed_in_art14(political);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "政治的、経済的又は社会的関係")
+assert sphere_listed_in_art14(economic);
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "政治的、経済的又は社会的関係")
+assert sphere_listed_in_art14(social);
+
+relation discriminates(o: Organ, p: Person, g: DiscriminationGround, s: DiscriminationSphere) kind empirical {
+    label en unofficial "the organ discriminates against the person on the ground g in the sphere s";
+}
+relation discriminates_on_listed_ground(o: Organ, p: Person) kind institutional {
+    label en unofficial "the organ discriminates on a ground and in a sphere named in Art. 14(1)";
+}
+
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分又は門地により、政治的、経済的又は社会的関係において、差別されない")
+rule ListedDiscriminationRecognised strict {
+    label en unofficial "Discrimination on a ground and in a sphere listed in Article 14 is discrimination on a listed ground";
+    for o: Organ; for p: Person; for g: DiscriminationGround; for s: DiscriminationSphere;
+    when discriminates(o, p, g, s) and ground_listed_in_art14(g) and sphere_listed_in_art14(s);
+    then discriminates_on_listed_ground(o, p);
+}
+
+@source(JP_CONST_ART14_P1, relation = formalizes, coverage = partial, quote = "すべて国民は、法の下に平等であつて")
+rule NoDiscriminationByStateOrgans strict {
+    label ja official "すべて国民は、法の下に平等であつて、...差別されない";
+    label en unofficial "Article 14(1). No discrimination against nationals on the listed grounds in the listed spheres (equality under the law)";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and r3a_national(p);
+    then prohibition NoDiscrimination {
+        bearer o; beneficiary p;
+        action discriminates_on_listed_ground(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation establishes_peerage(o: Organ) kind empirical { label ja official "華族その他の貴族の制度"; label en unofficial "the organ establishes or recognises a peerage or other nobility"; }
+@source(JP_CONST_ART14_P2)
+rule NoPeerage strict {
+    label ja official "華族その他の貴族の制度は、これを認めない";
+    label en unofficial "Article 14(2). A system of peers and nobility is not recognised";
+    for o: Organ;
+    when r3a_state_organ(o);
+    then prohibition NoNobility {
+        bearer o;
+        action establishes_peerage(o);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation honour_awarded_to(h: Honour, p: Person) kind empirical { label en unofficial "the honour is awarded to the person"; }
+relation honour_with_privilege(o: Organ, h: Honour) kind empirical { label en unofficial "the organ attaches a privilege to the honour"; }
+relation honour_effect_extended_to_successor(o: Organ, h: Honour) kind empirical { label en unofficial "the organ recognises effect of the honour beyond the holder's generation"; }
+relation holder_deceased(p: Person) kind empirical { label en unofficial "the holder has died"; }
+relation honour_in_effect_for(h: Honour, p: Person) kind institutional { label ja official "栄典の効力"; label en unofficial "the honour is in effect for the holder"; }
+
+@source(JP_CONST_ART14_P3, relation = formalizes, coverage = partial, quote = "栄誉、勲章その他の栄典の授与は、いかなる特権も伴はない")
+rule HonoursCarryNoPrivilege strict {
+    label en unofficial "Article 14(3), sentence 1. The award of honours carries no privilege";
+    for o: Organ; for h: Honour; for holder: Person;
+    when r3a_state_organ(o) and honour_awarded_to(h, holder);
+    then prohibition NoPrivilegeWithHonour {
+        bearer o;
+        action honour_with_privilege(o, h);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART14_P3, relation = formalizes, coverage = partial, quote = "栄典の授与は、現にこれを有し、又は将来これを受ける者の一代に限り、その効力を有する")
+rule HonoursLimitedToHoldersLifetime strict {
+    label en unofficial "Article 14(3), sentence 2. An honour is in effect for the generation of its holder only";
+    for h: Honour; for p: Person;
+    when honour_awarded_to(h, p) and not_known(holder_deceased(p));
+    then honour_in_effect_for(h, p);
+}
+
+@source(JP_CONST_ART14_P3, relation = formalizes, coverage = partial, quote = "栄典の授与は、現にこれを有し、又は将来これを受ける者の一代に限り、その効力を有する")
+rule NoHereditaryHonourEffect strict {
+    label en unofficial "Article 14(3), sentence 2. No organ may recognise the effect of an honour beyond the holder's generation";
+    for o: Organ; for h: Honour; for holder: Person;
+    when r3a_state_organ(o) and honour_awarded_to(h, holder);
+    then prohibition NoHereditaryHonour {
+        bearer o;
+        action honour_effect_extended_to_successor(o, h);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 15 ------------------------------------------------------------------
+relation selects_public_officials(p: Person) kind empirical { label ja official "公務員を選定する"; label en unofficial "the person takes part in selecting public officials"; }
+relation dismisses_public_officials(p: Person) kind empirical { label ja official "公務員を罷免する"; label en unofficial "the person takes part in dismissing public officials"; }
+
+@source(JP_CONST_ART15_P1)
+rule PeopleSelectPublicOfficials strict {
+    label ja official "公務員を選定することは、国民固有の権利である";
+    label en unofficial "Article 15(1). Selecting public officials is an inalienable right of the people";
+    for p: Person;
+    when r3a_national(p);
+    then liberty SelectPublicOfficials {
+        holder p;
+        action selects_public_officials(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART15_P1)
+rule PeopleDismissPublicOfficials strict {
+    label ja official "公務員を罷免することは、国民固有の権利である";
+    label en unofficial "Article 15(1). Dismissing public officials is an inalienable right of the people";
+    for p: Person;
+    when r3a_national(p);
+    then liberty DismissPublicOfficials {
+        holder p;
+        action dismisses_public_officials(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation public_official(p: Person) kind empirical { label ja official "公務員"; label en unofficial "the person is a public official"; }
+relation servant_of_whole_community(p: Person) kind institutional { label ja official "全体の奉仕者"; label en unofficial "the official is a servant of the whole community, not of a part"; }
+
+@source(JP_CONST_ART15_P2)
+rule PublicOfficialIsServantOfWhole strict {
+    label ja official "すべて公務員は、全体の奉仕者であつて、一部の奉仕者ではない";
+    label en unofficial "Article 15(2). Every public official is a servant of the whole community (definition of the status)";
+    for p: Person;
+    when public_official(p);
+    then servant_of_whole_community(p);
+}
+
+relation adult(p: Person) kind empirical { label ja official "成年者"; label en unofficial "the person is an adult (age fixed by statute, external input)"; }
+relation election_of_public_officials(e: Election) kind empirical { label ja official "公務員の選挙"; label en unofficial "the election is of public officials"; }
+relation votes_in(p: Person, e: Election) kind empirical { label ja official "投票する"; label en unofficial "the person votes in the election"; }
+relation denies_franchise(o: Organ, p: Person, e: Election) kind empirical { label en unofficial "the organ denies the adult the vote in the election"; }
+
+@source(JP_CONST_ART15_P3)
+rule UniversalAdultSuffrageLiberty strict {
+    label ja official "公務員の選挙については、成年者による普通選挙を保障する";
+    label en unofficial "Article 15(3). Adults may vote in elections of public officials";
+    for p: Person; for e: Election;
+    when r3a_national(p) and adult(p) and election_of_public_officials(e);
+    then liberty VoteInElection {
+        holder p;
+        action votes_in(p, e);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART15_P3)
+rule UniversalAdultSuffrageGuaranteed strict {
+    label en unofficial "Article 15(3). The State guarantees universal suffrage of adults: no organ may deny the vote";
+    for o: Organ; for p: Person; for e: Election;
+    when r3a_state_organ(o) and r3a_national(p) and adult(p) and election_of_public_officials(e);
+    then duty GuaranteeUniversalSuffrage {
+        bearer o; beneficiary p;
+        goal maintenance {
+            condition not denies_franchise(o, p, e);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation secrecy_of_vote_breached(p: Person) kind institutional { label en unofficial "the secrecy of the person's vote is breached"; }
+relation held_responsible_for_choice(p: Person) kind institutional { label en unofficial "the voter is held responsible, publicly or privately, for the choice made"; }
+
+@source(JP_CONST_ART15_P4, relation = formalizes, coverage = partial, quote = "すべて選挙における投票の秘密は、これを侵してはならない")
+rule SecrecyOfVoteImmunity strict {
+    label ja official "すべて選挙における投票の秘密は、これを侵してはならない";
+    label en unofficial "Article 15(4), sentence 1. The secrecy of the ballot is inviolable";
+    for p: Person; for e: Election;
+    when r3a_national(p) and votes_in(p, e);
+    then immunity SecretBallot {
+        holder p;
+        protected_effect secrecy_of_vote_breached(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART15_P4, relation = formalizes, coverage = partial, quote = "選挙人は、その選択に関し公的にも私的にも責任を問はれない")
+rule VoterNotAnswerableForChoice strict {
+    label ja official "選挙人は、その選択に関し公的にも私的にも責任を問はれない";
+    label en unofficial "Article 15(4), sentence 2. The voter is not answerable, publicly or privately, for the choice";
+    for p: Person; for e: Election;
+    when r3a_national(p) and votes_in(p, e);
+    then immunity NoResponsibilityForChoice {
+        holder p;
+        protected_effect held_responsible_for_choice(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 16 ------------------------------------------------------------------
+relation petition_by(pt: Petition, p: Person) kind empirical { label en unofficial "the person files the petition"; }
+relation petition_peaceful(pt: Petition) kind empirical { label ja official "平穏に"; label en unofficial "the petition is peaceful"; }
+relation files_petition(p: Person, pt: Petition) kind empirical { label ja official "請願する"; label en unofficial "the person files the petition"; }
+relation disadvantaged_for_petition(p: Person, pt: Petition) kind institutional { label ja official "差別待遇"; label en unofficial "the petitioner suffers discriminatory treatment because of the petition"; }
+
+@source(JP_CONST_ART16_P1, relation = formalizes, coverage = partial, quote = "何人も、損害の救済、公務員の罷免、法律、命令又は規則の制定、廃止又は改正その他の事項に関し、平穏に請願する権利を有し")
+rule RightToPetitionPeacefully strict {
+    label ja official "何人も、...平穏に請願する権利を有し";
+    label en unofficial "Article 16, clause 1. Everyone may petition peacefully";
+    for p: Person; for pt: Petition;
+    when petition_by(pt, p) and petition_peaceful(pt);
+    then liberty PetitionPeacefully {
+        holder p;
+        action files_petition(p, pt);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART16_P1, relation = formalizes, coverage = partial, quote = "何人も、かかる請願をしたためにいかなる差別待遇も受けない")
+rule PetitionerImmuneFromDiscrimination strict {
+    label ja official "何人も、かかる請願をしたためにいかなる差別待遇も受けない";
+    label en unofficial "Article 16, clause 2. No one suffers discriminatory treatment for having petitioned";
+    for p: Person; for pt: Petition;
+    when petition_by(pt, p) and petition_peaceful(pt);
+    then immunity NoDisadvantageForPetition {
+        holder p;
+        protected_effect disadvantaged_for_petition(p, pt);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 17 ------------------------------------------------------------------
+relation official_wrong_of(w: OfficialWrong, b: StateOrPublicBody) kind empirical { label ja official "公務員の不法行為"; label en unofficial "the unlawful act was committed by an official of the State or public body"; }
+relation damaged_by(p: Person, w: OfficialWrong) kind empirical { label ja official "損害を受けた"; label en unofficial "the person suffered damage from the unlawful act"; }
+relation compensation_statute_applies(w: OfficialWrong) kind empirical { label ja official "法律の定めるところにより"; label en unofficial "the compensation statute applies to the wrong (content external)"; }
+relation compensation_paid(p: Person, w: OfficialWrong) kind empirical { label ja official "賠償"; label en unofficial "the compensation has been paid"; }
+
+@source(JP_CONST_ART17_P1)
+rule StateCompensationForOfficialWrong strict {
+    label ja official "公務員の不法行為により損害を受けたときは、法律の定めるところにより、国又は公共団体に、その賠償を求めることができる";
+    label en unofficial "Article 17. The State or public body owes compensation, as provided by law, for damage from an unlawful act of a public official";
+    for b: StateOrPublicBody; for p: Person; for w: OfficialWrong;
+    when official_wrong_of(w, b) and damaged_by(p, w) and compensation_statute_applies(w);
+    then duty CompensateForOfficialWrong {
+        bearer b; beneficiary p;
+        goal achievement {
+            condition compensation_paid(p, w);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 18 ------------------------------------------------------------------
+relation imposes_slavery(o: Organ, p: Person) kind empirical { label ja official "奴隷的拘束"; label en unofficial "the organ subjects the person to slavery-like bondage"; }
+relation imposes_involuntary_servitude(o: Organ, p: Person) kind empirical { label ja official "その意に反する苦役"; label en unofficial "the organ subjects the person to involuntary servitude"; }
+relation servitude_as_criminal_punishment(o: Organ, p: Person) kind empirical { label ja official "犯罪に因る処罰"; label en unofficial "the servitude is punishment for a crime"; }
+
+@source(JP_CONST_ART18_P1, relation = formalizes, coverage = partial, quote = "何人も、いかなる奴隷的拘束も受けない")
+rule NoSlaveryOrBondage strict {
+    label ja official "何人も、いかなる奴隷的拘束も受けない";
+    label en unofficial "Article 18, sentence 1. No one is subjected to any slavery-like bondage (no exception)";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and person_present(p);
+    then prohibition NoBondage {
+        bearer o; beneficiary p;
+        action imposes_slavery(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART18_P1, relation = formalizes, coverage = partial, quote = "犯罪に因る処罰の場合を除いては、その意に反する苦役に服させられない")
+rule NoInvoluntaryServitudeExceptPunishment defeasible {
+    label ja official "犯罪に因る処罰の場合を除いては、その意に反する苦役に服させられない";
+    label en unofficial "Article 18, sentence 2. No involuntary servitude, except as punishment for a crime";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and person_present(p);
+    unless servitude_as_criminal_punishment(o, p);
+    then prohibition NoInvoluntaryServitude {
+        bearer o; beneficiary p;
+        action imposes_involuntary_servitude(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation person_present(p: Person) kind empirical { label ja official "何人"; label en unofficial "a person (anyone, not only nationals)"; }
+
+// --- Article 19 ------------------------------------------------------------------
+relation holds_thought_or_conscience(p: Person) kind empirical { label ja official "思想及び良心"; label en unofficial "the person holds thoughts and a conscience"; }
+relation infringes_thought_or_conscience(o: Organ, p: Person) kind empirical { label en unofficial "the organ infringes the person's freedom of thought and conscience"; }
+
+@source(JP_CONST_ART19_P1)
+rule FreedomOfThoughtAndConscienceLiberty strict {
+    label ja official "思想及び良心の自由";
+    label en unofficial "Article 19. Freedom of thought and conscience (holder's own conduct)";
+    for p: Person;
+    when person_present(p);
+    then liberty ThoughtAndConscience {
+        holder p;
+        action holds_thought_or_conscience(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART19_P1)
+rule NoInfringementOfThoughtAndConscience strict {
+    label ja official "思想及び良心の自由は、これを侵してはならない";
+    label en unofficial "Article 19. The freedom of thought and conscience must not be violated";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and person_present(p);
+    then prohibition NoInfringementOfConscience {
+        bearer o; beneficiary p;
+        action infringes_thought_or_conscience(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 20 ------------------------------------------------------------------
+relation exercises_religious_freedom(p: Person) kind empirical { label ja official "信教"; label en unofficial "the person holds, practises, changes or has no religion"; }
+relation religious_body(r: ReligiousBody) kind empirical { label ja official "宗教団体"; label en unofficial "the organisation is a religious body"; }
+relation receives_privilege_from_state(r: ReligiousBody) kind empirical { label ja official "国から特権を受ける"; label en unofficial "the body receives a privilege from the State"; }
+relation exercises_political_authority(r: ReligiousBody) kind empirical { label ja official "政治上の権力を行使する"; label en unofficial "the body exercises political authority"; }
+relation grants_privilege_to_religious_body(o: Organ, r: ReligiousBody) kind empirical { label en unofficial "the organ grants a privilege to the religious body (the State's side of the same act)"; }
+relation compelled_to_religious_act(p: Person) kind institutional { label ja official "宗教上の行為、祝典、儀式又は行事に参加することを強制される"; label en unofficial "the person is compelled to take part in a religious act, celebration, rite or practice"; }
+relation religious_activity(a: StateActivity) kind empirical { label ja official "宗教的活動"; label en unofficial "the activity is a religious activity"; }
+relation religious_education(a: StateActivity) kind empirical { label ja official "宗教教育"; label en unofficial "the activity is religious education"; }
+relation prohibited_religious_activity(a: StateActivity) kind institutional { label en unofficial "the activity falls under the prohibition of Art. 20(3) (letter: any religious activity)"; }
+relation conducts_activity(o: Organ, a: StateActivity) kind empirical { label en unofficial "the organ conducts the activity"; }
+
+@source(JP_CONST_ART20_P1, relation = formalizes, coverage = partial, quote = "信教の自由は、何人に対してもこれを保障する")
+rule FreedomOfReligionLiberty strict {
+    label ja official "信教の自由は、何人に対してもこれを保障する";
+    label en unofficial "Article 20(1), sentence 1. Freedom of religion is guaranteed to everyone";
+    for p: Person;
+    when person_present(p);
+    then liberty FreedomOfReligion {
+        holder p;
+        action exercises_religious_freedom(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART20_P1, relation = formalizes, coverage = partial, quote = "いかなる宗教団体も、国から特権を受け")
+rule ReligiousBodyMustNotReceivePrivilege strict {
+    label ja official "いかなる宗教団体も、国から特権を受け...てはならない";
+    label en unofficial "Article 20(1), sentence 2. No religious body may receive privileges from the State (the text names the body as bearer)";
+    for r: ReligiousBody;
+    when religious_body(r);
+    then prohibition NoStatePrivilegeForReligiousBody {
+        bearer r;
+        action receives_privilege_from_state(r);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART20_P1, relation = formalizes, coverage = partial, quote = "政治上の権力を行使してはならない")
+rule ReligiousBodyMustNotExercisePoliticalAuthority strict {
+    label ja official "いかなる宗教団体も、...政治上の権力を行使してはならない";
+    label en unofficial "Article 20(1), sentence 2. No religious body may exercise political authority";
+    for r: ReligiousBody;
+    when religious_body(r);
+    then prohibition NoPoliticalAuthorityForReligiousBody {
+        bearer r;
+        action exercises_political_authority(r);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART20_P1, relation = formalizes, coverage = partial, quote = "国から特権を受け")
+rule StateMustNotGrantPrivilegeToReligiousBody strict {
+    label en unofficial "Article 20(1), sentence 2, correlative side: the State's organ must not grant the privilege (reading of 'from the State'; the Art. 20(3) prohibition is separate)";
+    for o: Organ; for r: ReligiousBody;
+    when r3a_state_organ(o) and religious_body(r);
+    then prohibition NoGrantOfPrivilegeToReligiousBody {
+        bearer o;
+        action grants_privilege_to_religious_body(o, r);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART20_P2)
+rule NoCompulsionToReligiousActs strict {
+    label ja official "何人も、宗教上の行為、祝典、儀式又は行事に参加することを強制されない";
+    label en unofficial "Article 20(2). No one is compelled to take part in a religious act, celebration, rite or practice";
+    for p: Person;
+    when person_present(p);
+    then immunity NoReligiousCompulsion {
+        holder p;
+        protected_effect compelled_to_religious_act(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART20_P3, relation = formalizes, coverage = partial, quote = "宗教教育その他いかなる宗教的活動もしてはならない")
+rule ReligiousEducationIsProhibitedActivity strict {
+    label en unofficial "Religious education by the State is a prohibited religious activity";
+    for a: StateActivity;
+    when religious_education(a);
+    then prohibited_religious_activity(a);
+}
+
+@source(JP_CONST_ART20_P3, relation = formalizes, coverage = partial, quote = "宗教教育その他いかなる宗教的活動もしてはならない")
+rule ReligiousActivityIsProhibitedActivity strict {
+    label en unofficial "A religious activity of the State is a prohibited religious activity";
+    for a: StateActivity;
+    when religious_activity(a);
+    then prohibited_religious_activity(a);
+}
+
+@source(JP_CONST_ART20_P3)
+rule StateMustNotEngageInReligiousActivity strict {
+    label ja official "国及びその機関は、宗教教育その他いかなる宗教的活動もしてはならない";
+    label en unofficial "Article 20(3). The State and its organs must not engage in religious education or any religious activity (letter; the purpose-and-effect test is not asserted, see header)";
+    for o: Organ; for a: StateActivity;
+    when r3a_state_organ(o) and prohibited_religious_activity(a);
+    then prohibition NoStateReligiousActivity {
+        bearer o;
+        action conducts_activity(o, a);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 21 ------------------------------------------------------------------
+relation assembles(p: Person) kind empirical { label ja official "集会"; label en unofficial "the person assembles"; }
+relation associates(p: Person) kind empirical { label ja official "結社"; label en unofficial "the person forms or joins an association"; }
+relation speaks(p: Person) kind empirical { label ja official "言論"; label en unofficial "the person speaks"; }
+relation publishes(p: Person) kind empirical { label ja official "出版"; label en unofficial "the person publishes"; }
+relation expresses_otherwise(p: Person) kind empirical { label ja official "その他一切の表現"; label en unofficial "the person expresses himself in any other way"; }
+relation censors_expression_of(o: Organ, p: Person) kind empirical { label ja official "検閲"; label en unofficial "the organ censors the person's expression"; }
+relation secrecy_of_correspondence_infringed(p: Person) kind institutional { label ja official "通信の秘密の侵害"; label en unofficial "the secrecy of the person's communication is infringed"; }
+relation has_communication(p: Person) kind empirical { label ja official "通信"; label en unofficial "the person communicates"; }
+
+@source(JP_CONST_ART21_P1, relation = formalizes, coverage = partial, quote = "集会")
+rule FreedomOfAssembly strict {
+    label ja official "集会の自由"; label en unofficial "Article 21(1). Freedom of assembly";
+    for p: Person; when person_present(p);
+    then liberty AssemblyLiberty { holder p; action assembles(p); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART21_P1, relation = formalizes, coverage = partial, quote = "結社")
+rule FreedomOfAssociation strict {
+    label ja official "結社の自由"; label en unofficial "Article 21(1). Freedom of association";
+    for p: Person; when person_present(p);
+    then liberty AssociationLiberty { holder p; action associates(p); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART21_P1, relation = formalizes, coverage = partial, quote = "言論")
+rule FreedomOfSpeech strict {
+    label ja official "言論の自由"; label en unofficial "Article 21(1). Freedom of speech";
+    for p: Person; when person_present(p);
+    then liberty SpeechLiberty { holder p; action speaks(p); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART21_P1, relation = formalizes, coverage = partial, quote = "出版")
+rule FreedomOfPress strict {
+    label ja official "出版の自由"; label en unofficial "Article 21(1). Freedom of the press";
+    for p: Person; when person_present(p);
+    then liberty PressLiberty { holder p; action publishes(p); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART21_P1, relation = formalizes, coverage = partial, quote = "その他一切の表現の自由")
+rule FreedomOfOtherExpression strict {
+    label ja official "その他一切の表現の自由"; label en unofficial "Article 21(1). Freedom of every other form of expression";
+    for p: Person; when person_present(p);
+    then liberty OtherExpressionLiberty { holder p; action expresses_otherwise(p); window [@1947-05-03, infinity); };
+}
+
+@source(JP_CONST_ART21_P2, relation = formalizes, coverage = partial, quote = "検閲は、これをしてはならない")
+rule NoCensorship strict {
+    label ja official "検閲は、これをしてはならない";
+    label en unofficial "Article 21(2), sentence 1. Censorship must not be conducted";
+    for o: Organ; for p: Person;
+    when r3a_state_organ(o) and person_present(p);
+    then prohibition NoCensorshipByOrgans {
+        bearer o; beneficiary p;
+        action censors_expression_of(o, p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART21_P2, relation = formalizes, coverage = partial, quote = "通信の秘密は、これを侵してはならない")
+rule SecrecyOfCommunicationImmunity strict {
+    label ja official "通信の秘密は、これを侵してはならない";
+    label en unofficial "Article 21(2), sentence 2. The secrecy of communication must not be violated";
+    for p: Person;
+    when person_present(p) and has_communication(p);
+    then immunity SecrecyOfCommunication {
+        holder p;
+        protected_effect secrecy_of_correspondence_infringed(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 22 ------------------------------------------------------------------
+@source(JP_CONST_ART22_P1, relation = formalizes, coverage = partial, quote = "何人も、公共の福祉に反しない限り、居住")
+rule FreedomOfResidence defeasible {
+    label ja official "何人も、公共の福祉に反しない限り、居住...の自由を有する";
+    label en unofficial "Article 22(1). Freedom of residence, unless the exercise is contrary to the public welfare";
+    for p: Person; for x: ExerciseOfRight; for k: RightKind;
+    when exercise_by(x, p) and exercise_kind(x, k) and k == residence;
+    unless right_exercise_curtailed_by_public_welfare(p, x);
+    then liberty ChooseResidence { holder p; action performs_exercise(p, x); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART22_P1, relation = formalizes, coverage = partial, quote = "移転")
+rule FreedomOfMovement defeasible {
+    label ja official "移転の自由"; label en unofficial "Article 22(1). Freedom of change of residence, unless contrary to the public welfare";
+    for p: Person; for x: ExerciseOfRight; for k: RightKind;
+    when exercise_by(x, p) and exercise_kind(x, k) and k == movement;
+    unless right_exercise_curtailed_by_public_welfare(p, x);
+    then liberty ChooseMovement { holder p; action performs_exercise(p, x); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART22_P1, relation = formalizes, coverage = partial, quote = "職業選択の自由")
+rule FreedomOfOccupation defeasible {
+    label ja official "職業選択の自由"; label en unofficial "Article 22(1). Freedom of choice of occupation, unless contrary to the public welfare";
+    for p: Person; for x: ExerciseOfRight; for k: RightKind;
+    when exercise_by(x, p) and exercise_kind(x, k) and k == occupation;
+    unless right_exercise_curtailed_by_public_welfare(p, x);
+    then liberty ChooseOccupation { holder p; action performs_exercise(p, x); window [@1947-05-03, infinity); };
+}
+
+relation emigrates(p: Person) kind empirical { label ja official "外国に移住する"; label en unofficial "the person moves abroad"; }
+relation renounces_nationality(p: Person) kind empirical { label ja official "国籍を離脱する"; label en unofficial "the person renounces nationality"; }
+@source(JP_CONST_ART22_P2, relation = formalizes, coverage = partial, quote = "何人も、外国に移住し")
+rule FreedomToEmigrate strict {
+    label ja official "何人も、外国に移住する自由を侵されない"; label en unofficial "Article 22(2). Freedom to move abroad";
+    for p: Person; when person_present(p);
+    then liberty Emigrate { holder p; action emigrates(p); window [@1947-05-03, infinity); };
+}
+@source(JP_CONST_ART22_P2, relation = formalizes, coverage = partial, quote = "国籍を離脱する自由を侵されない")
+rule FreedomToRenounceNationality strict {
+    label ja official "何人も、国籍を離脱する自由を侵されない"; label en unofficial "Article 22(2). Freedom to renounce nationality";
+    for p: Person; when person_present(p);
+    then liberty RenounceNationality { holder p; action renounces_nationality(p); window [@1947-05-03, infinity); };
+}
+
+// --- Article 23 ------------------------------------------------------------------
+relation pursues_academic_inquiry(p: Person) kind empirical { label ja official "学問"; label en unofficial "the person pursues academic inquiry"; }
+@source(JP_CONST_ART23_P1)
+rule AcademicFreedom strict {
+    label ja official "学問の自由は、これを保障する"; label en unofficial "Article 23. Academic freedom is guaranteed";
+    for p: Person; when person_present(p);
+    then liberty AcademicFreedomLiberty { holder p; action pursues_academic_inquiry(p); window [@1947-05-03, infinity); };
+}
+
+// --- Article 24 ------------------------------------------------------------------
+relation intended_spouses(m: Marriage, a: Person, b: Person) kind empirical { label ja official "婚姻の当事者"; label en unofficial "a and b are the parties to the marriage"; }
+relation consents_to_marriage(p: Person, m: Marriage) kind empirical { label ja official "合意"; label en unofficial "the person consents to the marriage"; }
+relation marriage_formed(m: Marriage) kind institutional { label ja official "婚姻の成立"; label en unofficial "the marriage is formed"; }
+relation spouses_hold_equal_rights(m: Marriage) kind institutional { label ja official "夫婦が同等の権利を有する"; label en unofficial "the spouses hold equal rights"; }
+
+@source(JP_CONST_ART24_P1, relation = formalizes, coverage = partial, quote = "婚姻は、両性の合意のみに基いて成立し")
+rule MarriageFormedOnMutualConsentOnly strict {
+    label ja official "婚姻は、両性の合意のみに基いて成立し";
+    label en unofficial "Article 24(1). Marriage is formed only on the mutual consent of the parties (no third party's consent is a constitutive element)";
+    for m: Marriage; for a: Person; for b: Person;
+    when intended_spouses(m, a, b) and consents_to_marriage(a, m) and consents_to_marriage(b, m);
+    then marriage_formed(m);
+}
+
+@source(JP_CONST_ART24_P1, relation = formalizes, coverage = partial, quote = "夫婦が同等の権利を有することを基本として")
+rule SpousesHaveEqualRights strict {
+    label ja official "夫婦が同等の権利を有する";
+    label en unofficial "Article 24(1). The spouses of a formed marriage hold equal rights";
+    for m: Marriage;
+    when marriage_formed(m);
+    then spouses_hold_equal_rights(m);
+}
+
+relation legislating_organ(o: Organ) kind empirical { label ja official "立法"; label en unofficial "the organ has the capacity of legislating (Art. 41, stage J5)"; }
+relation family_statute(l: Statute) kind empirical { label ja official "配偶者の選択、財産権、相続、住居の選定、離婚並びに婚姻及び家族に関するその他の事項に関する法律"; label en unofficial "the statute concerns choice of spouse, property rights, inheritance, choice of domicile, divorce or other matters of marriage and family"; }
+relation enacts_statute(o: Organ, l: Statute) kind empirical { label ja official "法律を制定する"; label en unofficial "the organ enacts the statute (act of exercise)"; }
+relation family_statute_valid(l: Statute) kind institutional { label en unofficial "the family statute is valid under Art. 24(2)"; }
+external judgment relation statute_rests_on_individual_dignity(l: Statute) {
+    authority SupremeCourt;
+    label ja official "個人の尊厳に立脚"; label en unofficial "the statute rests on individual dignity (authority: the Supreme Court, Art. 81)";
+}
+external judgment relation statute_rests_on_essential_equality_of_sexes(l: Statute) {
+    authority SupremeCourt;
+    label ja official "両性の本質的平等に立脚"; label en unofficial "the statute rests on the essential equality of the sexes (authority: the Supreme Court, Art. 81)";
+}
+
+@source(JP_CONST_ART24_P2)
+rule FamilyStatuteMustRestOnDignityAndEquality strict {
+    label ja official "法律は、個人の尊厳と両性の本質的平等に立脚して、制定されなければならない";
+    label en unofficial "Article 24(2). A family statute is valid only if it rests on individual dignity and the essential equality of the sexes (condition of validity of the enactment)";
+    for o: Organ; for l: Statute;
+    when legislating_organ(o) and family_statute(l);
+    then power EnactFamilyStatute {
+        holder o; over l;
+        exercise enacts_statute(o, l);
+        valid_when (statute_rests_on_individual_dignity(l) and statute_rests_on_essential_equality_of_sexes(l));
+        effect create(family_statute_valid(l));
+        window [@1947-05-03, infinity);
+    };
+}

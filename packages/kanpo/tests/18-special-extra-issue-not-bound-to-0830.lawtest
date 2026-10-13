@@ -1,0 +1,16 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十条第一号: 特別号外の官報には午前八時三十分の原則が及ばない。
+test "urn:query:kanpo-t18" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t18-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-tokubetsu"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t18-b": special_extra_issue(entity_ref("urn:jp:case:kanpo-2025-04-01-tokubetsu")) { origin case_input; }
+    }
+    evaluate truth(inspection_measure_due_at_0830_on(entity_ref("urn:jp:case:kanpo-2025-04-01-tokubetsu"), @2025-04-01));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

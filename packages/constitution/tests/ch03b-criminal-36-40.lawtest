@@ -1,0 +1,1034 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+test "ART36-01-TORTURE-BAN-ACTIVE-FOR-OFFICIAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoTortureProhibition, ACTIVE);
+    expect not position(NoTortureProhibition, VIOLATED);
+}
+
+test "ART36-02-TORTURE-BY-OFFICIAL-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert tortures_person(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoTortureProhibition, VIOLATED);
+    expect not position(NoTortureProhibition, ACTIVE);
+}
+
+test "ART36-03-TORTURE-BY-PRIVATE-PERSON-OUTSIDE-THIS-BAN" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_person(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert tortures_person(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoTortureProhibition, VIOLATED);
+    expect not position(NoTortureProhibition, ACTIVE);
+}
+
+test "ART36-04-TORTURE-BAN-HAS-NO-EXPIRY" {
+    given {
+        context { decision_time @2126-01-01T12:00:00Z; knowledge_time @2126-01-01T12:00:00Z; legal_time @2126-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert tortures_person(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoTortureProhibition, VIOLATED);
+}
+
+test "ART36-05-TORTURE-BEFORE-ENTRY-INTO-FORCE-NOT-VIOLATED" {
+    given {
+        context { decision_time @1947-05-02T12:00:00Z; knowledge_time @1947-05-02T12:00:00Z; legal_time @1947-05-02; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert tortures_person(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoTortureProhibition, VIOLATED);
+}
+
+test "ART36-06-CRUEL-PENALTY-BAN-ACTIVE-FOR-OFFICIAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoCruelPenaltyProhibition, ACTIVE);
+}
+
+test "ART36-07-CRUEL-PENALTY-ADJUDGED-CRUEL-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert imposes_penalty(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:x1")) { id "f1"; origin case_input; }
+        assert penalty_is_cruel(entity_ref("urn:jp:case:x1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(NoCruelPenaltyProhibition, VIOLATED);
+}
+
+test "ART36-08-PENALTY-ADJUDGED-NOT-CRUEL-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert imposes_penalty(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:x1")) { id "f1"; origin case_input; }
+        assert not penalty_is_cruel(entity_ref("urn:jp:case:x1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(NoCruelPenaltyProhibition, VIOLATED);
+    expect position(NoCruelPenaltyProhibition, ACTIVE);
+}
+
+test "ART36-09-CRUELTY-REQUIRES-JUDGMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert imposes_penalty(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:x1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(imposes_cruel_penalty(entity_ref("urn:jp:case:p1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(penalty_is_cruel);
+}
+
+test "ART36-10-CRUEL-PENALTY-ADJUDGED-BUT-NOT-IMPOSED-BY-OFFICIAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_public_official(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert penalty_is_cruel(entity_ref("urn:jp:case:x1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(NoCruelPenaltyProhibition, VIOLATED);
+}
+
+test "ART36-11-NON-OFFICIAL-IMPOSES-CRUEL-PENALTY-OUTSIDE-THIS-BAN" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_person(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert imposes_penalty(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:x1")) { id "f1"; origin case_input; }
+        assert penalty_is_cruel(entity_ref("urn:jp:case:x1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(NoCruelPenaltyProhibition, VIOLATED);
+}
+
+test "ART37-01-ACCUSED-DUTIES-OF-THE-STATE-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(PublicTrialDuty, ACTIVE);
+    expect position(ImpartialTribunalDuty, ACTIVE);
+    expect position(SpeedyTrialDuty, ACTIVE);
+    expect position(ExamineWitnessesDuty, ACTIVE);
+}
+
+test "ART37-02-TRIAL-NOT-PUBLIC-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert not trial_open_to_public(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(PublicTrialDuty, VIOLATED);
+}
+
+test "ART37-03-TRIAL-PUBLIC-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert trial_open_to_public(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(PublicTrialDuty, VIOLATED);
+}
+
+test "ART37-04-TRIBUNAL-NOT-IMPARTIAL-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert not tribunal_impartial(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(ImpartialTribunalDuty, VIOLATED);
+}
+
+test "ART37-05-TRIBUNAL-IMPARTIAL-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert tribunal_impartial(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(ImpartialTribunalDuty, VIOLATED);
+}
+
+test "ART37-06-TRIAL-NOT-SPEEDY-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert not trial_speedy(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(SpeedyTrialDuty, VIOLATED);
+}
+
+test "ART37-07-TRIAL-SPEEDY-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert trial_speedy(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(SpeedyTrialDuty, VIOLATED);
+}
+
+test "ART37-08-IMPARTIALITY-REQUIRES-JUDGMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(tribunal_impartial(entity_ref("urn:jp:case:c1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(tribunal_impartial);
+}
+
+test "ART37-09-NO-SUFFICIENT-OPPORTUNITY-TO-EXAMINE-WITNESSES-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert not sufficient_opportunity_to_examine_witnesses(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(ExamineWitnessesDuty, VIOLATED);
+}
+
+test "ART37-10-SUFFICIENT-OPPORTUNITY-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert sufficient_opportunity_to_examine_witnesses(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect not position(ExamineWitnessesDuty, VIOLATED);
+}
+
+test "ART37-11-NO-REQUEST-NO-SUMMONS-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SummonWitnessesAtPublicExpenseDuty, ACTIVE);
+}
+
+test "ART37-12-REQUEST-FOR-WITNESS-SUMMONS-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_requests_witness(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SummonWitnessesAtPublicExpenseDuty, ACTIVE);
+}
+
+test "ART37-13-WITNESS-REFUSED-AT-PUBLIC-EXPENSE-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_requests_witness(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert not witness_summoned_by_compulsory_process_at_public_expense(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SummonWitnessesAtPublicExpenseDuty, VIOLATED);
+}
+
+test "ART37-14-WITNESS-SUMMONED-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_requests_witness(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert witness_summoned_by_compulsory_process_at_public_expense(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SummonWitnessesAtPublicExpenseDuty, VIOLATED);
+}
+
+test "ART37-15-ACCUSED-MAY-RETAIN-COUNSEL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(RetainCounselFreely, ACTIVE);
+}
+
+test "ART37-16-NOT-ACCUSED-NO-COUNSEL-LIBERTY-HERE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_person(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(RetainCounselFreely, ACTIVE);
+}
+
+test "ART37-17-ABLE-TO-RETAIN-COUNSEL-NO-APPOINTMENT-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(AppointCounselDuty, ACTIVE);
+}
+
+test "ART37-18-UNABLE-TO-RETAIN-COUNSEL-APPOINTMENT-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_unable_to_retain_counsel(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(AppointCounselDuty, ACTIVE);
+}
+
+test "ART37-19-NO-COUNSEL-APPOINTED-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_unable_to_retain_counsel(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert not counsel_appointed_by_state(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(AppointCounselDuty, VIOLATED);
+}
+
+test "ART37-20-COUNSEL-APPOINTED-NOT-VIOLATED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert defendant_unable_to_retain_counsel(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert counsel_appointed_by_state(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(AppointCounselDuty, VIOLATED);
+}
+
+test "ART37-21-NO-ACCUSED-NO-TRIAL-DUTIES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate positions();
+    expect not position(PublicTrialDuty, ACTIVE);
+    expect not position(AppointCounselDuty, ACTIVE);
+}
+
+test "ART38-01-NO-COMPULSION-TO-SELF-INCRIMINATE-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_person(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SelfIncriminationImmunity, ACTIVE);
+}
+
+test "ART38-02-NOT-A-PERSON-NO-SELF-INCRIMINATION-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate positions();
+    expect not position(SelfIncriminationImmunity, ACTIVE);
+}
+
+test "ART38-03-CONFESSION-BY-COMPULSION-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert obtained_by_compulsion(entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-04-CONFESSION-BY-TORTURE-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert obtained_by_torture(entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-05-CONFESSION-BY-THREAT-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert obtained_by_threat(entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-06-CONFESSION-AFTER-UNDULY-LONG-DETENTION-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f1"; origin case_input; }
+        assert detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect evaluation_status == COMPUTED;
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-07-CONFESSION-AFTER-DETENTION-NOT-UNDULY-LONG-NOT-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f1"; origin case_input; }
+        assert not detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-08-UNDUE-LENGTH-REQUIRES-JUDGMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(detention_unduly_prolonged);
+}
+
+test "ART38-09-VOLUNTARY-CONFESSION-NOT-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-10-NON-CONFESSION-BY-COMPULSION-NOT-EXCLUDED-BY-THIS-RULE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert obtained_by_compulsion(entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-11-ONLY-OWN-CONFESSION-IS-SOLE-EVIDENCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-12-CONFESSION-WITH-ONE-CORROBORATING-ITEM-NOT-SOLE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-13-CONFESSION-WITH-TWO-CORROBORATING-ITEMS-NOT-SOLE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f1"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e3")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-14-CORROBORATION-IN-ANOTHER-CASE-DOES-NOT-COUNT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c2"), entity_ref("urn:jp:case:e2")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-15-EXCLUDED-CONFESSION-IS-NOT-EVIDENCE-NOT-SOLE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f0"; origin case_input; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+        assert obtained_by_torture(entity_ref("urn:jp:case:e1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-16-NO-CONFESSION-NO-SOLE-CONFESSION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-17-NO-EVIDENCE-AT-ALL-NOT-SOLE-CONFESSION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(sole_evidence_is_own_confession(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART38-18-SOLE-CONFESSION-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SoleConfessionImmunity, ACTIVE);
+}
+
+test "ART38-19-CORROBORATED-CONFESSION-NO-SOLE-CONFESSION-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f1"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SoleConfessionImmunity, ACTIVE);
+}
+
+test "ART38-20-CONVICTION-ON-SOLE-CONFESSION-BLOCKED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(EFFECT_BLOCKED_BY_IMMUNITY);
+    expect not issue(UNRESOLVED_NORMATIVE_CONFLICT);
+}
+
+test "ART38-21-CONVICTION-ON-CONFESSION-AND-CORROBORATION-EFFECTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f4"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART38-22-CONVICTION-ON-OTHER-EVIDENCE-ONLY-EFFECTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART38-23-CONVICTION-ON-EXCLUDED-CONFESSION-NOT-SOLE-CONFESSION-BLOCK" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f4"; origin case_input; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f5"; origin case_input; }
+        assert obtained_by_threat(entity_ref("urn:jp:case:e1")) { id "f6"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART39-01-ACT-LAWFUL-WHEN-COMMITTED-NO-LIABILITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert act_lawful_when_committed(entity_ref("urn:jp:case:c1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(EFFECT_BLOCKED_BY_IMMUNITY);
+    expect not issue(UNRESOLVED_NORMATIVE_CONFLICT);
+}
+
+test "ART39-02-ACT-ALREADY-ACQUITTED-NO-LIABILITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert act_previously_acquitted(entity_ref("urn:jp:case:c1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART39-03-SAME-OFFENCE-ALREADY-ADJUDICATED-NO-LIABILITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert same_offence_previously_adjudicated(entity_ref("urn:jp:case:c1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART39-04-NONE-OF-THE-BARS-LIABILITY-TAKES-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "ART39-05-ACT-NOT-LAWFUL-WHEN-COMMITTED-LIABILITY-TAKES-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert not act_lawful_when_committed(entity_ref("urn:jp:case:c1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART39-06-RETROACTIVITY-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert act_lawful_when_committed(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoRetroactiveLiabilityImmunity, ACTIVE);
+}
+
+test "ART39-07-ACQUITTAL-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert act_previously_acquitted(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoLiabilityAfterAcquittalImmunity, ACTIVE);
+}
+
+test "ART39-08-DOUBLE-JEOPARDY-IMMUNITY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert same_offence_previously_adjudicated(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoDoubleJeopardyImmunity, ACTIVE);
+}
+
+test "ART39-09-NO-BAR-NO-ART39-IMMUNITY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoRetroactiveLiabilityImmunity, ACTIVE);
+    expect not position(NoLiabilityAfterAcquittalImmunity, ACTIVE);
+    expect not position(NoDoubleJeopardyImmunity, ACTIVE);
+}
+
+test "ART39-10-TWO-BARS-TOGETHER-STILL-BLOCKED-NO-CONFLICT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert act_previously_acquitted(entity_ref("urn:jp:case:c1")) { id "f4"; origin case_input; }
+        assert same_offence_previously_adjudicated(entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect not issue(UNRESOLVED_NORMATIVE_CONFLICT);
+}
+
+test "ART39-11-INVALID-PROCEDURE-AND-BAR-BOTH-BLOCK" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_court(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert act_lawful_when_committed(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART40-01-ACQUITTED-AFTER-DETENTION-MAY-DEMAND-COMPENSATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(may_demand_compensation(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART40-02-NO-STATUTE-NO-COMPENSATION-CLAIM" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate truth(may_demand_compensation(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART40-03-NEVER-DETAINED-NO-COMPENSATION-CLAIM" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f1"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(may_demand_compensation(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART40-04-NOT-ACQUITTED-NO-COMPENSATION-CLAIM" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(may_demand_compensation(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART40-05-JUDGMENT-OF-NOT-GUILTY-DENIED-NO-CLAIM" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+        assert not judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate truth(may_demand_compensation(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART40-06-NO-DEMAND-NO-COMPENSATION-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(CompensateAcquittedDuty, ACTIVE);
+}
+
+test "ART40-07-DEMAND-COMPENSATION-DUTY-ACTIVE-BEFORE-DUE-DATE" {
+    given {
+        context { decision_time @2026-06-01T12:00:00Z; knowledge_time @2026-06-01T12:00:00Z; legal_time @2026-06-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateAcquittedDuty, ACTIVE);
+}
+
+test "ART40-08-COMPENSATION-PAID-SATISFIED" {
+    given {
+        context { decision_time @2026-06-01T12:00:00Z; knowledge_time @2026-06-01T12:00:00Z; legal_time @2026-06-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+        assert compensation_paid_to_acquitted(entity_ref("urn:jp:case:c1")) { id "f6"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateAcquittedDuty, SATISFIED);
+}
+
+test "ART40-09-DUE-DATE-PASSED-SILENT-UNDETERMINED" {
+    given {
+        context { decision_time @2026-07-01T12:00:00Z; knowledge_time @2026-07-01T12:00:00Z; legal_time @2026-07-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateAcquittedDuty, UNDETERMINED);
+    expect not position(CompensateAcquittedDuty, VIOLATED);
+}
+
+test "ART40-10-DUE-DATE-PASSED-NOT-PAID-VIOLATED" {
+    given {
+        context { decision_time @2026-07-01T12:00:00Z; knowledge_time @2026-07-01T12:00:00Z; legal_time @2026-07-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+        assert not compensation_paid_to_acquitted(entity_ref("urn:jp:case:c1")) { id "f6"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateAcquittedDuty, VIOLATED);
+}
+
+test "ART40-11-ON-DUE-DATE-STILL-ACTIVE" {
+    given {
+        context { decision_time @2026-06-30T12:00:00Z; knowledge_time @2026-06-30T12:00:00Z; legal_time @2026-06-30; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert held_in_custody_or_confinement_in_case(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert judgment_of_not_guilty(entity_ref("urn:jp:case:c1")) { id "f2"; origin adjudicated; }
+        assert statute_provides_compensation(entity_ref("urn:jp:case:c1")) { id "f3"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f4"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(CompensateAcquittedDuty, ACTIVE);
+}
+
+test "ART40-12-DEMAND-WITHOUT-CLAIM-NO-DUTY" {
+    given {
+        context { decision_time @2026-06-01T12:00:00Z; knowledge_time @2026-06-01T12:00:00Z; legal_time @2026-06-01; timezone "Asia/Tokyo"; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert compensation_due_date(entity_ref("urn:jp:case:c1"), @2026-06-30) { id "f1"; origin case_input; }
+        assert compensation_demanded(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(CompensateAcquittedDuty, ACTIVE);
+}
+
+test "X03-CASE-ARREST-ON-WARRANT-IS-EFFECTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f11"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f12"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f13"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f14"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f15"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f16"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f18"; origin case_input; }
+    }
+    evaluate truth(arrest_effective(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "X04-CASE-CONFINEMENT-WITH-GUARANTEES-IS-EFFECTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f11"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f12"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f13"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f14"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f15"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f16"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f18"; origin case_input; }
+    }
+    evaluate truth(detention_effective(entity_ref("urn:jp:case:d1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "X05-CASE-CONFESSION-AFTER-UNDUE-DETENTION-IS-EXCLUDED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f11"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f12"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f13"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f14"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f15"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f16"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f18"; origin case_input; }
+    }
+    evaluate truth(evidence_excluded(entity_ref("urn:jp:case:e1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "X06-CASE-EXCLUDED-CONFESSION-ONLY-EVIDENCE-CONVICTION-STANDS-FOR-ART38-3" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f11"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f12"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f13"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f14"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f15"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f16"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f18"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+    expect not issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "X07-CASE-SAME-BUT-UNDUE-LENGTH-DENIED-CONFESSION-BECOMES-SOLE-EVIDENCE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f11"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f12"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f13"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f14"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f15"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f16"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert not detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f18"; origin adjudicated; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+    expect issue(EFFECT_BLOCKED_BY_IMMUNITY);
+}
+
+test "X08-CASE-SAME-BUT-UNDUE-LENGTH-DENIED-CORROBORATED-CONVICTION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3b_authority(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert arrest_of(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert performs_arrest(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert warrant_issued_by_competent_judicial_officer(entity_ref("urn:jp:case:a1")) { id "f3"; origin case_input; }
+        assert warrant_names_offence(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert detention_of(entity_ref("urn:jp:case:d1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert is_confinement(entity_ref("urn:jp:case:d1")) { id "f6"; origin case_input; }
+        assert performs_detention(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:d1")) { id "f7"; origin case_input; }
+        assert reason_told_immediately(entity_ref("urn:jp:case:d1")) { id "f8"; origin adjudicated; }
+        assert counsel_right_granted_immediately(entity_ref("urn:jp:case:d1")) { id "f9"; origin adjudicated; }
+        assert adequate_cause_for_confinement(entity_ref("urn:jp:case:d1")) { id "f10"; origin adjudicated; }
+        assert is_confession(entity_ref("urn:jp:case:e1")) { id "f11"; origin case_input; }
+        assert made_after_detention(entity_ref("urn:jp:case:e1"), entity_ref("urn:jp:case:d1")) { id "f12"; origin case_input; }
+        assert own_confession_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e1")) { id "f13"; origin case_input; }
+        assert r3b_court(entity_ref("urn:jp:case:o2")) { id "f14"; origin case_input; }
+        assert defendant_of(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:p1")) { id "f15"; origin case_input; }
+        assert convicts_and_sentences(entity_ref("urn:jp:case:o2"), entity_ref("urn:jp:case:c1")) { id "f16"; origin case_input; }
+        assert procedure_established_by_law_followed(entity_ref("urn:jp:case:c1")) { id "f17"; origin case_input; }
+        assert not detention_unduly_prolonged(entity_ref("urn:jp:case:d1")) { id "f18"; origin adjudicated; }
+        assert corroborating_evidence(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:e2")) { id "f19"; origin case_input; }
+    }
+    evaluate truth(criminal_liability_imposed(entity_ref("urn:jp:case:c1")));
+    expect truth_status == TRUE_ONLY;
+}
+

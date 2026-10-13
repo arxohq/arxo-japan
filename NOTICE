@@ -1,0 +1,15 @@
+Arxo Japan — Constitution and Official Gazette models
+Copyright 2026 Arxo contributors. Arxo-authored model code, tooling and original documentation are licensed under Apache-2.0; see LICENSE.
+
+The Japanese Constitution, statutes, cabinet orders and ministerial ordinances are excluded from copyright protection under Article 13 of Japan's Copyright Act. This does not make every government website, commentary, photograph or database public domain. This distribution contains the selected legal texts and Arxo-authored models, not a general copy of those websites.
+Official Copyright Act: https://laws.e-gov.go.jp/law/345AC0000000048
+Official Japanese legal sources: https://laws.e-gov.go.jp/
+
+The Japanese texts were retrieved from e-Gov; they are pinned copies, not authenticated original Official Gazette publications. Japanese statutory labels reproduce official wording. English labels are unofficial Arxo glosses, not official translations. Provenance, retrieval details and source hashes are retained in the package sources and source declarations.
+
+Constitution: e-Gov revision 321CONSTITUTION_19470503_000000000000000.
+Kanpo issuance Act: e-Gov revision 505AC0000000085_20250401_000000000000000; related Cabinet Office Ordinance No. 80 and Cabinet Order No. 309 are identified in packages/kanpo/01-sources.law. The archive URI used for the Cabinet Order is a retrieval location, not the legal publisher.
+
+Competing readings and court references are model declarations. Their substantive correctness and completeness are not established by passing executable scenarios. Neither Arxo nor this repository is an official Japanese legal publication.
+
+The CLI is delivered separately, with its own LICENSE, NOTICE and third-party notices. No third-party executable is vendored in this Git repository.

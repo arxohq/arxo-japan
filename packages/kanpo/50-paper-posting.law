@@ -1,0 +1,116 @@
+// 第十一条第四項、内閣府令第二十二条: 書面官報の掲示期間.
+//
+// Art. 11(4): the PM continues posting the paper 書面官報 for the period set by
+// 府令. 府令 art. 22(1): until 08:30 of the day on which one week has elapsed
+// counting from the posting day (that day counts as the first, so the day stepped
+// by 7 calendar days); if that day is an administrative holiday, the day after
+// the holiday(s). Art. 22(2), notwithstanding (1): if the art. 24(1) measure (the
+// paper issue's matters put on the website) started by the day on which the week
+// elapses counting from the issue day (issue day + 6), until 08:30 of the day
+// after that start, with the same holiday rule.
+//
+// The owner chose holidays as case facts and the roll as a rule: a calendar
+// snapshot §85 would need a roll policy §86 that conflicts with
+// KANPO_INSPECTION_PERIOD (no_roll), and one case has one policy. Whether a day
+// is 行政機関の休日 (行政機関の休日に関する法律 art. 1) is a case fact; the
+// candidate end day moves one day forward while it is a holiday, and the first
+// non-holiday candidate is the end. Absence of a holiday fact means a working
+// day — the case must state every holiday it relies on. Art. 22(2) displaces
+// the art. 22(1) base day (前項の規定にかかわらず) by a guard, not by defeat: the
+// week-elapsed day is the base only when no art. 24(1) start falls within the
+// week (count == 0). A defeasible base read by the strict roll chain is refused
+// (LDC-E4103) and would put a status edge into the roll recursion (LDC-E4102).
+// The recursion itself reads the candidate through supported(P) — the only edge
+// a cycle may carry (§65/§103); the chain is strict, so it equals the candidate.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    KANPO_ART11,
+    KANPO_FUREI_ART22,
+    KanpoIssue,
+    act_applies_to,
+    paper_kanpo_posted_on,
+};
+
+relation administrative_holiday(day: Date) kind empirical {
+    label ja official "この日が行政機関の休日に当たる";
+}
+relation paper_matters_measure_started_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "内閣府令第二十四条第一項の措置（当該書面官報に掲載された事項に係る情報を自動公衆送信を利用して公衆が閲覧することができる状態に置く措置）を開始した日";
+}
+
+relation posting_week_elapsed_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "第十一条第一項の掲示をした日から起算して一週間を経過した日";
+}
+relation paper_matters_measure_started_within_week(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "書面官報の発行をした日から起算して一週間を経過する日までの間に内閣府令第二十四条第一項の措置を開始した日";
+}
+relation posting_period_base_day(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "掲示期間の末日（行政機関の休日に当たるかを判断する前の日）";
+}
+relation posting_period_end_candidate(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "掲示期間の末日の候補（行政機関の休日に当たるときは翌日に移る）";
+}
+relation paper_posting_period_ends_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "第十一条第四項の掲示の期間は、この日の午前八時三十分までとする";
+}
+
+@source(KANPO_ART11, KANPO_FUREI_ART22)
+rule PostingWeekElapsed(k: KanpoIssue, d: Date) strict {
+    when paper_kanpo_posted_on(k, d);
+    when act_applies_to(k);
+    then posting_week_elapsed_on(k, add_calendar_period(d, 7 calendar_day));
+    label ja official "内閣府令第二十二条第一項　掲示をした日から起算して一週間を経過した日";
+}
+
+@source(KANPO_FUREI_ART22)
+rule PaperMattersMeasureStartedWithinWeek(k: KanpoIssue, d: Date, s: Date) strict {
+    when paper_kanpo_posted_on(k, d);
+    when paper_matters_measure_started_on(k, s);
+    when days_between(d, s) >= 0;
+    when days_between(d, s) <= 6;
+    then paper_matters_measure_started_within_week(k, s);
+    label ja official "内閣府令第二十二条第二項　書面官報の発行をした日から起算して一週間を経過する日までの間に第二十四条第一項の措置を開始した";
+}
+
+@source(KANPO_ART11, KANPO_FUREI_ART22)
+rule PostingPeriodBaseIsWeekElapsedDay(k: KanpoIssue, e: Date) strict {
+    when posting_week_elapsed_on(k, e);
+    when count(collect s: Date where paper_matters_measure_started_within_week(k, s)) == 0;
+    then posting_period_base_day(k, e);
+    label ja official "内閣府令第二十二条第一項　法第十一条第四項の期間は、掲示をした日から起算して一週間を経過した日の午前八時三十分までとする";
+}
+
+@source(KANPO_ART11, KANPO_FUREI_ART22)
+rule PostingPeriodBaseIsDayAfterMeasureStart(k: KanpoIssue, s: Date) strict {
+    when paper_matters_measure_started_within_week(k, s);
+    when act_applies_to(k);
+    then posting_period_base_day(k, add_calendar_period(s, 1 calendar_day));
+    label ja official "内閣府令第二十二条第二項　当該措置を開始した日の翌日の午前八時三十分までとする";
+}
+
+@source(KANPO_FUREI_ART22)
+rule EndCandidateIsBaseDay(k: KanpoIssue, b: Date) strict {
+    when posting_period_base_day(k, b);
+    then posting_period_end_candidate(k, b);
+    label ja official "内閣府令第二十二条　期間の末日の候補";
+}
+
+@source(KANPO_FUREI_ART22)
+rule HolidayMovesEndCandidate(k: KanpoIssue, c: Date) strict {
+    when supported(posting_period_end_candidate(k, c));
+    when administrative_holiday(c);
+    then posting_period_end_candidate(k, add_calendar_period(c, 1 calendar_day));
+    label ja official "内閣府令第二十二条　同日が行政機関の休日に当たるときは、行政機関の休日の翌日";
+}
+
+@source(KANPO_ART11, KANPO_FUREI_ART22)
+rule PaperPostingPeriodEndsAt0830(k: KanpoIssue, c: Date) strict {
+    when posting_period_end_candidate(k, c);
+    when not_known(administrative_holiday(c));
+    then paper_posting_period_ends_on(k, c);
+    label ja official "法第十一条第四項・内閣府令第二十二条　掲示の期間は、行政機関の休日に当たらない末日の午前八時三十分までとする";
+}

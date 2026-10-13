@@ -1,0 +1,22 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第二十四条第四項: 書面官報に掲載された事項 — 第十八条各号の認定が未了なら除外は働かず、判断要求が開いている。
+test "urn:query:kanpo-t44" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t44-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t44"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t44-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t44"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t44-03": paper_matters_posted_on_cabinet_office_website(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t44"), @2025-06-05) { origin case_input; }
+        assert "kanpo-t44-04": item_carried_in_paper_kanpo(entity_ref("urn:jp:case:paper-item-open"), entity_ref("urn:jp:case:shomen-kanpo-kanpo-t44")) { origin case_input; }
+    }
+    evaluate truth(paper_item_kept_available_after_period(entity_ref("urn:jp:case:paper-item-open")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(indefinite_posting_risks_individual_privacy, PrimeMinisterOfJapan);
+    expect judgment_request(indefinite_posting_risks_addressee_privacy, PrimeMinisterOfJapan);
+    expect judgment_request(indefinite_posting_specially_impeded, PrimeMinisterOfJapan);
+    expect judgment_requests(3);
+}

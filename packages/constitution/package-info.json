@@ -1,0 +1,10 @@
+{
+  "name": "jp.constitution",
+  "version": "0.1.0",
+  "title": "Constitution of Japan",
+  "description": "Preamble and 103 articles; all texts are pinned Japanese copies. English labels are unofficial.",
+  "license": "Apache-2.0",
+  "maintainer": "Arxo contributors",
+  "repository": "https://github.com/arxohq/arxo-japan",
+  "sourceTexts": "See repository NOTICE; Japanese legal instruments are excluded from copyright under Copyright Act Article 13."
+}

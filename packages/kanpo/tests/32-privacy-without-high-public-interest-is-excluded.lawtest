@@ -1,0 +1,22 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十八条第一号: 支障のおそれが認められ、公益性が特に高いとは認められない — 閲覧期間経過後の情報提供の対象外。
+test "urn:query:kanpo-t32" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t32-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t32"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t32-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t32"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t32-03": item_published_in(entity_ref("urn:jp:case:item-excluded"), entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t32")) { origin case_input; }
+        assert "kanpo-t32-04": not concerns_act_toward_specific_addressee(entity_ref("urn:jp:case:item-excluded")) { origin case_input; }
+        assert "kanpo-t32-05": indefinite_posting_risks_individual_privacy(entity_ref("urn:jp:case:item-excluded")) { origin adjudicated; }
+        assert "kanpo-t32-06": not indefinite_posting_specially_impeded(entity_ref("urn:jp:case:item-excluded")) { origin adjudicated; }
+        assert "kanpo-t32-07": not public_interest_particularly_high(entity_ref("urn:jp:case:item-excluded")) { origin adjudicated; }
+    }
+    evaluate truth(kept_available_after_inspection_period(entity_ref("urn:jp:case:item-excluded")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+    expect judgment_requests(0);
+}
