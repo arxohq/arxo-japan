@@ -161,6 +161,9 @@
     "installer": "POSIX shell; SHA-256 pinned; Python not required",
     "modelsChanged": false,
     "runtimeChanged": false,
-    "fullCorpus": "not_checked"
+    "fullCorpus": "not_checked",
+    "linux": "passed",
+    "linuxCI": "https://github.com/arxohq/arxo-japan/actions/runs/38447476107",
+    "linuxCIStatus": "passed"
   }
 }
