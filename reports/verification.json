@@ -42,7 +42,7 @@
   },
   "publicDelivery": {
     "githubRepository": "https://github.com/arxohq/arxo-japan",
-    "installation": "passed",
+    "installation": "passed: npm install -g @arxo/cli@0.2.4",
     "published": true,
     "anonymousClone": "passed",
     "readmeExample": "COMPUTED / TRUE_ONLY",
@@ -189,13 +189,29 @@
       "checked": 3,
       "passed": 3
     },
-    "npmInstallation": "pending",
-    "linuxInstalledConsumer": "pending",
+    "npmInstallation": "passed on macOS and Linux with Node.js 20",
+    "linuxInstalledConsumer": {
+      "status": "passed",
+      "node": "20",
+      "examplesChecked": 10,
+      "repeatCanonicalDocuments": "identical",
+      "nativeEval": "identical",
+      "inspect": "passed",
+      "workflow": "https://github.com/arxohq/arxo-japan/actions/runs/38451938718"
+    },
     "corpus": "not_checked",
     "releaseVerified": false,
     "publicationWorkflow": "https://github.com/arxo-io/law/actions/runs/38450824424",
     "dryRunWorkflow": "https://github.com/arxo-io/law/actions/runs/38450686714",
-    "registryArchives": "pending",
-    "latest": "pending public registry verification"
+    "registryArchives": "SHA-256 and size match all three candidate archives",
+    "latest": "0.2.4",
+    "macosInstalledConsumer": {
+      "status": "passed",
+      "node": "20.20.2",
+      "examplesChecked": 10,
+      "repeatCanonicalDocuments": "identical",
+      "nativeEval": "identical",
+      "inspect": "passed"
+    }
   }
 }

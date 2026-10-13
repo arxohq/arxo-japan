@@ -1,7 +1,7 @@
 format = "law.canon-publication/1"
 version = "0.1.2"
 repository = "https://github.com/arxohq/arxo-japan"
-releasedAt = "2026-10-13T19:00:28.445217Z"
+releasedAt = "2026-10-13T19:07:44.470848Z"
 packages = ["jp.constitution@0.1.0", "jp.kanpo@0.1.0"]
 files = [
   ".github/workflows/verify-native.yml",
