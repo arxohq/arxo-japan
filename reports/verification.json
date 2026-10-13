@@ -139,7 +139,7 @@
     "readmeExample": "COMPUTED / TRUE_ONLY",
     "publicCI": "https://github.com/arxohq/arxo-japan/actions/runs/38445165462",
     "publicCIStatus": "passed",
-    "sourceInventory": "192 allowlisted files plus generated manifest; no private history",
+    "sourceInventory": "204 allowlisted files plus generated manifest; no private history",
     "releaseVerified": false
   },
   "deliveryChecks": {
@@ -148,5 +148,19 @@
     "svgPreview": "passed",
     "noMachinePaths": "passed"
   },
-  "worldMetadataNote": "package.semanticHash is the original lowerer placeholder. Raw world SHA-256 and the separately computed lock artifactHash identify delivered bytes; the placeholder is not a measured hash."
+  "worldMetadataNote": "package.semanticHash is the original lowerer placeholder. Raw world SHA-256 and the separately computed lock artifactHash identify delivered bytes; the placeholder is not a measured hash.",
+  "nativeReader": {
+    "consumerRevision": "0.1.1",
+    "macos": "passed",
+    "examplesChecked": 10,
+    "nativeCommands": [
+      "law eval",
+      "law inspect",
+      "law test"
+    ],
+    "installer": "POSIX shell; SHA-256 pinned; Python not required",
+    "modelsChanged": false,
+    "runtimeChanged": false,
+    "fullCorpus": "not_checked"
+  }
 }

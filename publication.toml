@@ -1,9 +1,22 @@
 format = "law.canon-publication/1"
-version = "0.1.0"
+version = "0.1.1"
 repository = "https://github.com/arxohq/arxo-japan"
-releasedAt = "2026-10-13T18:12:37.721034Z"
+releasedAt = "2026-10-13T18:29:35.642142Z"
 packages = ["jp.constitution@0.1.0", "jp.kanpo@0.1.0"]
 files = [
+  ".github/workflows/verify-native.yml",
+  "examples/amendment-eight-of-twelve/request.json",
+  "examples/amendment-seven-of-twelve/request.json",
+  "examples/article9-judgment-missing/request.json",
+  "examples/article9-judgment-negative/request.json",
+  "examples/article9-literal/request.json",
+  "examples/article9-no-reading/request.json",
+  "examples/database-copy/request.json",
+  "examples/electronic-promulgation/request.json",
+  "examples/referendum-three-to-two/request.json",
+  "examples/retention-awaits-judgment/request.json",
+  "tools/install-law.sh",
+
   ".github/workflows/verify.yml",
   ".gitignore",
   "LICENSE",

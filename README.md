@@ -10,14 +10,14 @@ Japanese sources and statutory labels remain Japanese. Questions and explanation
 
 ## Run a question
 
-Requirements: Python **3.12+**, Git and `curl`. The pinned standalone CLI supports **macOS arm64** and **Linux x86_64**. Downloaded archives are checked against SHA-256 before extraction.
+Requirements: Git, `curl` and a POSIX shell. The pinned standalone CLI supports **macOS arm64** and **Linux x86_64**. Downloaded archives are checked against SHA-256 before extraction.
 
 ```sh
 git clone https://github.com/arxohq/arxo-japan.git
 cd arxo-japan
-python3.12 tools/install_cli.py --out .toolchain
-export LAW_BIN="$PWD/.toolchain/law"
-python3.12 tools/example.py amendment-eight-of-twelve
+sh tools/install-law.sh
+export PATH="$PWD/.toolchain:$PATH"
+law eval examples/amendment-eight-of-twelve
 ```
 
 This example asks whether eight votes out of **all twelve members** of a House meet Article 96's initiation threshold. The House-level answer is `COMPUTED TRUE_ONLY`. It does not establish approval by both Houses, referendum ratification or promulgation.
@@ -25,12 +25,19 @@ This example asks whether eight votes out of **all twelve members** of a House m
 Try the boundary:
 
 ```sh
-python3.12 tools/example.py amendment-seven-of-twelve
+law eval examples/amendment-seven-of-twelve
 ```
 
 The answer is `COMPUTED NEITHER`: the positive conclusion is not established. Absence of a positive conclusion is not an explicit negative fact.
 
+The installer puts the pinned `law` executable in `.toolchain/`. After adding it to `PATH`, use the ordinary **`law` CLI**. Python is only used by optional maintainer checks.
+
+<details>
+<summary>CLI version and compatibility</summary>
+
 The repository uses the standalone **`0.2.3-japan.1` CLI candidate**, with a narrow fix for reference-valued judgment authorities. CLI 0.2.2 refuses the original Constitution world with `CONSTANT_OUTSIDE_MODEL`; [the compatibility report](reports/verification.json) records that regression and its checks. Model sources retain their original version **0.1.0** and semantics **`law.core/0.2.11`**. The CLI candidate is distributed separately; no canon npm package is required.
+
+</details>
 
 ## Choose a model
 
@@ -45,7 +52,7 @@ Both models are independent: `jp.kanpo` is not an import of the Constitution, an
 
 ## Explore the examples
 
-Every example includes the **complete [case input](examples)**, canonical query and saved result. Inputs are lowered from existing `.lawtest` scenarios by the CLI, preserving dates, facts, polarity, origins and selected readings. The Python runner only assembles the evaluation request; it implements no legal formulas or thresholds.
+Every example includes the **complete [case input](examples)**, canonical query and saved result. Inputs are lowered from existing `.lawtest` scenarios by the CLI, preserving dates, facts, polarity, origins and selected readings. Each directory also carries a native `request.json`, so **`law eval` runs it directly**. No Python runner is needed.
 
 | Example | Question | Recorded answer |
 |---|---|---|
@@ -61,9 +68,9 @@ Every example includes the **complete [case input](examples)**, canonical query 
 | [`retention-awaits-judgment`](examples/retention-awaits-judgment) | Which retention assessments still belong to the Prime Minister? | `REQUIRES_JUDGMENT` / `TRUE_ONLY` |
 
 ```sh
-python3.12 tools/example.py article9-judgment-missing
-python3.12 tools/example.py electronic-promulgation
-python3.12 tools/example.py retention-awaits-judgment --json
+law eval examples/article9-judgment-missing
+law eval examples/electronic-promulgation
+law eval examples/retention-awaits-judgment
 ```
 
 Truth and evaluation status answer different questions. `TRUE_ONLY`, `FALSE_ONLY`, `BOTH` and `NEITHER` retain positive evidence, negative evidence, conflict and absence separately. `REQUIRES_JUDGMENT` names an unresolved assessment and its declared authority; it must not be reduced to a Boolean.
@@ -75,22 +82,30 @@ Truth and evaluation status answer different questions. `TRUE_ONLY`, `FALSE_ONLY
 Full JSON includes the canonical result hash, source anchors, judgment requests and `proofGraph`:
 
 ```sh
-python3.12 tools/example.py amendment-eight-of-twelve --json
+law eval examples/amendment-eight-of-twelve
 ```
 
-To inspect the model's reasoning structure independently of a particular case:
+To inspect the saved answer with the native CLI:
 
 ```sh
-"$LAW_BIN" engine unfold registry/jp-constitution.lawir.json \
-  house_carried_amendment --depth 2 --lang en --json
+law inspect examples/amendment-eight-of-twelve/result.json summary
 ```
+
+The legal model itself is written in **`.law`**: [Article 96 rules](packages/constitution/ch09-amendment.law), [the Constitution model](packages/constitution), and [Kanpo rules](packages/kanpo).
 
 <details>
 <summary>Open the native Article 96 unfold tree</summary>
 
 ![Native Arxo unfold of house_carried_amendment at depth 2](assets/unfold-amendment.svg)
 
-This figure is rendered from the CLI's native [unfold document](assets/unfold-amendment.json), not a separately implemented rule. An unfold tree describes potential derivations; the case's proof graph records the actual evaluation.
+This figure is rendered from the CLI's native [unfold document](assets/unfold-amendment.json). An unfold tree describes potential derivations; the case's proof graph records the actual evaluation.
+
+To regenerate it (advanced engine interface):
+
+```sh
+law engine unfold registry/jp-constitution.lawir.json \
+  house_carried_amendment --depth 2 --lang en --json
+```
 
 </details>
 
@@ -123,11 +138,11 @@ The original package README records **2292 scenarios under historical dual-evalu
 ## Reproduce the checks
 
 ```sh
-python3.12 tools/check.py --package constitution
-python3.12 tools/check.py --package kanpo
+law test packages/constitution
+law test packages/kanpo
 ```
 
-These commands verify source and delivery hashes, test only the selected package in an isolated temporary directory, and replay its examples twice against the saved canonical document. No full corpus is discovered or executed. [Verification report](reports/verification.json) · [Source pin](source-pin.json) · [Exact publication inventory](CANON-MANIFEST.json) · [Delivery and provenance](docs/DELIVERY.md)
+For a focused Article 96 check, use `law test packages/constitution --grep ART96`. Optional maintainer verification (`python3.12 tools/check.py`) also verifies the delivery hashes and compares canonical example documents. The package commands execute only the selected package. No full corpus is discovered or executed. [Verification report](reports/verification.json) · [Source pin](source-pin.json) · [Exact publication inventory](CANON-MANIFEST.json) · [Delivery and provenance](docs/DELIVERY.md)
 
 `packages/` contains readable model sources and scenarios. `registry/` contains freshly lowered standalone CLIR. `examples/` holds complete reader inputs and answers. `assets/` contains native SVG visuals. Tool downloads and runtime caches remain outside the publication inventory.
 
