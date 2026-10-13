@@ -6,8 +6,8 @@
     "jp.kanpo@0.1.0"
   ],
   "semantics": "law.core/0.2.11",
-  "tool": "0.2.3-japan.1",
-  "coreSourceCommit": "a38b4885f8776e054b4c96e8d8e274335d850656",
+  "tool": "0.2.4",
+  "coreSourceCommit": "f0499fa995955aebe2b2c486308ee59f3415cb9a",
   "coreFixReview": "https://github.com/arxo-io/law/pull/46",
   "releaseVerified": false,
   "corpus": "not_checked",
@@ -23,97 +23,6 @@
     "filteredOut": 959,
     "scope": "constants::tests"
   },
-  "linux": {
-    "status": "passed",
-    "target": "x86_64-unknown-linux-gnu",
-    "workflow": "https://github.com/arxo-io/law/actions/runs/38441775341",
-    "sourceInputArchiveSha256": "14f35cc83c1d378fec1c2cc5fb70f8846992654768d629699192482c55d15da3",
-    "packages": {
-      "jp.constitution": {
-        "checked": 2292,
-        "passed": 2292,
-        "failed": 0,
-        "notRun": 0
-      },
-      "jp.kanpo": {
-        "checked": 48,
-        "passed": 48,
-        "failed": 0,
-        "notRun": 0
-      }
-    }
-  },
-  "macos": {
-    "status": "passed",
-    "target": "aarch64-apple-darwin",
-    "coreExampleReplay": [
-      {
-        "name": "amendment-eight-of-twelve",
-        "status": "passed",
-        "resultHash": "sha256:8b09b84f344fca4115966fde24bc22e49c3ab2b33996db79d6316b93e6a79fd1"
-      },
-      {
-        "name": "amendment-seven-of-twelve",
-        "status": "passed",
-        "resultHash": "sha256:e5d71259add7669d53405488f773edd3db977816e084d1b40c7a49669b5ac0a5"
-      },
-      {
-        "name": "referendum-three-to-two",
-        "status": "passed",
-        "resultHash": "sha256:51172b111a0630eb5532421ad0f07d5c68a69ce4678a296d82437b51dbdab2cf"
-      },
-      {
-        "name": "article9-literal",
-        "status": "passed",
-        "resultHash": "sha256:ffbd75f73520576954c0a11d885fcf10708ae2c254c4fcfd642035039e17abaa"
-      },
-      {
-        "name": "article9-judgment-missing",
-        "status": "passed",
-        "resultHash": "sha256:82053ca898cdfdf93f82034af320e1156040c2db6dbf163029ed60dd1de901cc"
-      },
-      {
-        "name": "article9-judgment-negative",
-        "status": "passed",
-        "resultHash": "sha256:338c3333f3bf5b2309bbaba2a83894c307b22734574d3e1eeb7911178bf044bf"
-      },
-      {
-        "name": "article9-no-reading",
-        "status": "passed",
-        "resultHash": "sha256:05aef58df0f1c97a80cf968f9a875f7c8166e67bba39c0a344a5cfa0b18464b9"
-      },
-      {
-        "name": "electronic-promulgation",
-        "status": "passed",
-        "resultHash": "sha256:6e6c7b6adcba25746d27503f450ccf5deedf98d12d20c2b54ee1af9da1b4cd15"
-      },
-      {
-        "name": "database-copy",
-        "status": "passed",
-        "resultHash": "sha256:547c9bfe975983ee2503c3140ae887d902f0f9f111ebcbb69f34975f9d184307"
-      },
-      {
-        "name": "retention-awaits-judgment",
-        "status": "passed",
-        "resultHash": "sha256:bdff306e3932c904a1a64756f8d319135999a52618ec157a821f7b73cb41905e"
-      }
-    ],
-    "repeatCanonicalDocuments": "identical",
-    "packages": {
-      "jp.constitution": {
-        "checked": 2292,
-        "passed": 2292,
-        "failed": 0,
-        "notRun": 0
-      },
-      "jp.kanpo": {
-        "checked": 48,
-        "passed": 48,
-        "failed": 0,
-        "notRun": 0
-      }
-    }
-  },
   "historicalEvidence": {
     "jp.constitution": {
       "recordedScenarios": 2292,
@@ -128,19 +37,20 @@
     "oldOutcome": "CONSTANT_OUTSIDE_MODEL for all 2292 Constitution scenarios",
     "reproducer": "python3 tools/example.py amendment-eight-of-twelve --law /path/to/law-0.2.2",
     "correctedOutcome": "COMPUTED / TRUE_ONLY with the candidate; original model bytes retained",
-    "fix": "Resolve only reference-valued constants in typed reference slots. Preserve non-reference refusal and cycle handling."
+    "fix": "Resolve only reference-valued constants in typed reference slots. Preserve non-reference refusal and cycle handling.",
+    "alsoRefuses": "Published @arxo/cli@0.2.3 reproduces CONSTANT_OUTSIDE_MODEL on amendment-eight-of-twelve"
   },
   "publicDelivery": {
     "githubRepository": "https://github.com/arxohq/arxo-japan",
-    "npm": "not_requested",
     "installation": "passed",
     "published": true,
     "anonymousClone": "passed",
     "readmeExample": "COMPUTED / TRUE_ONLY",
     "publicCI": "https://github.com/arxohq/arxo-japan/actions/runs/38445165462",
     "publicCIStatus": "passed",
-    "sourceInventory": "204 allowlisted files plus generated manifest; no private history",
-    "releaseVerified": false
+    "sourceInventory": "202 allowlisted files plus generated manifest; no private history",
+    "releaseVerified": false,
+    "modelNpm": "not_requested"
   },
   "deliveryChecks": {
     "sourceInventory": "passed",
@@ -149,21 +59,143 @@
     "noMachinePaths": "passed"
   },
   "worldMetadataNote": "package.semanticHash is the original lowerer placeholder. Raw world SHA-256 and the separately computed lock artifactHash identify delivered bytes; the placeholder is not a measured hash.",
-  "nativeReader": {
-    "consumerRevision": "0.1.1",
-    "macos": "passed",
-    "examplesChecked": 10,
-    "nativeCommands": [
-      "law eval",
-      "law inspect",
-      "law test"
-    ],
-    "installer": "POSIX shell; SHA-256 pinned; Python not required",
-    "modelsChanged": false,
-    "runtimeChanged": false,
-    "fullCorpus": "not_checked",
-    "linux": "passed",
-    "linuxCI": "https://github.com/arxohq/arxo-japan/actions/runs/38447476107",
-    "linuxCIStatus": "passed"
+  "priorStandaloneVerification": {
+    "tool": "0.2.3-japan.1",
+    "coreSourceCommit": "a38b4885f8776e054b4c96e8d8e274335d850656",
+    "linux": {
+      "status": "passed",
+      "target": "x86_64-unknown-linux-gnu",
+      "workflow": "https://github.com/arxo-io/law/actions/runs/38441775341",
+      "sourceInputArchiveSha256": "14f35cc83c1d378fec1c2cc5fb70f8846992654768d629699192482c55d15da3",
+      "packages": {
+        "jp.constitution": {
+          "checked": 2292,
+          "passed": 2292,
+          "failed": 0,
+          "notRun": 0
+        },
+        "jp.kanpo": {
+          "checked": 48,
+          "passed": 48,
+          "failed": 0,
+          "notRun": 0
+        }
+      }
+    },
+    "macos": {
+      "status": "passed",
+      "target": "aarch64-apple-darwin",
+      "coreExampleReplay": [
+        {
+          "name": "amendment-eight-of-twelve",
+          "status": "passed",
+          "resultHash": "sha256:8b09b84f344fca4115966fde24bc22e49c3ab2b33996db79d6316b93e6a79fd1"
+        },
+        {
+          "name": "amendment-seven-of-twelve",
+          "status": "passed",
+          "resultHash": "sha256:e5d71259add7669d53405488f773edd3db977816e084d1b40c7a49669b5ac0a5"
+        },
+        {
+          "name": "referendum-three-to-two",
+          "status": "passed",
+          "resultHash": "sha256:51172b111a0630eb5532421ad0f07d5c68a69ce4678a296d82437b51dbdab2cf"
+        },
+        {
+          "name": "article9-literal",
+          "status": "passed",
+          "resultHash": "sha256:ffbd75f73520576954c0a11d885fcf10708ae2c254c4fcfd642035039e17abaa"
+        },
+        {
+          "name": "article9-judgment-missing",
+          "status": "passed",
+          "resultHash": "sha256:82053ca898cdfdf93f82034af320e1156040c2db6dbf163029ed60dd1de901cc"
+        },
+        {
+          "name": "article9-judgment-negative",
+          "status": "passed",
+          "resultHash": "sha256:338c3333f3bf5b2309bbaba2a83894c307b22734574d3e1eeb7911178bf044bf"
+        },
+        {
+          "name": "article9-no-reading",
+          "status": "passed",
+          "resultHash": "sha256:05aef58df0f1c97a80cf968f9a875f7c8166e67bba39c0a344a5cfa0b18464b9"
+        },
+        {
+          "name": "electronic-promulgation",
+          "status": "passed",
+          "resultHash": "sha256:6e6c7b6adcba25746d27503f450ccf5deedf98d12d20c2b54ee1af9da1b4cd15"
+        },
+        {
+          "name": "database-copy",
+          "status": "passed",
+          "resultHash": "sha256:547c9bfe975983ee2503c3140ae887d902f0f9f111ebcbb69f34975f9d184307"
+        },
+        {
+          "name": "retention-awaits-judgment",
+          "status": "passed",
+          "resultHash": "sha256:bdff306e3932c904a1a64756f8d319135999a52618ec157a821f7b73cb41905e"
+        }
+      ],
+      "repeatCanonicalDocuments": "identical",
+      "packages": {
+        "jp.constitution": {
+          "checked": 2292,
+          "passed": 2292,
+          "failed": 0,
+          "notRun": 0
+        },
+        "jp.kanpo": {
+          "checked": 48,
+          "passed": 48,
+          "failed": 0,
+          "notRun": 0
+        }
+      }
+    },
+    "nativeReader": {
+      "consumerRevision": "0.1.1",
+      "macos": "passed",
+      "examplesChecked": 10,
+      "nativeCommands": [
+        "law eval",
+        "law inspect",
+        "law test"
+      ],
+      "installer": "POSIX shell; SHA-256 pinned; Python not required",
+      "modelsChanged": false,
+      "runtimeChanged": false,
+      "fullCorpus": "not_checked",
+      "linux": "passed",
+      "linuxCI": "https://github.com/arxohq/arxo-japan/actions/runs/38447476107",
+      "linuxCIStatus": "passed"
+    }
+  },
+  "npmConsumer": {
+    "version": "0.2.4",
+    "published": true,
+    "macosLocalArchive": {
+      "status": "passed",
+      "examplesChecked": 10,
+      "repeatCanonicalDocuments": "identical",
+      "nativeEval": "identical"
+    },
+    "linuxProducer": {
+      "status": "passed",
+      "examplesChecked": 10,
+      "workflow": "https://github.com/arxo-io/law/actions/runs/38449273795"
+    },
+    "launcherTests": {
+      "checked": 3,
+      "passed": 3
+    },
+    "npmInstallation": "pending",
+    "linuxInstalledConsumer": "pending",
+    "corpus": "not_checked",
+    "releaseVerified": false,
+    "publicationWorkflow": "https://github.com/arxo-io/law/actions/runs/38450824424",
+    "dryRunWorkflow": "https://github.com/arxo-io/law/actions/runs/38450686714",
+    "registryArchives": "pending",
+    "latest": "pending public registry verification"
   }
 }

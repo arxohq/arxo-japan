@@ -1,20 +1,41 @@
 {
   "format": "arxo.japan-runtime-pin/1",
-  "tool": "0.2.3-japan.1",
+  "tool": "0.2.4",
   "semantics": "law.core/0.2.11",
+  "installation": "npm install -g @arxo/cli@0.2.4",
   "sourceRepository": "https://github.com/arxo-io/law",
-  "sourceCommit": "a38b4885f8776e054b4c96e8d8e274335d850656",
-  "fix": "Resolve reference-valued constants in typed authority slots; reject non-reference values; original canon bytes retained",
-  "targets": {
-    "x86_64-unknown-linux-gnu": {
-      "url": "https://github.com/arxohq/arxo-japan/releases/download/cli-0.2.3-japan.1/law-0.2.3-japan.1-x86_64-unknown-linux-gnu.tar.gz",
-      "sha256": "31990a87cad5ff8f32384113ea8eccab1067b23e7cb92b0276fee7adabb00afd",
-      "size": 16229365
+  "sourceCommit": "f0499fa995955aebe2b2c486308ee59f3415cb9a",
+  "fix": "Resolve reference-valued constants in typed authority slots; original canon bytes retained",
+  "packages": [
+    {
+      "name": "@arxo/cli-darwin-arm64",
+      "version": "0.2.4",
+      "file": "arxo-cli-darwin-arm64-0.2.4.tgz",
+      "bytes": 8821662,
+      "sha256": "33e59d031ddd5fb21589f524e5bfb734e2b32f5477e953591d8657c786bf74dc",
+      "tarball": "https://registry.npmjs.org/@arxo/cli-darwin-arm64/-/cli-darwin-arm64-0.2.4.tgz",
+      "target": "aarch64-apple-darwin",
+      "binaryVersion": "0.2.4",
+      "binarySha256": "f92d66559467a23091c58e4d7cdf66666363e713c9b1b3b183e31ceff3c54433"
     },
-    "aarch64-apple-darwin": {
-      "url": "https://github.com/arxohq/arxo-japan/releases/download/cli-0.2.3-japan.1/law-0.2.3-japan.1-aarch64-apple-darwin.tar.gz",
-      "sha256": "8f145984f496b54dc1bbec79d6b7eec1c3115aaf8a2a8365d1eca9dc686d723b",
-      "size": 14851615
+    {
+      "name": "@arxo/cli-linux-x64",
+      "version": "0.2.4",
+      "file": "arxo-cli-linux-x64-0.2.4.tgz",
+      "bytes": 9763257,
+      "sha256": "ec36e33acb3f06c094df5c7ebb81d1c131d9df4cdc2ff8a63a1b06c3d7ae47e2",
+      "tarball": "https://registry.npmjs.org/@arxo/cli-linux-x64/-/cli-linux-x64-0.2.4.tgz",
+      "target": "x86_64-unknown-linux-gnu",
+      "binaryVersion": "0.2.4",
+      "binarySha256": "cddf99123af2a8e85b886820b243636ed1eba8df8e64042617c173637f14c262"
+    },
+    {
+      "name": "@arxo/cli",
+      "version": "0.2.4",
+      "file": "arxo-cli-0.2.4.tgz",
+      "bytes": 10561,
+      "sha256": "22db7e6abe57e6c2efd34e2172688050ee1d453f5d0f5b8841ac0582f03740c1",
+      "tarball": "https://registry.npmjs.org/@arxo/cli/-/cli-0.2.4.tgz"
     }
-  }
+  ]
 }

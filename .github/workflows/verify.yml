@@ -14,7 +14,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install the hash-pinned standalone CLI
-        run: python3 tools/install_cli.py --out "$RUNNER_TEMP/arxo-japan-cli"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install the published Arxo CLI
+        run: npm install -g @arxo/cli@0.2.4
       - name: Verify source bytes, both packages and canonical example replay
-        run: python3 tools/check.py --law "$RUNNER_TEMP/arxo-japan-cli/law"
+        run: python3 tools/check.py
