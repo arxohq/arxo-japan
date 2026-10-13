@@ -21,3 +21,5 @@ The verifier checks the exact inventory, byte hashes and lock resources without 
 The CLI is delivered as a GitHub Release asset, not checked into Git. Downloaded archives include its own license and third-party notices. The model release includes source texts, models, tests, reader cases, canonical answers and SVG visuals. Caches, node_modules, build targets and local machine paths are outside the allowlist.
 
 Fresh addressed execution and historical execution are reported separately. The full corpus remains `not_checked`; `releaseVerified` remains `false`. No npm canon, browser SDK bundle, website, book revision or public central-catalog update is part of this release.
+
+Reader revision 0.1.1 adds self-contained native `request.json` inputs and a hash-pinned POSIX-shell installer. Readers use `law eval`, `law inspect` and `law test`; Python remains an optional maintainer tool. The legal models and CLI archive pins are unchanged.

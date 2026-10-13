@@ -1,0 +1,23 @@
+name: Native law reader commands
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  examples:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install law without Python
+        run: |
+          sh tools/install-law.sh "$RUNNER_TEMP/native-law"
+          printf '%s\n' "$RUNNER_TEMP/native-law" >> "$GITHUB_PATH"
+      - name: Verify native examples only
+        run: python3 tools/check.py --examples-only
+      - name: Inspect the saved Article 96 answer
+        run: law inspect examples/amendment-eight-of-twelve/result.json summary

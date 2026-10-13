@@ -1,12 +1,12 @@
 # Reader examples
 
-Each named directory contains `case.json`, `query.json` and `result.json`.
+Each named directory contains `request.json`, `case.json`, `query.json` and `result.json`.
 The [index](index.json) records the originating package scenario and its authored expectations.
 
-Run from the repository root:
+Run from the repository root with the pinned `law` on `PATH`:
 
 ```sh
-python3.12 tools/example.py amendment-eight-of-twelve --json
+law eval examples/amendment-eight-of-twelve
 ```
 
 To explore a different hypothetical, copy a case and query into your own directory. Keep the case's context (`legalTime`, `decisionTime`, `knowledgeTime`, timezone, deadline policy and reading where supplied). Build a `law.core.evaluation-request/0.2` request using the exact bundled world, then evaluate it with the pinned CLI. Never add an adjudicated fact solely to obtain a preferred answer. A negative assertion retains its negative polarity and its evidence origin.
