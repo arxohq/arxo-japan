@@ -10,13 +10,12 @@ Japanese sources and statutory labels remain Japanese. Questions and explanation
 
 ## Run a question
 
-Requirements: Git, `curl` and a POSIX shell. The pinned standalone CLI supports **macOS arm64** and **Linux x86_64**. Downloaded archives are checked against SHA-256 before extraction.
+Requirements: **Node.js 20+** and Git. The published Arxo CLI supports **macOS arm64** and **Linux x86_64**. Install the CLI through npm; the legal models come from this GitHub repository.
 
 ```sh
+npm install -g @arxo/cli@0.2.4
 git clone https://github.com/arxohq/arxo-japan.git
 cd arxo-japan
-sh tools/install-law.sh
-export PATH="$PWD/.toolchain:$PATH"
 law eval examples/amendment-eight-of-twelve
 ```
 
@@ -30,12 +29,12 @@ law eval examples/amendment-seven-of-twelve
 
 The answer is `COMPUTED NEITHER`: the positive conclusion is not established. Absence of a positive conclusion is not an explicit negative fact.
 
-The installer puts the pinned `law` executable in `.toolchain/`. After adding it to `PATH`, use the ordinary **`law` CLI**. Python is only used by optional maintainer checks.
+npm installs the ordinary **`law` CLI**. Python is only used by optional maintainer checks. This repository does not require a separate Japan model npm package.
 
 <details>
 <summary>CLI version and compatibility</summary>
 
-The repository uses the standalone **`0.2.3-japan.1` CLI candidate**, with a narrow fix for reference-valued judgment authorities. CLI 0.2.2 refuses the original Constitution world with `CONSTANT_OUTSIDE_MODEL`; [the compatibility report](reports/verification.json) records that regression and its checks. Model sources retain their original version **0.1.0** and semantics **`law.core/0.2.11`**. The CLI candidate is distributed separately; no canon npm package is required.
+The repository uses published **[`@arxo/cli@0.2.4`](https://www.npmjs.com/package/@arxo/cli/v/0.2.4)**. It fixes reference-valued judgment authorities: earlier CLI 0.2.2 and 0.2.3 refuse the original Constitution world with `CONSTANT_OUTSIDE_MODEL`. [The verification report](reports/verification.json) distinguishes prior package checks from fresh npm consumer checks. Model sources retain version **0.1.0** and semantics **`law.core/0.2.11`**. [The runtime pin](toolchain.lock.json) records the exact CLI and platform packages.
 
 </details>
 
@@ -127,7 +126,8 @@ Retention includes external judgments. An answer can contain a positive institut
 | Article-level structural depth | **102 EXECUTABLE**, **1 ANCHORED**, denominator **103**, convention `ja_article` | `not_measured`: the supplied sources have no pinned division declaration; no percentage inferred |
 | Rules / norm templates | **554 / 221** | **44 / 0**; institutional conclusions, no deontic positions |
 | Interpretations / judgment relations | **6 / 27** | **0 / 4**; Prime Minister assessment channels |
-| Fresh CLI checks | **2292 / 2292** on the pinned candidate | **48 / 48** on the pinned candidate |
+| Earlier standalone CLI checks | **2292 / 2292** on `0.2.3-japan.1` | **48 / 48** on `0.2.3-japan.1` |
+| Published npm CLI checks | Ten reader examples across both models on `0.2.4`; canonical answers reproduced | Included in the same ten-example check |
 
 The [per-unit depth report](reports/formalization-depth.json) uses the existing `boundaries.depth` classifier on each package's own CLIR. `EXECUTABLE` means a derivation rule references that article. It does **not** mean every disposition, legal context or factual boundary of the article is completely executable. The preamble is retained but outside the 103-article denominator. Japanese and English editions are not interchangeable: no English translation is pinned here.
 

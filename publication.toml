@@ -1,7 +1,7 @@
 format = "law.canon-publication/1"
-version = "0.1.1"
+version = "0.1.2"
 repository = "https://github.com/arxohq/arxo-japan"
-releasedAt = "2026-10-13T18:29:35.642142Z"
+releasedAt = "2026-10-13T19:00:28.445217Z"
 packages = ["jp.constitution@0.1.0", "jp.kanpo@0.1.0"]
 files = [
   ".github/workflows/verify-native.yml",
@@ -15,7 +15,6 @@ files = [
   "examples/electronic-promulgation/request.json",
   "examples/referendum-three-to-two/request.json",
   "examples/retention-awaits-judgment/request.json",
-  "tools/install-law.sh",
 
   ".github/workflows/verify.yml",
   ".gitignore",
@@ -207,8 +206,7 @@ files = [
   "toolchain.lock.json",
   "tools/canon_publication.py",
   "tools/check.py",
-  "tools/example.py",
-  "tools/install_cli.py"
+  "tools/example.py"
 ]
 requiredFiles = [
   "README.md",
