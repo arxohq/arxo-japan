@@ -1,0 +1,20 @@
+{
+  "format": "arxo.japan-runtime-pin/1",
+  "tool": "0.2.3-japan.1",
+  "semantics": "law.core/0.2.11",
+  "sourceRepository": "https://github.com/arxo-io/law",
+  "sourceCommit": "a38b4885f8776e054b4c96e8d8e274335d850656",
+  "fix": "Resolve reference-valued constants in typed authority slots; reject non-reference values; original canon bytes retained",
+  "targets": {
+    "x86_64-unknown-linux-gnu": {
+      "url": "https://github.com/arxohq/arxo-japan/releases/download/cli-0.2.3-japan.1/law-0.2.3-japan.1-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "31990a87cad5ff8f32384113ea8eccab1067b23e7cb92b0276fee7adabb00afd",
+      "size": 16229365
+    },
+    "aarch64-apple-darwin": {
+      "url": "https://github.com/arxohq/arxo-japan/releases/download/cli-0.2.3-japan.1/law-0.2.3-japan.1-aarch64-apple-darwin.tar.gz",
+      "sha256": "8f145984f496b54dc1bbec79d6b7eec1c3115aaf8a2a8365d1eca9dc686d723b",
+      "size": 14851615
+    }
+  }
+}

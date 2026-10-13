@@ -1,0 +1,413 @@
+// Chapter V, The Cabinet, Articles 69-71: resignation of the Cabinet en masse
+// (no confidence; vacancy of the Prime Minister; the first convocation after a general
+// election of the House of Representatives) and the continuation of the functions until
+// a new Prime Minister is appointed. Articles 65-68 are in ch05a-cabinet-status.law,
+// Articles 72-75 in ch05c-cabinet-functions.law.
+//
+// BUILT ON CHAPTER IV (public producers, not redefined): `house_dissolved(h, d)`
+// (ch04a), `diet_convoked_after_election(h, x, c)` (ch04b), `adopted_by_ordinary_majority`
+// and `rejected_by_ordinary_majority` (01-voting), `motion_before`, the deadline
+// policy `DIET_CALENDAR_STEP` (ch04a). Chapter I: `act_kind`, `performs_act`,
+// `state_act_dated`, `cabinet_advised_and_approved`.
+//
+// MODEL
+//   * ARTICLE 69. The resolution of no confidence is PASSED, or the resolution of
+//     confidence REJECTED, by the House of Representatives. The Constitution sets no
+//     threshold for either: the residual rule of Art. 56(2) (quorum and a majority of the
+//     members PRESENT; on a tie the presiding officer). Judgment call. The Cabinet must
+//     resign en masse unless the House is dissolved within TEN DAYS: a `duty` of the
+//     Cabinet with an achievement window `[d, l]` (d the day of the vote, l the tenth day
+//     after it). The ten days are an ORDINARY calendar term: the text says 十日 and
+//     names no recess (it is not the term of Arts. 59(4), 60(2), 67(2)); the day of the vote is
+//     not counted (the step of `DIET_CALENDAR_STEP`, as in Art. 54). The exception
+//     (dissolution within the term) is a positive predicate
+//     `dissolved_within_ten_days` and `not_known` of it in the premise of the derived
+//     ground `art69_resignation_required`: the duty is not ACTIVE for a Cabinet whose House
+//     was dissolved in time. No conflicting pair of rules arises here, so no `priority`
+//     (§116) is needed. The dissolution counts from the day of the vote to the tenth
+//     day, both inclusive (`x >= d and x <= l`), as in Art. 54(1).
+//   * ARTICLE 7(3) (Chapter I): this module is the PRODUCER of
+//     `no_confidence_resolution_basis(a)` of ch01-emperor.law (an empirical relation there):
+//     a dissolution act dated within the ten days of a passed no-confidence resolution.
+//   * ARTICLE 70. Two grounds: the Prime Minister is lacking (`prime_minister_vacant_on`,
+//     a fact of the case: death, loss of the qualifications, resignation are not
+//     enumerated by the text) and the FIRST convocation of the Diet after a general election
+//     of the House of Representatives (`first_convocation_after_election`, derived from the
+//     convocations of ch04b: no earlier convocation on or after the same election). The
+//     text sets no term for the resignation, so none is invented: the window of the duty is
+//     open `[d, infinity)`: the duty is ACTIVE until the resignation and, the window never
+//     closing, it cannot become VIOLATED (neither on silence, §113, nor on an asserted negation).
+//     TECH_GAP note: a duty without a term cannot be breached in this model; the text sets none.
+//   * ARTICLE 71. In the cases of Arts. 69 and 70 the Cabinet continues its functions
+//     until a new Prime Minister is appointed. Modelled as a CONDITION of the competence
+//     of the Cabinet (`cabinet_competent(a)`, used as `valid_when` of the powers of Art.
+//     73): (i) an act done before any resignation, or (ii) an act done in the
+//     caretaker period that begins with the resignation under a ground of Art. 69/70 and
+//     ends with the appointment of the new Prime Minister (`pm_appointed_on`, derived
+//     from the valid act of Art. 6(1): the same facts that make it valid, as
+//     `house_dissolved` in ch04a). Judgment calls: (a) on the day of the appointment the new
+//     Prime Minister is in place, the former Cabinet does not continue on that day; (b) a
+//     resignation OUTSIDE the cases of Arts. 69/70 is not regulated by the text: the
+//     competence of the Cabinet after it is not asserted (silent).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    CabinetAct,
+    Emperor,
+    House,
+    HouseOfRepresentatives,
+    JP_CONST_ART3_P1,
+    JP_CONST_ART69_P1,
+    JP_CONST_ART6_P1,
+    JP_CONST_ART70_P1,
+    JP_CONST_ART71_P1,
+    Motion,
+    Organ,
+    StateAct,
+    StateActKind,
+    act_kind,
+    adopted_by_ordinary_majority,
+    cabinet_advised_and_approved,
+    designated_by_diet,
+    diet_convoked_after_election,
+    house_dissolved,
+    motion_before,
+    no_confidence_resolution_basis,
+    performs_act,
+    rejected_by_ordinary_majority,
+    state_act_dated,
+};
+
+// --- Article 69 ---------------------------------------------------------------------------
+relation no_confidence_motion(m: Motion) kind empirical {
+    label ja official "内閣不信任の決議案";
+    label en unofficial "the motion is a resolution of no confidence in the Cabinet";
+}
+relation confidence_motion(m: Motion) kind empirical {
+    label ja official "内閣信任の決議案";
+    label en unofficial "the motion is a resolution of confidence in the Cabinet";
+}
+relation motion_decided_on(m: Motion, d: Date) kind empirical {
+    key(m);
+    label en unofficial "the day on which the House voted on the motion";
+}
+relation cabinet_lost_confidence_on(d: Date) kind institutional {
+    label ja official "不信任の決議案を可決し、又は信任の決議案を否決したとき";
+    label en unofficial "on the day d the House of Representatives passed no confidence or rejected confidence";
+}
+relation resignation_deadline_art69(d: Date, l: Date) kind institutional {
+    label ja official "十日以内";
+    label en unofficial "the last day of the ten days that begin with the vote of the day d";
+}
+relation dissolved_within_ten_days(d: Date, l: Date) kind institutional {
+    label ja official "十日以内に衆議院が解散された";
+    label en unofficial "the House of Representatives was dissolved on a day from d to l (the exception of Art. 69)";
+}
+relation art69_resignation_required(d: Date, l: Date) kind institutional {
+    label en unofficial "the vote of the day d was not followed by a dissolution within ten days: the Cabinet must resign (ground of Arts. 69, 71)";
+}
+relation cabinet_resigned_on(x: Date) kind empirical {
+    label ja official "総辞職";
+    label en unofficial "the Cabinet resigned en masse on the day";
+}
+relation cabinet_resigned_within(d: Date, l: Date) kind institutional {
+    label en unofficial "the Cabinet resigned en masse on a day from d to l";
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "衆議院で不信任の決議案を可決し")
+rule NoConfidenceCarried strict {
+    label en unofficial "The Cabinet loses confidence when the House of Representatives adopts a no-confidence resolution";
+    for m: Motion; for d: Date;
+    when no_confidence_motion(m) and motion_before(m, HouseOfRepresentatives)
+        and adopted_by_ordinary_majority(m) and motion_decided_on(m, d);
+    then cabinet_lost_confidence_on(d);
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "信任の決議案を否決したとき")
+rule ConfidenceRejected strict {
+    label en unofficial "The Cabinet loses confidence when the House of Representatives rejects a confidence motion";
+    for m: Motion; for d: Date;
+    when confidence_motion(m) and motion_before(m, HouseOfRepresentatives)
+        and rejected_by_ordinary_majority(m) and motion_decided_on(m, d);
+    then cabinet_lost_confidence_on(d);
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "十日以内に衆議院が解散されない限り")
+rule ResignationDeadlineTenDays strict {
+    label en unofficial "The Cabinet must resign within ten days of losing confidence unless the House is dissolved";
+    for d: Date;
+    when cabinet_lost_confidence_on(d);
+    then resignation_deadline_art69(d, add_calendar_period(d, 10 calendar_day));
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "十日以内に衆議院が解散されない限り")
+rule DissolvedWithinTenDaysEstablished strict {
+    label en unofficial "The House of Representatives was dissolved within ten days of the lost confidence";
+    for d: Date; for l: Date; for x: Date;
+    when resignation_deadline_art69(d, l) and house_dissolved(HouseOfRepresentatives, x) and x >= d and x <= l;
+    then dissolved_within_ten_days(d, l);
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "十日以内に衆議院が解散されない限り")
+rule ResignationRequiredWithoutDissolution strict {
+    label en unofficial "Resignation is required when the House was not dissolved within ten days";
+    for d: Date; for l: Date;
+    when resignation_deadline_art69(d, l) and not_known(dissolved_within_ten_days(d, l));
+    then art69_resignation_required(d, l);
+}
+
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "総辞職をしなければならない")
+rule ResignedWithinTenDays strict {
+    label en unofficial "The Cabinet resigned within the ten-day deadline";
+    for d: Date; for l: Date; for x: Date;
+    when resignation_deadline_art69(d, l) and cabinet_resigned_on(x) and x >= d and x <= l;
+    then cabinet_resigned_within(d, l);
+}
+
+@source(JP_CONST_ART69_P1)
+rule CabinetMustResignAfterLossOfConfidence strict {
+    label ja official "内閣は、衆議院で不信任の決議案を可決し、又は信任の決議案を否決したときは、十日以内に衆議院が解散されない限り、総辞職をしなければならない";
+    label en unofficial "Article 69. On a resolution of no confidence passed (or of confidence rejected) the Cabinet must resign en masse unless the House of Representatives is dissolved within ten days";
+    for d: Date; for l: Date;
+    when art69_resignation_required(d, l);
+    then duty CabinetResignsAfterLossOfConfidence {
+        bearer Cabinet;
+        goal achievement {
+            condition cabinet_resigned_within(d, l);
+            window [d, l];
+        }
+    };
+}
+
+// Chapter I producer: the dissolution followed the vote of no confidence within ten days.
+@source(JP_CONST_ART69_P1, relation = formalizes, coverage = partial, quote = "十日以内に衆議院が解散されない限り")
+rule DissolutionAfterNoConfidenceIsItsBasis strict {
+    label en unofficial "A dissolution within ten days of a lost confidence is based on the no-confidence resolution";
+    for a: StateAct; for k: StateActKind; for x: Date; for d: Date; for l: Date;
+    when act_kind(a, k) and k == dissolve_house and state_act_dated(a, x)
+        and resignation_deadline_art69(d, l) and x >= d and x <= l;
+    then no_confidence_resolution_basis(a);
+}
+
+// --- Article 70 -------------------------------------------------------------------------------
+relation prime_minister_vacant_on(d: Date) kind empirical {
+    label ja official "内閣総理大臣が欠けたとき";
+    label en unofficial "the office of the Prime Minister became vacant on the day";
+}
+relation earlier_convocation_after_election(x: Date, c: Date) kind institutional {
+    label en unofficial "the Diet was convoked on a day from the election x before the day c";
+}
+relation first_convocation_after_election(x: Date, c: Date) kind institutional {
+    label ja official "衆議院議員総選挙の後に初めて国会の召集があつたとき";
+    label en unofficial "the day c of the first convocation of the Diet after the general election of the day x";
+}
+relation art70_resignation_required(d: Date) kind institutional {
+    label en unofficial "a ground of Art. 70 arose on the day d: the Cabinet must resign en masse";
+}
+relation cabinet_resigned_from(d: Date) kind institutional {
+    label en unofficial "the Cabinet resigned en masse on the day d or later";
+}
+
+@source(JP_CONST_ART70_P1, relation = formalizes, coverage = partial, quote = "衆議院議員総選挙の後に初めて国会の召集があつたとき")
+rule EarlierConvocationAfterElectionEstablished strict {
+    label en unofficial "An earlier convocation of the Diet after the same election exists";
+    for x: Date; for c: Date; for e: Date;
+    when diet_convoked_after_election(HouseOfRepresentatives, x, c)
+        and diet_convoked_after_election(HouseOfRepresentatives, x, e) and e < c;
+    then earlier_convocation_after_election(x, c);
+}
+
+@source(JP_CONST_ART70_P1, relation = formalizes, coverage = partial, quote = "衆議院議員総選挙の後に初めて国会の召集があつたとき")
+rule FirstConvocationAfterElectionEstablished strict {
+    label en unofficial "The first convocation of the Diet after a general election is the one with no earlier convocation";
+    for x: Date; for c: Date;
+    when diet_convoked_after_election(HouseOfRepresentatives, x, c) and not_known(earlier_convocation_after_election(x, c));
+    then first_convocation_after_election(x, c);
+}
+
+@source(JP_CONST_ART70_P1, relation = formalizes, coverage = partial, quote = "内閣総理大臣が欠けたとき")
+rule VacancyOfPrimeMinisterIsAGround strict {
+    label en unofficial "A vacancy in the office of Prime Minister is a ground for the Cabinet's mass resignation";
+    for d: Date;
+    when prime_minister_vacant_on(d);
+    then art70_resignation_required(d);
+}
+
+@source(JP_CONST_ART70_P1, relation = formalizes, coverage = partial, quote = "衆議院議員総選挙の後に初めて国会の召集があつたとき")
+rule FirstConvocationAfterElectionIsAGround strict {
+    label en unofficial "The first convocation after a general election is a ground for the Cabinet's mass resignation";
+    for x: Date; for c: Date;
+    when first_convocation_after_election(x, c);
+    then art70_resignation_required(c);
+}
+
+@source(JP_CONST_ART70_P1, relation = formalizes, coverage = partial, quote = "総辞職をしなければならない")
+rule ResignedAfterGround strict {
+    label en unofficial "The Cabinet resigned after the ground for resignation arose";
+    for d: Date; for x: Date;
+    when art70_resignation_required(d) and cabinet_resigned_on(x) and x >= d;
+    then cabinet_resigned_from(d);
+}
+
+@source(JP_CONST_ART70_P1)
+rule CabinetMustResignOnArt70Ground strict {
+    label ja official "内閣総理大臣が欠けたとき、又は衆議院議員総選挙の後に初めて国会の召集があつたときは、内閣は、総辞職をしなければならない";
+    label en unofficial "Article 70. When the Prime Minister is lacking, or on the first convocation of the Diet after a general election of the House of Representatives, the Cabinet must resign en masse (no term: open window)";
+    for d: Date;
+    when art70_resignation_required(d);
+    then duty CabinetResignsOnArt70Ground {
+        bearer Cabinet;
+        goal achievement {
+            condition cabinet_resigned_from(d);
+            window [d, infinity);
+        }
+    };
+}
+
+// --- Article 71: the caretaker Cabinet ------------------------------------------------------------
+relation cabinet_act_dated(a: CabinetAct, d: Date) kind empirical {
+    key(a);
+    label en unofficial "the day on which the Cabinet did the act";
+}
+relation pm_appointed_on(y: Date) kind institutional {
+    label ja official "あらたに内閣総理大臣が任命される";
+    label en unofficial "a Prime Minister was validly appointed on the day y (derived from the act of Art. 6(1), Chapter I)";
+}
+relation resignation_ground_on(d: Date) kind institutional {
+    label ja official "前二条の場合";
+    label en unofficial "a ground of resignation of Art. 69 or Art. 70 arose on the day d";
+}
+relation cabinet_continues_from(x: Date) kind institutional {
+    label ja official "引き続きその職務を行ふ";
+    label en unofficial "the Cabinet that resigned on the day x under a ground of Art. 69 or 70 continues its functions";
+}
+relation resigned_by(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet had resigned on or before the day of the act";
+}
+relation successor_in_place_by(a: CabinetAct) kind institutional {
+    label en unofficial "a new Prime Minister was appointed after the resignation, on or before the day of the act";
+}
+relation caretaker_act(a: CabinetAct) kind institutional {
+    label en unofficial "the act was done in the caretaker period (after a resignation under Art. 69/70, before the new Prime Minister)";
+}
+relation cabinet_competent(a: CabinetAct) kind institutional {
+    label en unofficial "the Cabinet is competent to do the act on its day: in office, or continuing under Art. 71";
+}
+
+// G9 (J10b): the advice and approval of Art. 3 must come from a Cabinet that is competent (Art. 71: in
+// office, or continuing until a new Prime Minister is appointed). The advice of the case,
+// `cabinet_advised_and_approved(a)`, may NAME the Cabinet act in which it was given
+// (`advice_given_by_cabinet_act`); then the advice is effective only if that Cabinet was competent on its day.
+// A case that names no Cabinet act keeps the plain fact (no competence is invented for it).
+// Only the powers of Chapter I read `cabinet_advice_effective`; the producers of Chapter V that decide
+// the competence itself (`pm_appointed_on`, `house_dissolved`) keep the plain fact, because the competence
+// depends on them (a cycle through not_known would not stratify).
+relation advice_given_by_cabinet_act(a: StateAct, k: CabinetAct) kind empirical {
+    label ja official "内閣の助言と承認";
+    label en unofficial "the advice and approval for the Emperor's act was given in this act of the Cabinet";
+}
+relation advice_names_cabinet_act(a: StateAct) kind institutional {
+    label en unofficial "the case names the Cabinet act in which the advice was given";
+}
+relation cabinet_advice_effective(a: StateAct) kind institutional {
+    label ja official "内閣の助言と承認";
+    label en unofficial "the advice and approval is that of a competent Cabinet (or names no Cabinet act)";
+}
+@source(JP_CONST_ART3_P1, relation = applies, coverage = partial, quote = "内閣の助言と承認")
+rule AdviceNamesACabinetAct strict {
+    label en unofficial "The advice names the Cabinet act by which it was given";
+    for a: StateAct; for k: CabinetAct;
+    when advice_given_by_cabinet_act(a, k);
+    then advice_names_cabinet_act(a);
+}
+@source(JP_CONST_ART3_P1, relation = applies, coverage = partial, quote = "内閣の助言と承認")
+rule AdviceOfACompetentCabinetIsEffective strict {
+    label en unofficial "Advice and approval given by a competent Cabinet through a named Cabinet act is effective";
+    for a: StateAct; for k: CabinetAct;
+    when cabinet_advised_and_approved(a) and advice_given_by_cabinet_act(a, k) and cabinet_competent(k);
+    then cabinet_advice_effective(a);
+}
+@source(JP_CONST_ART3_P1, relation = applies, coverage = partial, quote = "内閣の助言と承認")
+rule AdviceWithoutNamedCabinetActIsEffective strict {
+    label en unofficial "Advice and approval of the Cabinet is effective unless it is known to lack a named Cabinet act";
+    for a: StateAct;
+    when cabinet_advised_and_approved(a) and not_known(advice_names_cabinet_act(a));
+    then cabinet_advice_effective(a);
+}
+
+@source(JP_CONST_ART6_P1, relation = applies, coverage = partial, quote = "内閣総理大臣を任命する")
+rule PrimeMinisterAppointedOnValidAct strict {
+    label en unofficial "A Prime Minister is appointed on the day of a valid act of Art. 6(1): the Emperor's act on the designation of the Diet, on the advice and approval of the Cabinet (the conditions of ch01, repeated)";
+    for a: StateAct; for k: StateActKind; for y: Date;
+    when act_kind(a, k) and k == appoint_prime_minister and performs_act(Emperor, a)
+        and designated_by_diet(a) and cabinet_advised_and_approved(a) and state_act_dated(a, y);
+    then pm_appointed_on(y);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "前二条の場合")
+rule Art69GroundIsAResignationGround strict {
+    label en unofficial "A duty to resign under Article 69 is a ground for the Cabinet's mass resignation";
+    for d: Date; for l: Date;
+    when art69_resignation_required(d, l);
+    then resignation_ground_on(d);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "前二条の場合")
+rule Art70GroundIsAResignationGround strict {
+    label en unofficial "A duty to resign under Article 70 is a ground for the Cabinet's mass resignation";
+    for d: Date;
+    when art70_resignation_required(d);
+    then resignation_ground_on(d);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "引き続きその職務を行ふ")
+rule CabinetContinuesAfterResignation strict {
+    label en unofficial "After mass resignation the Cabinet continues to perform its duties";
+    for d: Date; for x: Date;
+    when resignation_ground_on(d) and cabinet_resigned_on(x) and x >= d;
+    then cabinet_continues_from(x);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "あらたに内閣総理大臣が任命されるまで")
+rule ResignedByEstablished strict {
+    label en unofficial "The Cabinet had resigned by the date of the act";
+    for a: CabinetAct; for d: Date; for x: Date;
+    when cabinet_act_dated(a, d) and cabinet_resigned_on(x) and x <= d;
+    then resigned_by(a);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "あらたに内閣総理大臣が任命されるまで")
+rule SuccessorInPlaceEstablished strict {
+    label en unofficial "A successor Prime Minister was appointed before the date of the act";
+    for a: CabinetAct; for d: Date; for x: Date; for y: Date;
+    when cabinet_act_dated(a, d) and cabinet_continues_from(x) and pm_appointed_on(y) and y >= x and y <= d;
+    then successor_in_place_by(a);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "引き続きその職務を行ふ")
+rule CaretakerActEstablished strict {
+    label en unofficial "An act done after resignation and before a successor is in place is a caretaker act";
+    for a: CabinetAct; for d: Date; for x: Date;
+    when cabinet_act_dated(a, d) and cabinet_continues_from(x) and x <= d and not_known(successor_in_place_by(a));
+    then caretaker_act(a);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "引き続きその職務を行ふ")
+rule CabinetInOfficeIsCompetent strict {
+    label en unofficial "A Cabinet that has not resigned is competent to act";
+    for a: CabinetAct; for d: Date;
+    when cabinet_act_dated(a, d) and not_known(resigned_by(a));
+    then cabinet_competent(a);
+}
+
+@source(JP_CONST_ART71_P1, relation = formalizes, coverage = partial, quote = "引き続きその職務を行ふ")
+rule CaretakerCabinetIsCompetent strict {
+    label en unofficial "A resigned Cabinet remains competent to perform a caretaker act";
+    for a: CabinetAct;
+    when caretaker_act(a);
+    then cabinet_competent(a);
+}

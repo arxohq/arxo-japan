@@ -1,0 +1,15 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 附則第三条: 施行日前に発行された官報の法制上の位置付けは、この法律によって影響を受けない。
+test "urn:query:kanpo-t07" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t07-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-03-31"), @2025-03-31) { origin case_input; }
+    }
+    evaluate truth(prior_legal_position_unaffected(entity_ref("urn:jp:case:kanpo-2025-03-31")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

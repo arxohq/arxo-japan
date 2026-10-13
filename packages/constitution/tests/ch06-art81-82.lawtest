@@ -1,0 +1,670 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter VI (stage J7). Historical context idiom: decision, knowledge and legal time on one date.
+// Court decisions and classifications made by a court are facts with `origin adjudicated`;
+// everything else is `case_input`.
+
+test "ART81-01-UNANSWERED-JUDGMENT-REQUIRES-JUDGMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_requests(1);
+    expect judgment_request(act_contradicts_constitution);
+}
+
+test "ART81-02-COURT-HOLDS-STATUTE-UNCONSTITUTIONAL-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+    expect judgment_requests(0);
+}
+
+test "ART81-03-COURT-HOLDS-ORDER-UNCONSTITUTIONAL-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), order) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART81-04-COURT-HOLDS-REGULATION-UNCONSTITUTIONAL-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), regulation) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART81-05-COURT-HOLDS-DISPOSITION-UNCONSTITUTIONAL-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), disposition) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART81-06-COURT-HOLDS-ACT-CONFORMING-NOT-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+        assert not act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+    expect judgment_requests(0);
+}
+
+test "ART81-07-COURT-HOLDS-ACT-CONFORMING-JUDGMENT-FALSE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+        assert not act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(act_contradicts_constitution(entity_ref("urn:jp:case:a1")));
+    expect truth_status == FALSE_ONLY;
+}
+
+test "ART81-08-KIND-OUTSIDE-THE-LIST-NOT-RECOGNIZED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), other_act) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(unconstitutionality_recognized(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART81-09-SUPREME-COURT-IS-COURT-OF-LAST-RESORT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(court_of_last_resort_on_constitutionality(SupremeCourtOfJapan));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART81-10-LOWER-COURT-IS-NOT-COURT-OF-LAST-RESORT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(court_of_last_resort_on_constitutionality(entity_ref("urn:jp:case:c1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART81-11-SUPREME-COURT-DETERMINES-CONFORMITY-FINALLY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+        assert determines_conformity(SupremeCourtOfJapan, entity_ref("urn:jp:case:a1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(conformity_finally_determined(entity_ref("urn:jp:case:a1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART81-12-DETERMINATION-OUTSIDE-THE-LIST-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), other_act) { id "f0"; origin case_input; }
+        assert determines_conformity(SupremeCourtOfJapan, entity_ref("urn:jp:case:a1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(conformity_finally_determined(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART81-13-NO-DETERMINATION-NO-FINAL-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f0"; origin case_input; }
+    }
+    evaluate truth(conformity_finally_determined(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART81-14-LOWER-COURT-DETERMINATION-IS-NOT-FINAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), statute) { id "f1"; origin case_input; }
+        assert determines_conformity(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(conformity_finally_determined(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART81-15-RECOGNITION-NEEDS-NO-EXERCISE-OF-THE-POWER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_object_kind(entity_ref("urn:jp:case:a1"), order) { id "f0"; origin case_input; }
+        assert act_contradicts_constitution(entity_ref("urn:jp:case:a1")) { id "f1"; origin adjudicated; }
+    }
+    evaluate truth(conformity_finally_determined(entity_ref("urn:jp:case:a1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART82-01-GENERAL-RULE-HEARING-IS-PUBLIC" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-02-UNANIMOUS-FINDING-HEARING-NEED-NOT-BE-PUBLIC" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == FALSE_ONLY;
+}
+
+test "ART82-03-UNANIMOUS-FINDING-CLOSURE-IS-LAWFUL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-04-TWO-OF-THREE-JUDGES-IS-NOT-UNANIMOUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-05-TWO-OF-THREE-JUDGES-CLOSURE-NOT-LAWFUL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-06-ONE-JUDGE-BENCH-UNANIMOUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-07-FIFTEEN-OF-FIFTEEN-UNANIMOUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j3"), entity_ref("urn:jp:case:h1")) { id "f7"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j3"), entity_ref("urn:jp:case:h1")) { id "f8"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j4"), entity_ref("urn:jp:case:h1")) { id "f9"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j4"), entity_ref("urn:jp:case:h1")) { id "f10"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j5"), entity_ref("urn:jp:case:h1")) { id "f11"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j5"), entity_ref("urn:jp:case:h1")) { id "f12"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j6"), entity_ref("urn:jp:case:h1")) { id "f13"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j6"), entity_ref("urn:jp:case:h1")) { id "f14"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j7"), entity_ref("urn:jp:case:h1")) { id "f15"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j7"), entity_ref("urn:jp:case:h1")) { id "f16"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j8"), entity_ref("urn:jp:case:h1")) { id "f17"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j8"), entity_ref("urn:jp:case:h1")) { id "f18"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j9"), entity_ref("urn:jp:case:h1")) { id "f19"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j9"), entity_ref("urn:jp:case:h1")) { id "f20"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j10"), entity_ref("urn:jp:case:h1")) { id "f21"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j10"), entity_ref("urn:jp:case:h1")) { id "f22"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j11"), entity_ref("urn:jp:case:h1")) { id "f23"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j11"), entity_ref("urn:jp:case:h1")) { id "f24"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j12"), entity_ref("urn:jp:case:h1")) { id "f25"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j12"), entity_ref("urn:jp:case:h1")) { id "f26"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j13"), entity_ref("urn:jp:case:h1")) { id "f27"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j13"), entity_ref("urn:jp:case:h1")) { id "f28"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j14"), entity_ref("urn:jp:case:h1")) { id "f29"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j14"), entity_ref("urn:jp:case:h1")) { id "f30"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-08-FOURTEEN-OF-FIFTEEN-NOT-UNANIMOUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j3"), entity_ref("urn:jp:case:h1")) { id "f7"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j3"), entity_ref("urn:jp:case:h1")) { id "f8"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j4"), entity_ref("urn:jp:case:h1")) { id "f9"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j4"), entity_ref("urn:jp:case:h1")) { id "f10"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j5"), entity_ref("urn:jp:case:h1")) { id "f11"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j5"), entity_ref("urn:jp:case:h1")) { id "f12"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j6"), entity_ref("urn:jp:case:h1")) { id "f13"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j6"), entity_ref("urn:jp:case:h1")) { id "f14"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j7"), entity_ref("urn:jp:case:h1")) { id "f15"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j7"), entity_ref("urn:jp:case:h1")) { id "f16"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j8"), entity_ref("urn:jp:case:h1")) { id "f17"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j8"), entity_ref("urn:jp:case:h1")) { id "f18"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j9"), entity_ref("urn:jp:case:h1")) { id "f19"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j9"), entity_ref("urn:jp:case:h1")) { id "f20"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j10"), entity_ref("urn:jp:case:h1")) { id "f21"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j10"), entity_ref("urn:jp:case:h1")) { id "f22"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j11"), entity_ref("urn:jp:case:h1")) { id "f23"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j11"), entity_ref("urn:jp:case:h1")) { id "f24"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j12"), entity_ref("urn:jp:case:h1")) { id "f25"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j12"), entity_ref("urn:jp:case:h1")) { id "f26"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j13"), entity_ref("urn:jp:case:h1")) { id "f27"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j13"), entity_ref("urn:jp:case:h1")) { id "f28"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j14"), entity_ref("urn:jp:case:h1")) { id "f29"; origin case_input; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-09-NO-JUDGE-ON-BENCH-NOT-UNANIMOUS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-10-POLITICAL-OFFENCE-ALWAYS-PUBLIC-DESPITE-UNANIMOUS-FINDING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_political_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-11-POLITICAL-OFFENCE-CLOSURE-NOT-LAWFUL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_political_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-12-PRESS-OFFENCE-ALWAYS-PUBLIC-DESPITE-UNANIMOUS-FINDING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_press_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-13-PRESS-OFFENCE-CLOSURE-NOT-LAWFUL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_press_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-14-CHAPTER3-RIGHT-IN-ISSUE-ALWAYS-PUBLIC-DESPITE-UNANIMOUS-FINDING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert chapter3_right_in_issue_fact(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-15-CHAPTER3-RIGHT-IN-ISSUE-CLOSURE-NOT-LAWFUL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert chapter3_right_in_issue_fact(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART82-16-EXERCISE-OF-CHAPTER3-RIGHT-IN-ISSUE-ALWAYS-PUBLIC" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert puts_right_in_issue(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:x1")) { id "f7"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), residence) { id "f8"; origin case_input; }
+    }
+    evaluate truth(public_hearing_required(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-17-EXERCISE-WITHOUT-KIND-NOT-A-CHAPTER3-CASE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert puts_right_in_issue(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:x1")) { id "f7"; origin case_input; }
+    }
+    evaluate truth(closed_hearing_lawful(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-18-ORDINARY-CASE-WITH-UNANIMOUS-FINDING-MAY-CLOSE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f7"; origin case_input; }
+    }
+    evaluate truth(hearing_closed_lawfully(entity_ref("urn:jp:case:h1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART82-19-CLOSURE-WITHOUT-UNANIMOUS-FINDING-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f6"; origin case_input; }
+    }
+    evaluate truth(hearing_closed_lawfully(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART82-20-CLOSURE-OF-POLITICAL-HEARING-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_political_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f8"; origin case_input; }
+    }
+    evaluate truth(hearing_closed_lawfully(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART82-21-CLOSURE-OF-CHAPTER3-HEARING-INVALID-EXERCISE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert chapter3_right_in_issue_fact(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f8"; origin case_input; }
+    }
+    evaluate truth(hearing_closed_lawfully(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART82-22-NO-CLOSURE-ORDER-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+    }
+    evaluate truth(hearing_closed_lawfully(entity_ref("urn:jp:case:h1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART82-23-CLOSED-POLITICAL-HEARING-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert concerns_political_offence(entity_ref("urn:jp:case:h1")) { id "f1"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+}
+
+test "ART82-24-CLOSED-PRESS-HEARING-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert concerns_press_offence(entity_ref("urn:jp:case:h1")) { id "f7"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f8"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+}
+
+test "ART82-25-CLOSED-HEARING-WITHOUT-FINDING-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f4"; origin case_input; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+}
+
+test "ART82-26-OPEN-HEARING-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoClosedHearingWhereOpenCourtRequired, ACTIVE);
+    expect not position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+}
+
+test "ART82-27-LAWFUL-CLOSURE-VIOLATES-NOTHING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f7"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+    expect not position(NoClosedHearingWhereOpenCourtRequired, ACTIVE);
+}
+
+test "ART82-28-CLOSED-JUDGMENT-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_delivers(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:x1")) { id "f0"; origin case_input; }
+        assert delivers_judgment_closed(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:x1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoJudgmentInClosedCourt, VIOLATED);
+}
+
+test "ART82-29-CLOSED-JUDGMENT-VIOLATES-EVEN-AFTER-UNANIMOUS-FINDING" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert court_delivers(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:x1")) { id "f7"; origin case_input; }
+        assert delivers_judgment_closed(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:x1")) { id "f8"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoJudgmentInClosedCourt, VIOLATED);
+}
+
+test "ART82-30-PUBLIC-JUDGMENT-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_delivers(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:x1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoJudgmentInClosedCourt, ACTIVE);
+    expect not position(NoJudgmentInClosedCourt, VIOLATED);
+}
+
+test "ART82-31-NO-POSITION-BEFORE-ENTRY-INTO-FORCE" {
+    given {
+        context { decision_time @1947-01-01T12:00:00Z; knowledge_time @1947-01-01T12:00:00Z; legal_time @1947-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(NoClosedHearingWhereOpenCourtRequired, ACTIVE);
+}
+
+test "ART82-32-CROSS-CLOSED-COURT-IN-A-CASE-ON-CHAPTER3-RIGHT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert court_hears(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f0"; origin case_input; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f1"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j0"), entity_ref("urn:jp:case:h1")) { id "f2"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f3"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j1"), entity_ref("urn:jp:case:h1")) { id "f4"; origin adjudicated; }
+        assert sits_on_bench(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f5"; origin case_input; }
+        assert bench_judge_finds_danger(entity_ref("urn:jp:case:j2"), entity_ref("urn:jp:case:h1")) { id "f6"; origin adjudicated; }
+        assert puts_right_in_issue(entity_ref("urn:jp:case:h1"), entity_ref("urn:jp:case:x1")) { id "f7"; origin case_input; }
+        assert exercise_kind(entity_ref("urn:jp:case:x1"), life_liberty_pursuit) { id "f8"; origin case_input; }
+        assert orders_closed_hearing(entity_ref("urn:jp:case:c1"), entity_ref("urn:jp:case:h1")) { id "f9"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoClosedHearingWhereOpenCourtRequired, VIOLATED);
+}

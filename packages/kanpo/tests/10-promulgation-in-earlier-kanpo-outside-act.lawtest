@@ -1,0 +1,20 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 附則第二条と第六条: 施行日前に発行された官報による公布は、この法律の第六条によっては導かれない
+// （この法律は施行日以後に発行する官報について適用する）。旧制度下の公布の時点はこのパッケージの境界。
+// Added after the mutation check: removing `act_applies_to(k)` from the art. 6 rule
+// survived every earlier scenario.
+test "urn:query:kanpo-t10" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t10-a": recorded_in_kanpo_file(entity_ref("urn:jp:case:law-z"), entity_ref("urn:jp:case:kanpo-2025-03-31")) { origin case_input; }
+        assert "kanpo-t10-b": issued_on(entity_ref("urn:jp:case:kanpo-2025-03-31"), @2025-03-31) { origin case_input; }
+        assert "kanpo-t10-c": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-03-31"), "https://www.kanpo.go.jp", @2025-03-31) { origin case_input; }
+    }
+    evaluate truth(promulgated_on(entity_ref("urn:jp:case:law-z"), @2025-03-31));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

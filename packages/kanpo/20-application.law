@@ -1,0 +1,65 @@
+// 附則第一条〜第三条: 施行期日、この法律の適用される官報、施行日前に発行された官報.
+//
+// The Act does not name its enforcement day: 附則第一条 delegates it to 政令
+// («公布の日から起算して一年六月を超えない範囲内において政令で定める日»). The 政令 is
+// pinned: 令和六年政令第三百九号, 官報 本紙第1314号 (2024-09-27), «官報の発行に関する
+// 法律の施行期日は、令和七年四月一日とする。» (source KANPO_SEIREI_309 in
+// 01-sources.law). The day is used twice. The edition window of the Act
+// (`in_force [@2025-04-01, infinity)`) answers WHEN the Act's rules apply at all
+// (legal_time). The rules below answer which gazette ISSUES the Act governs
+// (附則第二条・第三条): they compare an issue day with `enforcement_day`, which
+// `EnforcementDayFixedByCabinetOrder` derives from the 政令 — no longer a case fact.
+//
+// This is the набор's "one address before and after the date" pair: the same
+// 官報 issue falls inside the Act (附則第二条) or keeps its prior legal
+// position untouched (附則第三条) depending on its issue day.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    KANPO_SEIREI_309_ENACTING,
+    KANPO_SEIREI_309_MAIN,
+    KANPO_SUPPL_ART1_3,
+    KanpoIssue,
+};
+
+relation issued_on(k: KanpoIssue, day: Date) kind empirical {
+    label ja official "当該官報が発行された日";
+    key(k);
+}
+relation enforcement_day(day: Date) kind institutional {
+    label ja official "附則第一条の政令で定める日（この法律の施行の日）";
+}
+
+relation act_applies_to(k: KanpoIssue) kind institutional {
+    label ja official "この法律の規定が当該官報について適用される";
+}
+relation prior_legal_position_unaffected(k: KanpoIssue) kind institutional {
+    label ja official "この法律の規定は、当該官報の法制上の位置付けに影響を及ぼすものと解してはならない";
+}
+
+@source(KANPO_SEIREI_309_ENACTING, KANPO_SEIREI_309_MAIN, KANPO_SUPPL_ART1_3)
+rule EnforcementDayFixedByCabinetOrder strict {
+    then enforcement_day(@2025-04-01);
+    label ja official "附則第一条・令和六年政令第三百九号　官報の発行に関する法律の施行期日は、令和七年四月一日とする";
+}
+
+@source(KANPO_SUPPL_ART1_3) {
+    rule ActAppliesToKanpoIssuedOnOrAfterEnforcementDay(k: KanpoIssue, issue_day: Date, enf_day: Date) strict {
+        when issued_on(k, issue_day);
+        when enforcement_day(enf_day);
+        when issue_day >= enf_day;
+        then act_applies_to(k);
+        label ja official "附則第二条　この法律の規定は、この法律の施行の日以後に発行する官報について適用する";
+    }
+
+    rule KanpoIssuedBeforeEnforcementDayKeepsPosition(k: KanpoIssue, issue_day: Date, enf_day: Date) strict {
+        when issued_on(k, issue_day);
+        when enforcement_day(enf_day);
+        when issue_day < enf_day;
+        then prior_legal_position_unaffected(k);
+        label ja official "附則第三条　この法律の規定は、施行日前に発行された官報について、その法制上の位置付けに影響を及ぼすものと解してはならない";
+    }
+}

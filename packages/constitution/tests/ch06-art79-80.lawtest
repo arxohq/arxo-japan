@@ -1,0 +1,1125 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Chapter VI (stage J7). Historical context idiom: decision, knowledge and legal time on one date.
+// Court decisions and classifications made by a court are facts with `origin adjudicated`;
+// everything else is `case_input`.
+
+test "ART79-01-CHIEF-JUSTICE-APPOINTED-BY-EMPEROR-ON-CABINET-DESIGNATION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:case:a1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:case:a1"), appoint_chief_justice) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert act_appoints_person(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert designated_by_cabinet(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:case:a1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(chief_justice(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-02-APPOINTMENT-WITHOUT-CABINET-DESIGNATION-NO-CHIEF-JUSTICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:case:a1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:case:a1"), appoint_chief_justice) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert act_appoints_person(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert cabinet_advised_and_approved(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(chief_justice(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-03-APPOINTMENT-WITHOUT-ADVICE-AND-APPROVAL-NO-CHIEF-JUSTICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert state_matter_act(entity_ref("urn:jp:case:a1")) { id "f0"; origin case_input; }
+        assert act_kind(entity_ref("urn:jp:case:a1"), appoint_chief_justice) { id "f1"; origin case_input; }
+        assert performs_act(Emperor, entity_ref("urn:jp:case:a1")) { id "f2"; origin case_input; }
+        assert act_appoints_person(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert designated_by_cabinet(entity_ref("urn:jp:case:a1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(chief_justice(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-04-NO-APPOINTMENT-ACT-NO-CHIEF-JUSTICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert act_appoints_person(entity_ref("urn:jp:case:a1"), entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(chief_justice(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-05-CABINET-APPOINTS-JUSTICE-BELOW-STATUTORY-NUMBER" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f2"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s0")) { id "f3"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s1")) { id "f4"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-06-CABINET-APPOINTMENT-AT-STATUTORY-NUMBER-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f2"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s0")) { id "f3"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s1")) { id "f4"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s2")) { id "f5"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f6"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-07-CABINET-APPOINTMENT-ABOVE-STATUTORY-NUMBER-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f2"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s0")) { id "f3"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s1")) { id "f4"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s2")) { id "f5"; origin case_input; }
+        assert sitting_other_justice(entity_ref("urn:jp:case:s3")) { id "f6"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f7"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-08-FIRST-OTHER-JUSTICE-WITH-NUMBER-ONE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(1) { id "f2"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-09-NO-STATUTORY-NUMBER-NO-VALID-APPOINTMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-10-CABINET-CANNOT-APPOINT-THE-CHIEF-JUSTICE-UNDER-PARAGRAPH-ONE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f2"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert sitting_chief_justice(entity_ref("urn:jp:case:p1")) { id "f4"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-11-NON-CABINET-CANNOT-APPOINT-OTHER-JUSTICES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f1"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert cabinet_appoints_justice(entity_ref("urn:jp:case:o9"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-12-NO-APPOINTMENT-ACT-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert justice_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert statutory_number_of_other_justices(3) { id "f2"; origin case_input; }
+    }
+    evaluate truth(appointed_justice_by_cabinet(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART79-13-FIRST-REVIEW-AT-FIRST-GENERAL-ELECTION-AFTER-APPOINTMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2017-10-22));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-14-LATER-ELECTION-IS-NOT-THE-FIRST-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2021-10-31));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-15-ELECTION-BEFORE-APPOINTMENT-IS-NOT-A-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2018-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2017-10-22));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-16-ELECTION-ON-DAY-OF-APPOINTMENT-IS-NOT-AFTER-IT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2017-10-22) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2017-10-22));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-17-REVIEW-SKIPS-ELECTION-ON-DAY-OF-APPOINTMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2017-10-22) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2021-10-31));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-18-NO-ELECTION-NO-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2017-10-22));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-19-SECOND-REVIEW-FIRST-ELECTION-AFTER-TEN-YEARS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f5"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2028-01-15));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-20-ELECTION-WITHIN-TEN-YEARS-IS-NOT-A-SECOND-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f5"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2024-10-27));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-21-LATER-ELECTION-AFTER-TEN-YEARS-IS-NOT-THE-FIRST" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f5"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2031-05-01));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-22-ELECTION-ON-TEN-YEAR-ANNIVERSARY-QUALIFIES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2027-10-22) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2027-10-22));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-23-ELECTION-ONE-DAY-BEFORE-ANNIVERSARY-DOES-NOT-QUALIFY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2027-10-21) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2027-10-21));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-24-ELECTION-ONE-DAY-BEFORE-ANNIVERSARY-SKIPPED-FOR-NEXT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2027-10-21) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2028-01-15));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-25-ELECTION-ONE-DAY-AFTER-ANNIVERSARY-QUALIFIES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2027-10-23) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2027-10-23));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-26-THIRD-REVIEW-LIKEWISE-TEN-YEARS-AFTER-SECOND" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2038-01-14) { id "f4"; origin case_input; }
+        assert house_general_election_on(@2038-06-01) { id "f5"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2038-06-01));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-27-THIRD-REVIEW-ELECTION-BEFORE-SECOND-ANNIVERSARY-DOES-NOT-QUALIFY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2038-01-14) { id "f4"; origin case_input; }
+        assert house_general_election_on(@2038-06-01) { id "f5"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2038-01-14));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-28-REVIEW-COUNTED-FROM-THE-REVIEW-NOT-THE-APPOINTMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2025-03-01) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2025-03-01));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-29-LEAP-DAY-REVIEW-ANNIVERSARY-IS-28-FEBRUARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-01-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2016-02-29) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2026-02-28) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2030-01-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2026-02-28));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-30-LEAP-DAY-REVIEW-DAY-BEFORE-28-FEBRUARY-DOES-NOT-QUALIFY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-01-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2016-02-29) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2026-02-27) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2030-01-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2026-02-27));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-31-LOWER-COURT-JUDGE-NOT-SUBMITTED-TO-POPULAR-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2017-10-22));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-32-NO-POLICY-NO-SECOND-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+    }
+    evaluate truth(review_due_on(entity_ref("urn:jp:case:p1"), @2028-01-15));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-33-MAJORITY-FOR-DISMISSAL-JUSTICE-DISMISSED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f12"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-34-ONE-VOTE-MAJORITY-DISMISSES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-35-MAJORITY-AGAINST-DISMISSAL-JUSTICE-REMAINS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f12"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-36-MAJORITY-AGAINST-DISMISSAL-RETAINED-AFTER-REVIEW" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f12"; origin case_input; }
+    }
+    evaluate truth(retained_after_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-37-TIE-IS-NOT-A-MAJORITY-NO-DISMISSAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f11"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-38-TIE-JUSTICE-REMAINS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f11"; origin case_input; }
+    }
+    evaluate truth(retained_after_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-39-EMPTY-VOTE-NO-DISMISSAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-40-UNANIMOUS-AGAINST-DISMISSAL-REMAINS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f8"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w3")) { id "f11"; origin case_input; }
+    }
+    evaluate truth(retained_after_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-41-VOTE-AT-AN-ELECTION-NOT-DUE-HAS-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2021-10-31) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-42-VOTE-AT-AN-ELECTION-NOT-DUE-DOES-NOT-RETAIN" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2021-10-31) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+    }
+    evaluate truth(retained_after_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-43-VOTE-NOT-HELD-NO-DISMISSAL-NO-RETENTION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f9"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-44-VOTE-WITHOUT-REVIEW-MOTION-NO-DISMISSAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f5"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f6"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f8"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-45-POPULAR-DISMISSAL-IS-A-CONSTITUTIONAL-GROUND-OF-REMOVAL" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f12"; origin case_input; }
+    }
+    evaluate truth(removal_ground_established(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-46-DISMISSED-JUSTICE-LOSES-IMMUNITY-OF-ART78" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f12"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(JudgeNotRemoved, ACTIVE);
+}
+
+test "ART79-47-RETAINED-JUSTICE-KEEPS-IMMUNITY-OF-ART78" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2021-10-31) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2024-10-27) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f12"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(JudgeNotRemoved, ACTIVE);
+}
+
+test "ART79-48-CROSS-REVIEW-AFTER-TEN-YEARS-MAJORITY-FOR-DISMISSAL-DISMISSED" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2028-01-15) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v3")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f12"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f13"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f14"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-49-CROSS-REVIEW-AFTER-TEN-YEARS-NO-MAJORITY-JUSTICE-REMAINS" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2028-01-15) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f11"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w1")) { id "f12"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w2")) { id "f13"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w3")) { id "f14"; origin case_input; }
+    }
+    evaluate truth(retained_after_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-50-CROSS-FIRST-REVIEW-AT-FIRST-GENERAL-ELECTION-DISMISSES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2015-03-01) { id "f1"; origin case_input; }
+        assert house_general_election_on(@2017-10-22) { id "f2"; origin case_input; }
+        assert house_general_election_on(@2028-01-15) { id "f3"; origin case_input; }
+        assert house_general_election_on(@2031-05-01) { id "f4"; origin case_input; }
+        assert review_motion(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:p1")) { id "f5"; origin case_input; }
+        assert review_vote_on(entity_ref("urn:jp:case:m1"), @2017-10-22) { id "f6"; origin case_input; }
+        assert put_to_vote(entity_ref("urn:jp:case:m1")) { id "f7"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v0")) { id "f8"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v1")) { id "f9"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v2")) { id "f10"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v3")) { id "f11"; origin case_input; }
+        assert votes_for(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:v4")) { id "f12"; origin case_input; }
+        assert votes_against(entity_ref("urn:jp:case:m1"), entity_ref("urn:jp:case:w0")) { id "f13"; origin case_input; }
+    }
+    evaluate truth(dismissed_by_popular_review(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-52-REVIEW-MATTERS-DEFINED-BY-STATUTE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert review_statute(entity_ref("urn:jp:case:l1")) { id "f0"; origin case_input; }
+    }
+    evaluate truth(review_matters_defined_by(entity_ref("urn:jp:case:l1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-53-NO-REVIEW-STATUTE-NO-DEFINITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(review_matters_defined_by(entity_ref("urn:jp:case:l1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-54-JUSTICE-RETIRES-AT-STATUTORY-AGE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert retirement_age_statute(entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+        assert reaches_statutory_age(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(retires_office(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART79-55-JUSTICE-BELOW-STATUTORY-AGE-DOES-NOT-RETIRE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert retirement_age_statute(entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(retires_office(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-56-NO-RETIREMENT-STATUTE-NO-RETIREMENT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert reaches_statutory_age(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f1"; origin case_input; }
+    }
+    evaluate truth(retires_office(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART79-57-REMUNERATION-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(RemunerateSupremeCourtJustice, ACTIVE);
+}
+
+test "ART79-58-INADEQUATE-REMUNERATION-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+        assert remuneration_irregular_or_inadequate(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(RemunerateSupremeCourtJustice, VIOLATED);
+}
+
+test "ART79-59-REDUCTION-DURING-OFFICE-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+        assert reduces_remuneration(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoReductionOfSupremeCourtRemuneration, VIOLATED);
+}
+
+test "ART79-60-NO-REDUCTION-PROHIBITION-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoReductionOfSupremeCourtRemuneration, ACTIVE);
+    expect not position(NoReductionOfSupremeCourtRemuneration, VIOLATED);
+}
+
+test "ART79-61-REMUNERATION-IMMUNITY-ACTIVE-DURING-OFFICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), SupremeCourtOfJapan) { id "f0"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(SupremeCourtRemunerationProtected, ACTIVE);
+}
+
+test "ART79-62-NO-REMUNERATION-IMMUNITY-WITHOUT-OFFICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert reduces_remuneration(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(SupremeCourtRemunerationProtected, ACTIVE);
+    expect not position(NoReductionOfSupremeCourtRemuneration, VIOLATED);
+}
+
+test "ART80-01-CABINET-APPOINTS-LOWER-JUDGE-FROM-SUPREME-COURT-LIST" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(validly_appointed_lower_judge(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART80-02-APPOINTMENT-OFF-THE-LIST-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(validly_appointed_lower_judge(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART80-03-NO-APPOINTMENT-ACT-NO-EFFECT" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(validly_appointed_lower_judge(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect not issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART80-04-NON-CABINET-CANNOT-APPOINT-LOWER-JUDGES" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f0"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o9"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(validly_appointed_lower_judge(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-05-LOWER-JUDGE-MAY-BE-REAPPOINTED-FROM-LIST" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert cabinet_reappoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(lower_judge_reappointed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART80-06-REAPPOINTMENT-OFF-THE-LIST-INVALID" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_reappoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(lower_judge_reappointed(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+    expect issue(POWER_INVALID_EXERCISE);
+}
+
+test "ART80-07-TERM-OF-TEN-YEARS-ENDS-ON-THE-ANNIVERSARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-04-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-04-01));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART80-08-TERM-DOES-NOT-END-THE-DAY-BEFORE-THE-ANNIVERSARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-04-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-03-31));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-09-TERM-DOES-NOT-END-THE-DAY-AFTER-THE-ANNIVERSARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-04-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-04-02));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-10-TERM-FROM-29-FEBRUARY-ENDS-28-FEBRUARY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-02-29) { id "f4"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-02-28));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART80-11-INVALID-APPOINTMENT-STARTS-NO-TERM" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; deadline_policy J7_ANNIVERSARY; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-04-01) { id "f3"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-04-01));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-12-NO-POLICY-NO-TERM-END" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert j7_cabinet(entity_ref("urn:jp:case:o1")) { id "f0"; origin case_input; }
+        assert lower_judge_candidate(entity_ref("urn:jp:case:p1")) { id "f1"; origin case_input; }
+        assert cabinet_appoints_lower_judge(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f2"; origin case_input; }
+        assert on_supreme_court_list(entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+        assert appointed_on(entity_ref("urn:jp:case:p1"), @2020-04-01) { id "f4"; origin case_input; }
+    }
+    evaluate truth(lower_court_term_end(entity_ref("urn:jp:case:p1"), @2030-04-01));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-13-LOWER-JUDGE-RETIRES-AT-STATUTORY-AGE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert retirement_age_statute(entity_ref("urn:jp:case:l1")) { id "f2"; origin case_input; }
+        assert reaches_statutory_age(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:l1")) { id "f3"; origin case_input; }
+    }
+    evaluate truth(retires_office(entity_ref("urn:jp:case:p1")));
+    expect truth_status == TRUE_ONLY;
+}
+
+test "ART80-14-LOWER-JUDGE-BELOW-STATUTORY-AGE-DOES-NOT-RETIRE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert retirement_age_statute(entity_ref("urn:jp:case:l1")) { id "f2"; origin case_input; }
+    }
+    evaluate truth(retires_office(entity_ref("urn:jp:case:p1")));
+    expect truth_status == NEITHER;
+}
+
+test "ART80-15-REMUNERATION-DUTY-ACTIVE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(RemunerateLowerCourtJudge, ACTIVE);
+}
+
+test "ART80-16-INADEQUATE-REMUNERATION-VIOLATES-DUTY" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert remuneration_irregular_or_inadequate(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin adjudicated; }
+    }
+    evaluate positions();
+    expect position(RemunerateLowerCourtJudge, VIOLATED);
+}
+
+test "ART80-17-REDUCTION-DURING-OFFICE-VIOLATES-PROHIBITION" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+        assert reduces_remuneration(entity_ref("urn:jp:case:o1"), entity_ref("urn:jp:case:p1")) { id "f3"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(NoReductionOfLowerCourtRemuneration, VIOLATED);
+}
+
+test "ART80-18-REMUNERATION-IMMUNITY-ACTIVE-DURING-OFFICE" {
+    given {
+        context { decision_time @2026-01-01T12:00:00Z; knowledge_time @2026-01-01T12:00:00Z; legal_time @2026-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect position(LowerCourtRemunerationProtected, ACTIVE);
+}
+
+test "ART80-19-NO-POSITION-BEFORE-ENTRY-INTO-FORCE" {
+    given {
+        context { decision_time @1947-01-01T12:00:00Z; knowledge_time @1947-01-01T12:00:00Z; legal_time @1947-01-01; timezone "Asia/Tokyo"; }
+        assert holds_judicial_office(entity_ref("urn:jp:case:p1"), entity_ref("urn:jp:case:c1")) { id "f0"; origin case_input; }
+        assert inferior_court(entity_ref("urn:jp:case:c1")) { id "f1"; origin case_input; }
+        assert r3a_state_organ(entity_ref("urn:jp:case:o1")) { id "f2"; origin case_input; }
+    }
+    evaluate positions();
+    expect not position(RemunerateLowerCourtJudge, ACTIVE);
+}

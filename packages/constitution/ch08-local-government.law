@@ -1,0 +1,410 @@
+// Chapter VIII, Local Self-Government (第八章 地方自治), Articles 92-95.
+//
+// MODEL
+//   * ARTICLE 92. Matters of the organization and operation of local public entities are
+//     fixed by a STATUTE, in accordance with the principle of local autonomy (地方自治の本旨).
+//     A power of the Diet over the local entity: the statute takes effect only if it accords
+//     with 地方自治の本旨, an EVALUATIVE element (DECISION-0194, channel 1): judgment relation,
+//     authority the Supreme Court of Japan (the organ of Art. 81, which decides finally whether
+//     a law conforms to the Constitution; a modelling choice from Art. 81, no reading of
+//     the principle is asserted: coverage/J8-interpretations.md). The content of the
+//     statute is external.
+//   * ARTICLE 93(1). The local entity has an assembly as its deliberative organ, as provided by
+//     statute: an institutional derivation with the statute as an external contract.
+//     ARTICLE 93(2). The head, the members of the assembly and the other officials that a
+//     statute designates are elected DIRECTLY by the residents. Modelled as (a) the institutional
+//     predicate `directly_elected_office` (head and member: always; the other officials only
+//     if a statute designates them), (b) the lawful holder of such an office
+//     (`office_holder_lawful`: elected directly by the residents) and its negation-free
+//     complement (`office_holder_not_directly_elected`: the office requires a direct election and
+//     the holder was not selected by one), (c) a LIBERTY of the resident to vote in the direct
+//     election of an office of his entity.
+//   * ARTICLE 94. Local public entities have the capacity to manage their property, to transact
+//     their affairs and to execute administration (three LIBERTIES: the entity's own conduct)
+//     and may enact ordinances within the range of the law (a POWER: the ordinance is valid
+//     only within the range of the law; that is an evaluative conformity, channel 2 of
+//     DECISION-0194: a fact of the court or organ, `origin adjudicated`; the text names no
+//     decider and Art. 81 does not list ordinances, so the judgment channel is NOT used).
+//   * ARTICLE 95. A special law applicable to only ONE local public entity cannot be enacted
+//     by the Diet without the consent of a majority of the votes of the residents of that entity
+//     (in the vote held as provided by statute). A POWER of the Diet whose validity condition is
+//     the consent: the exercise is a fact (`diet_enacts_special_law`), `valid_when` the
+//     consent holds, otherwise POWER_INVALID_EXERCISE and no effect. "Applies to one entity
+//     only" is COUNTED over the entities to which the bill applies. The vote is a `Motion` of
+//     01-voting.law held on the bill in the entity; the ballots of non-residents are not
+//     counted.
+//     DENOMINATOR (judgment call): 「住民の投票においてその過半数の同意」 reads as a majority WITHIN the
+//     vote, i.e. of the votes CAST (for + against; abstentions and non-voters are not counted),
+//     as in `majority_of_votes_cast_for` of 01-voting.law; NOT of the electors. Consent needs
+//     for*2 > for+against with at least one vote; a tie is not a majority. The predicate is
+//     local (`resident_majority_of_votes_cast_for`) because it counts only the ballots of
+//     residents; it is not a second reading of the threshold.
+//     PROCEDURE. The statute (地方自治法 Arts. 261-262) puts the vote after the resolution of
+//     the Diet and before the promulgation; its content is external and not modelled beyond the
+//     fact that the vote took place (coverage/J8-interpretations.md, verbatim quotes).
+//     INTERPLAY WITH ART. 59 (ch04c). ch04c derives `enacted_as_law` for a bill passed by both
+//     Houses unless the case asserts `special_procedure_applies` ("as the Constitution otherwise
+//     provides"). For a bill for a single local entity the case asserts that fact; Art. 95 then
+//     decides the enactment here (`special_law_enacted`). ch04c is not changed.
+//
+// Public producers for other stages: special_law_for_one_entity(l, c), special_law_enacted(l),
+// local_organization_set_by_statute(c), directly_elected_office(o), office_holder_lawful(p, o).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Diet,
+    JP_CONST_ART92_P1,
+    JP_CONST_ART93_P1,
+    JP_CONST_ART93_P2,
+    JP_CONST_ART94_P1,
+    JP_CONST_ART95_P1,
+    Motion,
+    Person,
+    Proposal,
+    put_to_vote,
+    votes_against,
+    votes_for,
+};
+
+entity LocalPublicBody { label ja official "地方公共団体"; label en unofficial "a local public entity"; }
+entity LocalOffice { label ja official "地方公共団体の長、議会の議員その他の吏員"; label en unofficial "an office of a local public entity (head, assembly member, other statutory official)"; }
+entity LocalElection { label ja official "地方公共団体の選挙"; label en unofficial "an election of an office of a local public entity"; }
+entity Ordinance { label ja official "条例"; label en unofficial "an ordinance of a local public entity"; }
+
+enum LocalOfficeKind {
+    label en unofficial "kinds of local public office";
+    office_head;
+    office_assembly_member;
+    office_other_official;
+}
+
+relation local_public_body(c: LocalPublicBody) kind empirical {
+    label ja official "地方公共団体";
+    label en unofficial "the entity is a local public entity";
+}
+relation resident_of(p: Person, c: LocalPublicBody) kind empirical {
+    label ja official "その地方公共団体の住民";
+    label en unofficial "the person is a resident of the entity (the electorate is fixed by statute: an input)";
+}
+
+// --- Article 92 -------------------------------------------------------------------
+relation local_organization_statute_for(l: Proposal, c: LocalPublicBody) kind empirical {
+    label ja official "地方公共団体の組織及び運営に関する事項を定める法律";
+    label en unofficial "the bill regulates the organization and operation of the local public entity";
+}
+relation diet_enacts_local_organization_statute(l: Proposal, c: LocalPublicBody) kind empirical {
+    label ja official "法律でこれを定める";
+    label en unofficial "the Diet enacts the statute that fixes the matters (the act of exercise)";
+}
+external judgment relation statute_accords_with_local_autonomy(l: Proposal) {
+    authority SupremeCourtOfJapan;
+    label ja official "地方自治の本旨に基いて";
+    label en unofficial "the statute accords with the principle of local autonomy (judgment of the Supreme Court, Art. 81)";
+}
+relation local_organization_set_by_statute(c: LocalPublicBody) kind institutional {
+    label ja official "地方公共団体の組織及び運営に関する事項";
+    label en unofficial "the matters of organization and operation of the entity are set by statute";
+}
+
+@source(JP_CONST_ART92_P1)
+rule LocalOrganizationMattersSetByStatute strict {
+    label ja official "地方公共団体の組織及び運営に関する事項は、地方自治の本旨に基いて、法律でこれを定める";
+    label en unofficial "Article 92. Matters concerning the organization and operation of local public entities are fixed by statute, in accordance with the principle of local autonomy";
+    for l: Proposal; for c: LocalPublicBody;
+    when local_organization_statute_for(l, c);
+    then power DietFixesLocalOrganization {
+        holder Diet; over c;
+        exercise diet_enacts_local_organization_statute(l, c);
+        valid_when statute_accords_with_local_autonomy(l);
+        effect create(local_organization_set_by_statute(c));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 93 -------------------------------------------------------------------
+relation assembly_statute_provides(c: LocalPublicBody) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "a statute provides the assembly of the entity (content external)";
+}
+relation has_deliberative_assembly(c: LocalPublicBody) kind institutional {
+    label ja official "その議事機関として議会を設置する";
+    label en unofficial "the entity has an assembly as its deliberative organ";
+}
+relation office_of(o: LocalOffice, c: LocalPublicBody) kind empirical {
+    label ja official "地方公共団体の吏員";
+    label en unofficial "the office belongs to the entity";
+}
+relation office_kind(o: LocalOffice, k: LocalOfficeKind) kind empirical {
+    label ja official "長、議会の議員、その他の吏員";
+    label en unofficial "the kind of the office";
+}
+relation statute_designates_direct_election(o: LocalOffice) kind empirical {
+    label ja official "法律の定めるその他の吏員";
+    label en unofficial "a statute designates the office among the other officials that are elected directly (content external)";
+}
+relation directly_elected_office(o: LocalOffice) kind institutional {
+    label ja official "住民が、直接これを選挙する";
+    label en unofficial "the office is filled by direct election of the residents";
+}
+relation office_holder(p: Person, o: LocalOffice) kind empirical {
+    label ja official "その職にある者";
+    label en unofficial "the person holds the office";
+}
+relation selected_by_direct_election_of_residents(p: Person, o: LocalOffice) kind empirical {
+    label ja official "住民が、直接これを選挙する";
+    label en unofficial "the holder was selected by a direct election of the residents";
+}
+relation office_holder_lawful(p: Person, o: LocalOffice) kind institutional {
+    label ja official "住民が直接選挙した者";
+    label en unofficial "the holder of an office that requires direct election was so elected";
+}
+relation office_holder_not_directly_elected(p: Person, o: LocalOffice) kind institutional {
+    label ja official "住民が、直接これを選挙する";
+    label en unofficial "the holder of an office that requires direct election was not selected by such an election";
+}
+relation election_for_office(e: LocalElection, o: LocalOffice) kind empirical {
+    label ja official "選挙";
+    label en unofficial "the election is held for the office";
+}
+relation votes_in_direct_election(p: Person, e: LocalElection) kind empirical {
+    label ja official "直接これを選挙する";
+    label en unofficial "the resident casts his vote in the election (the action)";
+}
+
+@source(JP_CONST_ART93_P1)
+rule LocalEntityHasAssembly strict {
+    label ja official "地方公共団体には、法律の定めるところにより、その議事機関として議会を設置する";
+    label en unofficial "Article 93(1). A local public entity has an assembly as its deliberative organ, as provided by statute";
+    for c: LocalPublicBody;
+    when local_public_body(c) and assembly_statute_provides(c);
+    then has_deliberative_assembly(c);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "地方公共団体の長、その議会の議員")
+rule HeadAndAssemblyMemberAreDirectlyElected strict {
+    label en unofficial "The head of a local public entity is a directly elected office";
+    for o: LocalOffice; for k: LocalOfficeKind;
+    when office_kind(o, k) and k == office_head;
+    then directly_elected_office(o);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "地方公共団体の長、その議会の議員")
+rule AssemblyMemberIsDirectlyElected strict {
+    label en unofficial "Members of the assembly of a local public entity are directly elected offices";
+    for o: LocalOffice; for k: LocalOfficeKind;
+    when office_kind(o, k) and k == office_assembly_member;
+    then directly_elected_office(o);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "法律の定めるその他の吏員")
+rule DesignatedOfficialIsDirectlyElected strict {
+    label en unofficial "Other officials designated by statute for direct election are directly elected offices";
+    for o: LocalOffice; for k: LocalOfficeKind;
+    when office_kind(o, k) and k == office_other_official and statute_designates_direct_election(o);
+    then directly_elected_office(o);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "住民が、直接これを選挙する")
+rule LawfulHolderOfDirectlyElectedOffice strict {
+    label en unofficial "The holder of a directly elected office chosen by residents' direct election is lawful";
+    for p: Person; for o: LocalOffice;
+    when directly_elected_office(o) and office_holder(p, o) and selected_by_direct_election_of_residents(p, o);
+    then office_holder_lawful(p, o);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "住民が、直接これを選挙する")
+rule HolderNotDirectlyElected strict {
+    label en unofficial "The holder of a directly elected office who was not chosen by residents' direct election is not lawfully elected";
+    for p: Person; for o: LocalOffice;
+    when directly_elected_office(o) and office_holder(p, o) and not_known(selected_by_direct_election_of_residents(p, o));
+    then office_holder_not_directly_elected(p, o);
+}
+
+@source(JP_CONST_ART93_P2, relation = formalizes, coverage = partial, quote = "その地方公共団体の住民が、直接これを選挙する")
+rule ResidentMayVoteInDirectElection strict {
+    label ja official "地方公共団体の長、その議会の議員及び法律の定めるその他の吏員は、その地方公共団体の住民が、直接これを選挙する";
+    label en unofficial "Article 93(2). The residents of the entity elect its head, the members of its assembly and the other officials designated by statute directly";
+    for p: Person; for e: LocalElection; for o: LocalOffice; for c: LocalPublicBody;
+    when election_for_office(e, o) and office_of(o, c) and directly_elected_office(o) and resident_of(p, c);
+    then liberty ResidentVotesInDirectElection {
+        holder p;
+        action votes_in_direct_election(p, e);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 94 -------------------------------------------------------------------
+relation manages_property(c: LocalPublicBody) kind empirical {
+    label ja official "その財産を管理し";
+    label en unofficial "the entity manages its property (the action)";
+}
+relation transacts_affairs(c: LocalPublicBody) kind empirical {
+    label ja official "事務を処理し";
+    label en unofficial "the entity transacts its affairs (the action)";
+}
+relation executes_administration(c: LocalPublicBody) kind empirical {
+    label ja official "行政を執行する";
+    label en unofficial "the entity executes administration (the action)";
+}
+relation local_body_enacts_ordinance(c: LocalPublicBody, x: Ordinance) kind empirical {
+    label ja official "条例を制定する";
+    label en unofficial "the entity enacts the ordinance (the act of exercise)";
+}
+relation ordinance_of(x: Ordinance, c: LocalPublicBody) kind empirical {
+    label ja official "地方公共団体の条例";
+    label en unofficial "the ordinance is one of the entity";
+}
+// EVALUATIVE (DECISION-0194, channel 2): the classification is a fact of a court or organ;
+// the caller supplies it with `origin adjudicated`.
+relation ordinance_within_range_of_law(x: Ordinance) kind empirical {
+    label ja official "法律の範囲内";
+    label en unofficial "the ordinance is within the range of the law (a fact of a court or organ, origin adjudicated)";
+}
+relation ordinance_in_force(x: Ordinance) kind institutional {
+    label ja official "条例";
+    label en unofficial "the ordinance is validly enacted";
+}
+
+@source(JP_CONST_ART94_P1, relation = formalizes, coverage = partial, quote = "その財産を管理し")
+rule LocalEntityMayManageProperty strict {
+    label ja official "地方公共団体は、その財産を管理し";
+    label en unofficial "Article 94. A local public entity has the capacity to manage its property";
+    for c: LocalPublicBody;
+    when local_public_body(c);
+    then liberty LocalBodyManagesProperty {
+        holder c;
+        action manages_property(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART94_P1, relation = formalizes, coverage = partial, quote = "事務を処理し")
+rule LocalEntityMayTransactAffairs strict {
+    label ja official "地方公共団体は、事務を処理し";
+    label en unofficial "Article 94. A local public entity has the capacity to transact its affairs";
+    for c: LocalPublicBody;
+    when local_public_body(c);
+    then liberty LocalBodyTransactsAffairs {
+        holder c;
+        action transacts_affairs(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART94_P1, relation = formalizes, coverage = partial, quote = "行政を執行する権能を有し")
+rule LocalEntityMayExecuteAdministration strict {
+    label ja official "地方公共団体は、行政を執行する権能を有し";
+    label en unofficial "Article 94. A local public entity has the capacity to execute administration";
+    for c: LocalPublicBody;
+    when local_public_body(c);
+    then liberty LocalBodyExecutesAdministration {
+        holder c;
+        action executes_administration(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART94_P1, relation = formalizes, coverage = partial, quote = "法律の範囲内で条例を制定することができる")
+rule LocalEntityMayEnactOrdinances strict {
+    label ja official "法律の範囲内で条例を制定することができる";
+    label en unofficial "Article 94. A local public entity may enact ordinances within the range of the law";
+    for c: LocalPublicBody; for x: Ordinance;
+    when local_public_body(c) and ordinance_of(x, c);
+    then power LocalBodyEnactsOrdinance {
+        holder c; over x;
+        exercise local_body_enacts_ordinance(c, x);
+        valid_when ordinance_within_range_of_law(x);
+        effect create(ordinance_in_force(x));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 95 -------------------------------------------------------------------
+relation law_applies_to_entity(l: Proposal, c: LocalPublicBody) kind empirical {
+    label ja official "適用される";
+    label en unofficial "the bill applies to the local public entity";
+}
+relation special_law_for_one_entity(l: Proposal, c: LocalPublicBody) kind institutional {
+    label ja official "一の地方公共団体のみに適用される特別法";
+    label en unofficial "the bill applies to this entity and to no other (counted)";
+}
+relation local_referendum_on(m: Motion, l: Proposal, c: LocalPublicBody) kind empirical {
+    label ja official "その地方公共団体の住民の投票";
+    label en unofficial "the motion is the vote of the residents of the entity on the bill";
+}
+relation resident_majority_of_votes_cast_for(m: Motion, c: LocalPublicBody) kind institutional {
+    label ja official "その過半数の同意";
+    label en unofficial "the ballots of the entity's residents for the motion are more than half of their ballots cast (for + against), with at least one ballot; non-residents' ballots are not counted";
+}
+relation local_majority_consent(l: Proposal, c: LocalPublicBody) kind institutional {
+    label ja official "その地方公共団体の住民の投票においてその過半数の同意を得た";
+    label en unofficial "the residents of the entity consented to the bill by a majority of the votes cast";
+}
+relation diet_enacts_special_law(l: Proposal) kind empirical {
+    label ja official "国会は、これを制定する";
+    label en unofficial "the Diet enacts the special law (the act of exercise)";
+}
+relation special_law_enacted(l: Proposal) kind institutional {
+    label ja official "特別法の制定";
+    label en unofficial "the special law is validly enacted (Art. 95 satisfied; the passage by the Houses is Art. 59)";
+}
+relation enactment_lacks_local_consent(l: Proposal) kind institutional {
+    label ja official "同意を得なければ、国会は、これを制定することができない";
+    label en unofficial "the Diet purports to enact the special law and the residents' majority consent is not known";
+}
+
+@source(JP_CONST_ART95_P1, relation = formalizes, coverage = partial, quote = "一の地方公共団体のみに適用される特別法")
+rule SpecialLawForOneEntity strict {
+    label en unofficial "A law applicable to only one local public entity is a special law for that entity";
+    for l: Proposal; for c: LocalPublicBody;
+    when law_applies_to_entity(l, c)
+        and (count distinct x: LocalPublicBody where law_applies_to_entity(l, x)) == 1;
+    then special_law_for_one_entity(l, c);
+}
+
+@source(JP_CONST_ART95_P1, relation = formalizes, coverage = partial, quote = "その過半数の同意")
+rule ResidentMajorityOfVotesCast strict {
+    label en unofficial "A majority of the votes cast by residents of the local public entity is in favour";
+    for m: Motion; for c: LocalPublicBody;
+    when local_public_body(c) and put_to_vote(m)
+        and (count distinct p: Person where votes_for(m, p) and resident_of(p, c))
+            + (count distinct p: Person where votes_against(m, p) and resident_of(p, c)) > 0
+        and (count distinct p: Person where votes_for(m, p) and resident_of(p, c)) * 2
+            > (count distinct p: Person where votes_for(m, p) and resident_of(p, c))
+              + (count distinct p: Person where votes_against(m, p) and resident_of(p, c));
+    then resident_majority_of_votes_cast_for(m, c);
+}
+
+@source(JP_CONST_ART95_P1, relation = formalizes, coverage = partial, quote = "その地方公共団体の住民の投票においてその過半数の同意を得なければ")
+rule LocalMajorityConsent strict {
+    label en unofficial "The local referendum yields consent when a majority of the residents' votes cast is in favour";
+    for m: Motion; for l: Proposal; for c: LocalPublicBody;
+    when local_referendum_on(m, l, c) and resident_majority_of_votes_cast_for(m, c);
+    then local_majority_consent(l, c);
+}
+
+@source(JP_CONST_ART95_P1)
+rule DietMayEnactSpecialLawOnlyWithLocalConsent strict {
+    label ja official "一の地方公共団体のみに適用される特別法は、法律の定めるところにより、その地方公共団体の住民の投票においてその過半数の同意を得なければ、国会は、これを制定することができない";
+    label en unofficial "Article 95. A special law applicable to only one local public entity cannot be enacted by the Diet without the consent of the majority of the votes of the residents of that entity, as provided by statute";
+    for l: Proposal; for c: LocalPublicBody;
+    when special_law_for_one_entity(l, c);
+    then power DietEnactsSpecialLaw {
+        holder Diet; over l;
+        exercise diet_enacts_special_law(l);
+        valid_when local_majority_consent(l, c);
+        effect create(special_law_enacted(l));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART95_P1, relation = formalizes, coverage = partial, quote = "同意を得なければ、国会は、これを制定することができない")
+rule EnactmentLacksLocalConsent strict {
+    label en unofficial "A special law for one local entity lacks the required local consent";
+    for l: Proposal; for c: LocalPublicBody;
+    when special_law_for_one_entity(l, c) and diet_enacts_special_law(l) and not_known(local_majority_consent(l, c));
+    then enactment_lacks_local_consent(l);
+}

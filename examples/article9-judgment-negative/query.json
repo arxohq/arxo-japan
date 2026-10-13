@@ -1,0 +1,15 @@
+{
+  "kind": "truth",
+  "literal": {
+    "args": [
+      {
+        "id": "urn:jp:case:F1",
+        "kind": "entity_ref"
+      }
+    ],
+    "kind": "literal",
+    "polarity": "positive",
+    "predicate": "urn:jp:constitution:clir#war_potential"
+  },
+  "queryId": "urn:jp:constitution:clir#test/X10-08-NECESSARY-MINIMUM-READING-THE-COURT-SAYS-NOT-EXCEEDS-NO-WAR-POTENTIAL/query/0"
+}

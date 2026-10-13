@@ -1,0 +1,757 @@
+// Chapter IV, The Diet (第四章 国会), Articles 53-58: convocation, dissolution and
+// its consequences, the proceedings of a House and its internal powers. Articles 41-52
+// are in ch04a-diet-status.law, Articles 59-64 in ch04c-diet-legislation.law.
+//
+// PUBLIC PRODUCERS (positive predicates on which Chapter V builds; all are derived,
+// none needs a fact that is not named in the text):
+//   house_dissolved(h, d)                      ch04a: the valid act of Art. 7(3) (facts, not the power effect)
+//   house_closed_on(h, d)                      Art. 54(2): the Councillors close together
+//                                              with the dissolution of the Representatives
+//   general_election_held_on(h, x)             input fact of the case (Art. 54(1))
+//   diet_convoked_after_election(h, x, c)      Art. 54(1): the Diet is convoked on c after
+//                                              the general election of x
+//   convocation_decided(s)                     Art. 53: the Cabinet's decision to convoke
+//   emergency_session_requested(s)             Art. 54(2): the Cabinet's request
+//   election_held_within_forty_days(h, d)      Art. 54(1), first term
+//   convoked_within_thirty_days_after_election(h, x)   Art. 54(1), second term
+//
+// MODEL
+//   * ARTICLE 53. The Cabinet's decision to convoke an extraordinary session is a
+//     `power` of the Cabinet (no condition of validity is set by the text; the derived
+//     `extraordinary_session` is the domain of the power). At the demand of at least
+//     one quarter of ALL the members of either House the Cabinet MUST decide: a `duty`
+//     of the Cabinet toward the House. The Constitution sets no term for the decision;
+//     none is invented, so the achievement window is open and the duty can be ACTIVE
+//     or SATISFIED (never VIOLATED). How quickly the decision must be taken is a
+//     matter of reading: no primary source was retrieved and no reading is asserted
+//     (see coverage/J5-interpretations.md).
+//   * ARTICLE 54(1). Two terms of DAYS, counted as calendar days: the text says 日 and
+//     names no recess and no working-day calendar. A term of N days is the step of N
+//     days from the event (DIET_CALENDAR_STEP, ch04a): the event day is not counted, the
+//     N-th following day is the last day. Judgment call (the Civil Code rule on the
+//     first day is a rule of another act, not asserted here).
+//     "Within 40 days from the day of dissolution the general election is held; within 30
+//     days from the day of the election the Diet is convoked": both are duties of the
+//     State (the text names no addressee), achievement goals whose windows are computed.
+//     What is convoked is the Diet (召集, the act of summoning), so the fact
+//     `diet_convoked_on` is the date of the act of convocation, not of the first sitting.
+//   * ARTICLE 54(2). The closure of the House of Councillors is a consequence of the
+//     dissolution of the same day. The Cabinet's power to request an emergency session
+//     needs "urgent necessity of the State" (国に緊急の必要): an evaluative element with
+//     the judgment channel of DECISION-0194 (the text names the Cabinet as the one who
+//     asks, so the Cabinet is the authority of the judgment).
+//   * ARTICLE 54(3). The measures taken at the emergency session are temporary and lose
+//     effect if the House of Representatives does not consent within ten days after the
+//     opening of the next session of the Diet (the day of the opening is not counted). The lapse
+//     arises on the elapse of the term: it needs the assessment date (ch04a header,
+//     TECH_GAP "legal_time is not readable by a rule").
+//   * ARTICLE 55-58 are powers of a House (holder: the House; effect: an institutional
+//     fact) whose validity is the threshold of the text, taken from 01-voting.law with
+//     its OWN denominator: 2/3 of the members PRESENT for the loss of a seat (55), for a
+//     secret session (57(1)) and for expulsion (58(2)); one third of ALL for the quorum
+//     (56(1)); a majority of those PRESENT, on a tie the presiding officer (56(2)); one
+//     fifth of those PRESENT for the roll-call record (57(3)). For an election of
+//     officers, the adoption of rules and a disciplinary penalty short of expulsion the
+//     text sets no threshold: the residual rule of Art. 56(2) applies. This is a judgment
+//     call (the text of Art. 56(2) says "the proceedings", 議事).
+//   * ARTICLE 57(1): the prohibition of a closed sitting is defeated exactly when the
+//     secret session was resolved by 2/3 of those present (and the quorum held).
+//     A closed sitting held without the resolution is at once a VIOLATED prohibition and
+//     an invalid exercise of the power to hold a secret session.
+//   * ARTICLE 57(2): "recognised as specially requiring secrecy" (特に秘密を要すると認められる)
+//     is an evaluative element, a judgment relation whose authority is the House that
+//     keeps the record (each House: 各々); records of open sittings must be published in
+//     full. The two duties are maintenance goals over an open window (the text sets no
+//     term).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    House,
+    HouseOfCouncillors,
+    HouseOfRepresentatives,
+    JP_CONST_ART53_P1,
+    JP_CONST_ART54_P1,
+    JP_CONST_ART54_P2,
+    JP_CONST_ART54_P3,
+    JP_CONST_ART55_P1,
+    JP_CONST_ART56_P1,
+    JP_CONST_ART57_P1,
+    JP_CONST_ART57_P2,
+    JP_CONST_ART57_P3,
+    JP_CONST_ART58_P1,
+    JP_CONST_ART58_P2,
+    Japan,
+    Motion,
+    Person,
+    Session,
+    SessionKind,
+    adopted_by_ordinary_majority,
+    assessment_date,
+    house_dissolved,
+    member_of,
+    motion_before,
+    one_fifth_of_present_demand,
+    one_quarter_of_all_demand,
+    put_to_vote,
+    quorum_one_third_of_all,
+    session_kind,
+    two_thirds_of_present_for,
+};
+
+entity Sitting { label ja official "会議"; label en unofficial "a sitting of a House"; }
+entity Record { label ja official "会議の記録"; label en unofficial "the record of a sitting"; }
+entity EmergencyMeasure { label ja official "緊急集会において採られた措置"; label en unofficial "a measure taken at the emergency session of the House of Councillors"; }
+entity RulesOfProcedure { label ja official "会議その他の手続及び内部の規律に関する規則"; label en unofficial "rules of a House on its proceedings and internal discipline"; }
+
+// --- Article 53 --------------------------------------------------------------------
+relation extraordinary_session(s: Session) kind institutional {
+    label ja official "臨時会";
+    label en unofficial "the session is an extraordinary session";
+}
+relation cabinet_decides_convocation(s: Session) kind empirical {
+    label ja official "召集を決定する";
+    label en unofficial "the Cabinet decides the convocation of the session (the act of exercise)";
+}
+relation convocation_decided(s: Session) kind institutional {
+    label ja official "国会の臨時会の召集の決定";
+    label en unofficial "the convocation of the session has been decided (producer of the chapter)";
+}
+relation demand_for_extraordinary_session(m: Motion) kind empirical {
+    label ja official "臨時会の召集の要求";
+    label en unofficial "the motion is a demand for the convocation of an extraordinary session";
+}
+relation demand_made_on(m: Motion, d: Date) kind empirical {
+    key(m);
+    label en unofficial "the day on which the demand was made";
+}
+relation convocation_decided_on_demand(m: Motion) kind empirical {
+    label ja official "召集を決定しなければならない";
+    label en unofficial "the Cabinet has decided the convocation in answer to the demand";
+}
+
+@source(JP_CONST_ART53_P1, relation = formalizes, coverage = partial, quote = "国会の臨時会の召集")
+rule ExtraordinarySessionIdentified strict {
+    label en unofficial "A session of the extraordinary kind is an extraordinary session of the Diet";
+    for s: Session; for k: SessionKind;
+    when session_kind(s, k) and k == session_extraordinary;
+    then extraordinary_session(s);
+}
+
+@source(JP_CONST_ART53_P1, relation = formalizes, coverage = partial, quote = "内閣は、国会の臨時会の召集を決定することができる")
+rule CabinetMayDecideConvocationOfExtraordinarySession strict {
+    label ja official "内閣は、国会の臨時会の召集を決定することができる";
+    label en unofficial "Article 53, first sentence. The Cabinet may decide to convoke an extraordinary session";
+    for s: Session; for k: SessionKind;
+    when session_kind(s, k) and k == session_extraordinary;
+    then power CabinetDecidesConvocation {
+        holder Cabinet; over s;
+        exercise cabinet_decides_convocation(s);
+        valid_when extraordinary_session(s);
+        effect create(convocation_decided(s));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART53_P1, relation = formalizes, coverage = partial, quote = "いづれかの議院の総議員の四分の一以上の要求があれば、内閣は、その召集を決定しなければならない")
+rule CabinetMustConveneOnQuarterDemand strict {
+    label ja official "いづれかの議院の総議員の四分の一以上の要求があれば、内閣は、その召集を決定しなければならない";
+    label en unofficial "Article 53, second sentence. On the demand of one quarter of all the members of either House the Cabinet must decide the convocation";
+    for m: Motion; for h: House; for d: Date;
+    when demand_for_extraordinary_session(m) and motion_before(m, h) and demand_made_on(m, d)
+        and one_quarter_of_all_demand(m);
+    then duty DecideConvocationOnDemand {
+        bearer Cabinet; beneficiary h;
+        goal achievement {
+            condition convocation_decided_on_demand(m);
+            window [d, infinity);
+        }
+    };
+}
+
+// --- Article 54(1): dissolution, election within 40 days, convocation within 30 ----
+relation general_election_held_on(h: House, x: Date) kind empirical {
+    label ja official "総選挙を行ひ";
+    label en unofficial "the general election of members of the House was held on the day";
+}
+relation diet_convoked_on(c: Date) kind empirical {
+    label ja official "国会を召集";
+    label en unofficial "the Diet was convoked on the day (the day of the act of convocation)";
+}
+relation election_deadline(h: House, d: Date, l: Date) kind institutional {
+    label ja official "解散の日から四十日以内";
+    label en unofficial "the last day of the forty days that begin with the dissolution of the day d";
+}
+relation election_held_within_forty_days(h: House, d: Date) kind institutional {
+    label en unofficial "the general election was held within forty days from the dissolution (producer for Chapter V)";
+}
+relation convocation_deadline(h: House, x: Date, l: Date) kind institutional {
+    label ja official "その選挙の日から三十日以内";
+    label en unofficial "the last day of the thirty days that begin with the election of the day x";
+}
+relation convoked_within_thirty_days_after_election(h: House, x: Date) kind institutional {
+    label en unofficial "the Diet was convoked within thirty days from the election of the day x";
+}
+relation diet_convoked_after_election(h: House, x: Date, c: Date) kind institutional {
+    label en unofficial "the Diet was convoked on the day c, not before the general election of the day x (producer for Chapter V, Arts. 69-70)";
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "解散の日から四十日以内に")
+rule ElectionDeadlineFortyDays strict {
+    label en unofficial "The deadline for the general election is forty days after dissolution";
+    for h: House; for d: Date;
+    when house_dissolved(h, d);
+    then election_deadline(h, d, add_calendar_period(d, 40 calendar_day));
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "解散の日から四十日以内に、衆議院議員の総選挙を行ひ")
+rule ElectionHeldInTime strict {
+    label en unofficial "The general election was held within forty days of dissolution";
+    for h: House; for d: Date; for l: Date; for x: Date;
+    when house_dissolved(h, d) and election_deadline(h, d, l) and general_election_held_on(h, x)
+        and x >= d and x <= l;
+    then election_held_within_forty_days(h, d);
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "解散の日から四十日以内に、衆議院議員の総選挙を行ひ")
+rule GeneralElectionWithinFortyDaysOfDissolution strict {
+    label ja official "衆議院が解散されたときは、解散の日から四十日以内に、衆議院議員の総選挙を行ひ";
+    label en unofficial "Article 54(1). When the House of Representatives is dissolved the general election is held within forty days from the day of dissolution";
+    for h: House; for d: Date; for l: Date;
+    when house_dissolved(h, d) and election_deadline(h, d, l);
+    then duty HoldGeneralElectionWithinFortyDays {
+        bearer Japan;
+        goal achievement {
+            condition election_held_within_forty_days(h, d);
+            window [d, l];
+        }
+    };
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "その選挙の日から三十日以内に")
+rule ConvocationDeadlineThirtyDays strict {
+    label en unofficial "The deadline for convening the Diet is thirty days after the general election";
+    for h: House; for x: Date;
+    when general_election_held_on(h, x);
+    then convocation_deadline(h, x, add_calendar_period(x, 30 calendar_day));
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "その選挙の日から三十日以内に、国会を召集しなければならない")
+rule DietConvokedInTime strict {
+    label en unofficial "The Diet was convoked within thirty days after the general election";
+    for h: House; for x: Date; for l: Date; for c: Date;
+    when general_election_held_on(h, x) and convocation_deadline(h, x, l) and diet_convoked_on(c)
+        and c >= x and c <= l;
+    then convoked_within_thirty_days_after_election(h, x);
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "その選挙の日から三十日以内に、国会を召集しなければならない")
+rule DietConvokedAfterElection strict {
+    label en unofficial "The Diet was convoked on a date not earlier than the general election";
+    for h: House; for x: Date; for c: Date;
+    when general_election_held_on(h, x) and diet_convoked_on(c) and c >= x;
+    then diet_convoked_after_election(h, x, c);
+}
+
+@source(JP_CONST_ART54_P1, relation = formalizes, coverage = partial, quote = "その選挙の日から三十日以内に、国会を召集しなければならない")
+rule DietMustBeConvokedWithinThirtyDays strict {
+    label ja official "その選挙の日から三十日以内に、国会を召集しなければならない";
+    label en unofficial "Article 54(1). The Diet must be convoked within thirty days from the day of the election";
+    for h: House; for x: Date; for l: Date;
+    when general_election_held_on(h, x) and convocation_deadline(h, x, l);
+    then duty ConvokeDietWithinThirtyDaysOfElection {
+        bearer Japan;
+        goal achievement {
+            condition convoked_within_thirty_days_after_election(h, x);
+            window [x, l];
+        }
+    };
+}
+
+// --- Article 54(2): the House of Councillors closes; the emergency session ------------
+relation house_closed_on(h: House, d: Date) kind institutional {
+    label ja official "参議院は、同時に閉会となる";
+    label en unofficial "the House is closed on the day (producer for Chapter V)";
+}
+external judgment relation urgent_need_of_state(s: Session) {
+    authority CabinetOfJapan;
+    label ja official "国に緊急の必要があるとき";
+    label en unofficial "there is an urgent necessity of the State (evaluative; authority: the Cabinet, which the text names as the one who requests)";
+}
+relation cabinet_requests_emergency_session(s: Session) kind empirical {
+    label ja official "参議院の緊急集会を求める";
+    label en unofficial "the Cabinet requests the emergency session of the House of Councillors (the act of exercise)";
+}
+relation emergency_session_requested(s: Session) kind institutional {
+    label ja official "参議院の緊急集会の要求";
+    label en unofficial "the emergency session of the House of Councillors has been validly requested (producer of the chapter)";
+}
+
+@source(JP_CONST_ART54_P2, relation = formalizes, coverage = partial, quote = "衆議院が解散されたときは、参議院は、同時に閉会となる")
+rule CouncillorsClosedOnDissolution strict {
+    label ja official "衆議院が解散されたときは、参議院は、同時に閉会となる";
+    label en unofficial "Article 54(2). When the House of Representatives is dissolved the House of Councillors is closed at the same time";
+    for d: Date;
+    when house_dissolved(HouseOfRepresentatives, d);
+    then house_closed_on(HouseOfCouncillors, d);
+}
+
+@source(JP_CONST_ART54_P2, relation = formalizes, coverage = partial, quote = "内閣は、国に緊急の必要があるときは、参議院の緊急集会を求めることができる")
+rule CabinetMayRequestEmergencySession strict {
+    label ja official "但し、内閣は、国に緊急の必要があるときは、参議院の緊急集会を求めることができる";
+    label en unofficial "Article 54(2) proviso. In case of urgent necessity the Cabinet may request an emergency session of the House of Councillors";
+    for s: Session; for k: SessionKind; for d: Date;
+    when session_kind(s, k) and k == session_emergency_councillors and house_closed_on(HouseOfCouncillors, d);
+    then power CabinetRequestsEmergencySession {
+        holder Cabinet; over s;
+        exercise cabinet_requests_emergency_session(s);
+        valid_when urgent_need_of_state(s);
+        effect create(emergency_session_requested(s));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 54(3): temporary measures ------------------------------------------------
+relation measure_adopted_at_emergency_session(x: EmergencyMeasure) kind empirical {
+    label ja official "緊急集会において採られた措置";
+    label en unofficial "the measure was taken at the emergency session";
+}
+relation next_session_opened_on(x: EmergencyMeasure, d: Date) kind empirical {
+    label ja official "次の国会開会";
+    label en unofficial "the day on which the next session of the Diet after the measure opened";
+}
+relation representatives_consent_on(x: EmergencyMeasure, y: Date) kind empirical {
+    label ja official "衆議院の同意";
+    label en unofficial "the House of Representatives consented to the measure on the day";
+}
+relation emergency_measure_temporary(x: EmergencyMeasure) kind institutional {
+    label ja official "臨時のものであつて";
+    label en unofficial "the measure is temporary";
+}
+relation emergency_measure_consent_deadline(x: EmergencyMeasure, l: Date) kind institutional {
+    label ja official "次の国会開会の後十日以内";
+    label en unofficial "the last day of the ten days that begin with the opening of the next session";
+}
+relation emergency_measure_consented_in_time(x: EmergencyMeasure) kind institutional {
+    label en unofficial "the House of Representatives consented within ten days after the opening of the next session";
+}
+relation emergency_measure_lapsed(x: EmergencyMeasure) kind institutional {
+    label ja official "その効力を失ふ";
+    label en unofficial "the measure has lost its effect: no consent within ten days (assessed on the assessment date)";
+}
+
+@source(JP_CONST_ART54_P3, relation = formalizes, coverage = partial, quote = "臨時のものであつて")
+rule EmergencyMeasureIsTemporary strict {
+    label en unofficial "A measure adopted at an emergency session is only provisional";
+    for x: EmergencyMeasure;
+    when measure_adopted_at_emergency_session(x);
+    then emergency_measure_temporary(x);
+}
+
+@source(JP_CONST_ART54_P3, relation = formalizes, coverage = partial, quote = "次の国会開会の後十日以内に")
+rule EmergencyMeasureConsentDeadline strict {
+    label en unofficial "Consent to an emergency measure is due within ten days of the next session opening";
+    for x: EmergencyMeasure; for d: Date;
+    when measure_adopted_at_emergency_session(x) and next_session_opened_on(x, d);
+    then emergency_measure_consent_deadline(x, add_calendar_period(d, 10 calendar_day));
+}
+
+@source(JP_CONST_ART54_P3, relation = formalizes, coverage = partial, quote = "衆議院の同意がない場合")
+rule EmergencyMeasureConsentedInTime strict {
+    label en unofficial "The House of Representatives consented to the emergency measure within the ten-day deadline";
+    for x: EmergencyMeasure; for d: Date; for l: Date; for y: Date;
+    when measure_adopted_at_emergency_session(x) and next_session_opened_on(x, d)
+        and emergency_measure_consent_deadline(x, l) and representatives_consent_on(x, y)
+        and y >= d and y <= l;
+    then emergency_measure_consented_in_time(x);
+}
+
+@source(JP_CONST_ART54_P3, relation = formalizes, coverage = partial, quote = "その効力を失ふ")
+rule EmergencyMeasureLapsesWithoutConsent defeasible {
+    label ja official "次の国会開会の後十日以内に、衆議院の同意がない場合には、その効力を失ふ";
+    label en unofficial "Article 54(3). Without the consent of the House of Representatives within ten days after the opening of the next session the measure loses its effect";
+    for x: EmergencyMeasure; for l: Date; for z: Date;
+    when emergency_measure_consent_deadline(x, l) and assessment_date(z) and z > l;
+    unless (emergency_measure_consented_in_time(x) and emergency_measure_consent_deadline(x, l) and assessment_date(z));
+    then emergency_measure_lapsed(x);
+}
+
+// --- Article 55: qualifications, the loss of a seat ---------------------------------------
+relation qualification_dispute(p: Person, h: House) kind empirical {
+    label ja official "議員の資格に関する争訟";
+    label en unofficial "there is a dispute over the qualifications of the member of the House";
+}
+relation adjudication_motion(m: Motion, p: Person) kind empirical {
+    label en unofficial "the motion is to adjudicate the dispute over the qualifications of the member";
+}
+relation seat_loss_motion(m: Motion, p: Person) kind empirical {
+    label en unofficial "the motion is to deprive the member of his seat";
+}
+relation house_adjudicates_qualification(h: House, p: Person) kind empirical {
+    label ja official "裁判する";
+    label en unofficial "the House adjudicates the dispute (the act of exercise)";
+}
+relation house_deprives_seat(h: House, p: Person) kind empirical {
+    label ja official "議席を失はせる";
+    label en unofficial "the House deprives the member of his seat (the act of exercise)";
+}
+relation adjudication_carried(p: Person, h: House) kind institutional {
+    label en unofficial "the motion to adjudicate was carried by the residual rule of Art. 56(2) (the text sets no special threshold for the adjudication)";
+}
+relation seat_loss_carried(p: Person, h: House) kind institutional {
+    label ja official "出席議員の三分の二以上の多数による議決";
+    label en unofficial "the motion to deprive the member of his seat was carried: quorum and two thirds of the members PRESENT";
+}
+relation qualification_adjudicated(p: Person) kind institutional {
+    label en unofficial "the dispute over the qualifications of the member has been adjudicated by his House";
+}
+relation seat_lost(p: Person, h: House) kind institutional {
+    label ja official "議員の議席を失はせる";
+    label en unofficial "the member has lost his seat in the House";
+}
+
+@source(JP_CONST_ART55_P1, relation = formalizes, coverage = partial, quote = "議席を失はせるには、出席議員の三分の二以上の多数による議決を必要とする")
+rule SeatLossCarriedByTwoThirdsOfPresent strict {
+    label en unofficial "Loss of a member's seat is carried by a two-thirds majority of those present";
+    for m: Motion; for p: Person; for h: House;
+    when seat_loss_motion(m, p) and motion_before(m, h) and quorum_one_third_of_all(m) and two_thirds_of_present_for(m);
+    then seat_loss_carried(p, h);
+}
+
+@source(JP_CONST_ART55_P1, relation = formalizes, coverage = partial, quote = "両議院は、各々その議員の資格に関する争訟を裁判する")
+rule AdjudicationCarriedByOrdinaryMajority strict {
+    label en unofficial "A House decides a dispute over a member's qualifications by an ordinary majority";
+    for m: Motion; for p: Person; for h: House;
+    when adjudication_motion(m, p) and motion_before(m, h) and adopted_by_ordinary_majority(m);
+    then adjudication_carried(p, h);
+}
+
+@source(JP_CONST_ART55_P1, relation = formalizes, coverage = partial, quote = "両議院は、各々その議員の資格に関する争訟を裁判する")
+rule HouseAdjudicatesQualificationDispute strict {
+    label ja official "両議院は、各々その議員の資格に関する争訟を裁判する";
+    label en unofficial "Article 55, main clause. Each House adjudicates disputes over the qualifications of its members";
+    for h: House; for p: Person;
+    when member_of(p, h) and qualification_dispute(p, h);
+    then power AdjudicateQualificationDispute {
+        holder h; over p;
+        exercise house_adjudicates_qualification(h, p);
+        valid_when adjudication_carried(p, h);
+        effect create(qualification_adjudicated(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART55_P1, relation = formalizes, coverage = partial, quote = "議席を失はせるには、出席議員の三分の二以上の多数による議決を必要とする")
+rule HouseMayDeprivePersonOfSeat strict {
+    label ja official "但し、議員の議席を失はせるには、出席議員の三分の二以上の多数による議決を必要とする";
+    label en unofficial "Article 55 proviso. To deprive a member of his seat two thirds of the members present are needed";
+    for h: House; for p: Person;
+    when member_of(p, h) and qualification_dispute(p, h);
+    then power DeprivePersonOfSeat {
+        holder h; over p;
+        exercise house_deprives_seat(h, p);
+        valid_when seat_loss_carried(p, h);
+        effect create(seat_lost(p, h));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 56: quorum ----------------------------------------------------------------------
+relation house_may_transact_business(m: Motion) kind institutional {
+    label ja official "議事を開き議決することができる";
+    label en unofficial "at least one third of all the members are present: the House may open and decide business (the quorum)";
+}
+relation business_without_quorum(m: Motion) kind institutional {
+    label ja official "総議員の三分の一以上の出席がなければ、議事を開き議決することができない";
+    label en unofficial "a vote was put without the quorum: the House cannot decide (not a duty: a condition of the validity of the decision)";
+}
+
+@source(JP_CONST_ART56_P1)
+rule HouseMayTransactBusinessWithQuorum strict {
+    label ja official "両議院は、各々その総議員の三分の一以上の出席がなければ、議事を開き議決することができない";
+    label en unofficial "Article 56(1). A House may open and decide business only with one third of all members present";
+    for m: Motion;
+    when quorum_one_third_of_all(m);
+    then house_may_transact_business(m);
+}
+
+@source(JP_CONST_ART56_P1)
+rule VoteWithoutQuorumIsNotABusinessDecision strict {
+    label en unofficial "A vote taken without a quorum is not a valid decision of business";
+    for m: Motion; for h: House;
+    when motion_before(m, h) and put_to_vote(m) and not_known(quorum_one_third_of_all(m));
+    then business_without_quorum(m);
+}
+
+// --- Article 57: public sittings, records, roll call --------------------------------------
+relation sitting_of(s: Sitting, h: House) kind empirical {
+    label en unofficial "the sitting is a sitting of the House";
+}
+relation holds_closed_sitting(h: House, s: Sitting) kind empirical {
+    label ja official "秘密会を開く";
+    label en unofficial "the House holds the sitting closed to the public (the act of exercise, and the prohibited action)";
+}
+relation secret_session_motion(m: Motion, s: Sitting) kind empirical {
+    label en unofficial "the motion is to hold the sitting in secret";
+}
+relation secret_session_resolved(s: Sitting) kind institutional {
+    label ja official "出席議員の三分の二以上の多数で議決したとき";
+    label en unofficial "the secret session was resolved: quorum and two thirds of the members PRESENT";
+}
+relation secret_sitting_lawful(s: Sitting) kind institutional {
+    label ja official "秘密会";
+    label en unofficial "the sitting is lawfully held in secret";
+}
+relation record_preserved(s: Sitting) kind empirical {
+    label ja official "会議の記録を保存し";
+    label en unofficial "the record of the sitting is preserved";
+}
+relation record_of(r: Record, s: Sitting) kind empirical {
+    label en unofficial "the record is the record of the sitting";
+}
+relation record_of_secret_session(r: Record) kind empirical {
+    label ja official "秘密会の記録";
+    label en unofficial "the record is that of a secret session";
+}
+external judgment relation record_specially_secret(r: Record) {
+    authority HouseThatKeepsTheRecord;
+    label ja official "特に秘密を要すると認められるもの";
+    label en unofficial "the part of the record of a secret session is recognised as specially requiring secrecy (evaluative; authority: the House that keeps the record, 各々)";
+}
+relation publication_excepted_as_secret(r: Record) kind institutional {
+    label ja official "秘密会の記録の中で特に秘密を要すると認められるもの";
+    label en unofficial "the part of the record of a secret session is excepted from publication because it is recognised as specially secret";
+}
+relation record_published_and_distributed(r: Record) kind empirical {
+    label ja official "これを公表し、且つ一般に頒布し";
+    label en unofficial "the record has been published and distributed to the public";
+}
+relation individual_votes_recorded(m: Motion) kind empirical {
+    label ja official "各議員の表決は、これを会議録に記載し";
+    label en unofficial "the vote of each member is entered in the minutes";
+}
+
+@source(JP_CONST_ART57_P1, relation = formalizes, coverage = partial, quote = "出席議員の三分の二以上の多数で議決したとき")
+rule SecretSessionResolved strict {
+    label en unofficial "A secret session is resolved by a two-thirds majority of those present";
+    for m: Motion; for s: Sitting;
+    when secret_session_motion(m, s) and quorum_one_third_of_all(m) and two_thirds_of_present_for(m);
+    then secret_session_resolved(s);
+}
+
+@source(JP_CONST_ART57_P1, relation = formalizes, coverage = partial, quote = "秘密会を開くことができる")
+rule HouseMayHoldSecretSession strict {
+    label ja official "出席議員の三分の二以上の多数で議決したときは、秘密会を開くことができる";
+    label en unofficial "Article 57(1) proviso. On a resolution of two thirds of those present a House may hold a secret session";
+    for h: House; for s: Sitting;
+    when sitting_of(s, h);
+    then power HoldSecretSession {
+        holder h; over s;
+        exercise holds_closed_sitting(h, s);
+        valid_when secret_session_resolved(s);
+        effect create(secret_sitting_lawful(s));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART57_P1, relation = formalizes, coverage = partial, quote = "両議院の会議は、公開とする")
+rule SittingsArePublicUnlessSecretSessionResolved defeasible {
+    label ja official "両議院の会議は、公開とする";
+    label en unofficial "Article 57(1). The sittings of both Houses are public; a closed sitting is forbidden unless the secret session was resolved";
+    for h: House; for s: Sitting;
+    when sitting_of(s, h);
+    unless (secret_session_resolved(s) and sitting_of(s, h));
+    then prohibition NoClosedSittingWithoutResolution {
+        bearer h;
+        action holds_closed_sitting(h, s);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART57_P2, relation = formalizes, coverage = partial, quote = "両議院は、各々その会議の記録を保存し")
+rule HouseMustKeepRecordOfSittings strict {
+    label ja official "両議院は、各々その会議の記録を保存し";
+    label en unofficial "Article 57(2). Each House keeps the record of its sittings";
+    for h: House; for s: Sitting;
+    when sitting_of(s, h);
+    then duty KeepRecordOfSittings {
+        bearer h;
+        goal maintenance {
+            condition record_preserved(s);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART57_P2, relation = formalizes, coverage = partial, quote = "秘密会の記録の中で特に秘密を要すると認められるもの")
+rule SpeciallySecretPartOfSecretRecordIsExcepted strict {
+    label en unofficial "The part of a secret session record requiring special secrecy is excepted from publication";
+    for r: Record;
+    when record_of_secret_session(r) and record_specially_secret(r);
+    then publication_excepted_as_secret(r);
+}
+
+@source(JP_CONST_ART57_P2, relation = formalizes, coverage = partial, quote = "秘密会の記録の中で特に秘密を要すると認められるもの以外は、これを公表し、且つ一般に頒布しなければならない")
+rule HouseMustPublishRecordsExceptSpeciallySecret defeasible {
+    label ja official "秘密会の記録の中で特に秘密を要すると認められるもの以外は、これを公表し、且つ一般に頒布しなければならない";
+    label en unofficial "Article 57(2). Except the parts of secret sessions recognised as specially secret, the records must be published and distributed";
+    for h: House; for s: Sitting; for r: Record;
+    when sitting_of(s, h) and record_of(r, s);
+    unless (publication_excepted_as_secret(r) and sitting_of(s, h) and record_of(r, s));
+    then duty PublishAndDistributeRecords {
+        bearer h;
+        goal maintenance {
+            condition record_published_and_distributed(r);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART57_P3)
+rule HouseMustEnterIndividualVotesOnDemandOfOneFifth strict {
+    label ja official "出席議員の五分の一以上の要求があれば、各議員の表決は、これを会議録に記載しなければならない";
+    label en unofficial "Article 57(3). On the demand of one fifth of those present the vote of each member must be entered in the minutes";
+    for m: Motion; for h: House;
+    when motion_before(m, h) and one_fifth_of_present_demand(m);
+    then duty EnterIndividualVotesInMinutes {
+        bearer h;
+        goal maintenance {
+            condition individual_votes_recorded(m);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 58: officers, rules, discipline ---------------------------------------------------
+relation officer_election_motion(m: Motion, p: Person, h: House) kind empirical {
+    label en unofficial "the motion is to elect the person as President or other officer of the House";
+}
+relation house_elects_officer(h: House, p: Person) kind empirical {
+    label ja official "選任する";
+    label en unofficial "the House elects the person as an officer (the act of exercise)";
+}
+relation house_officer(p: Person, h: House) kind institutional {
+    label ja official "議長その他の役員";
+    label en unofficial "the person is the President or another officer of the House";
+}
+relation rules_motion(m: Motion, r: RulesOfProcedure, h: House) kind empirical {
+    label en unofficial "the motion is to adopt the rules of the House";
+}
+relation house_adopts_rules(h: House, r: RulesOfProcedure) kind empirical {
+    label ja official "規則を定め";
+    label en unofficial "the House adopts the rules (the act of exercise)";
+}
+relation house_rules_in_force(r: RulesOfProcedure, h: House) kind institutional {
+    label en unofficial "the rules of the House are in force";
+}
+relation disorderly_conduct(p: Person, h: House) kind empirical {
+    label ja official "院内の秩序をみだした";
+    label en unofficial "the member disturbed the order in the House";
+}
+relation punishment_motion(m: Motion, p: Person) kind empirical {
+    label en unofficial "the motion is to punish the member (short of expulsion)";
+}
+relation expulsion_motion(m: Motion, p: Person) kind empirical {
+    label en unofficial "the motion is to expel the member";
+}
+relation house_punishes_member(h: House, p: Person) kind empirical {
+    label ja official "懲罰する";
+    label en unofficial "the House punishes the member (the act of exercise)";
+}
+relation house_expels_member(h: House, p: Person) kind empirical {
+    label ja official "除名する";
+    label en unofficial "the House expels the member (the act of exercise)";
+}
+relation member_punished(p: Person, h: House) kind institutional {
+    label en unofficial "the member has been punished by his House";
+}
+relation member_expelled(p: Person, h: House) kind institutional {
+    label ja official "議員を除名する";
+    label en unofficial "the member has been expelled from the House";
+}
+relation punishment_carried(p: Person, h: House) kind institutional {
+    label en unofficial "the motion to punish was carried by the residual rule of Art. 56(2)";
+}
+relation expulsion_carried(p: Person, h: House) kind institutional {
+    label ja official "出席議員の三分の二以上の多数による議決";
+    label en unofficial "the motion to expel was carried: quorum and two thirds of the members PRESENT";
+}
+
+@source(JP_CONST_ART58_P1)
+rule HouseElectsOfficers strict {
+    label ja official "両議院は、各々その議長その他の役員を選任する";
+    label en unofficial "Article 58(1). Each House elects its President and other officers (the threshold: the residual rule of Art. 56(2))";
+    for m: Motion; for p: Person; for h: House;
+    when officer_election_motion(m, p, h);
+    then power ElectHouseOfficer {
+        holder h; over p;
+        exercise house_elects_officer(h, p);
+        valid_when adopted_by_ordinary_majority(m);
+        effect create(house_officer(p, h));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART58_P2, relation = formalizes, coverage = partial, quote = "両議院は、各々その会議その他の手続及び内部の規律に関する規則を定め")
+rule HouseAdoptsItsRules strict {
+    label ja official "両議院は、各々その会議その他の手続及び内部の規律に関する規則を定め";
+    label en unofficial "Article 58(2). Each House adopts rules on its proceedings and internal discipline";
+    for m: Motion; for r: RulesOfProcedure; for h: House;
+    when rules_motion(m, r, h);
+    then power AdoptRulesOfProcedure {
+        holder h; over r;
+        exercise house_adopts_rules(h, r);
+        valid_when adopted_by_ordinary_majority(m);
+        effect create(house_rules_in_force(r, h));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART58_P2, relation = formalizes, coverage = partial, quote = "院内の秩序をみだした議員を懲罰することができる")
+rule PunishmentCarriedByOrdinaryMajority strict {
+    label en unofficial "Punishment of a member for disorder in the House is carried by an ordinary majority";
+    for m: Motion; for p: Person; for h: House;
+    when punishment_motion(m, p) and motion_before(m, h) and adopted_by_ordinary_majority(m);
+    then punishment_carried(p, h);
+}
+
+@source(JP_CONST_ART58_P2, relation = formalizes, coverage = partial, quote = "議員を除名するには、出席議員の三分の二以上の多数による議決を必要とする")
+rule ExpulsionCarriedByTwoThirdsOfPresent strict {
+    label en unofficial "Expulsion of a member is carried by a two-thirds majority of those present";
+    for m: Motion; for p: Person; for h: House;
+    when expulsion_motion(m, p) and motion_before(m, h) and quorum_one_third_of_all(m) and two_thirds_of_present_for(m);
+    then expulsion_carried(p, h);
+}
+
+@source(JP_CONST_ART58_P2, relation = formalizes, coverage = partial, quote = "院内の秩序をみだした議員を懲罰することができる")
+rule HousePunishesDisorderlyMember strict {
+    label ja official "院内の秩序をみだした議員を懲罰することができる";
+    label en unofficial "Article 58(2). Each House may punish a member who disturbed the order in the House";
+    for h: House; for p: Person;
+    when member_of(p, h) and disorderly_conduct(p, h);
+    then power PunishDisorderlyMember {
+        holder h; over p;
+        exercise house_punishes_member(h, p);
+        valid_when punishment_carried(p, h);
+        effect create(member_punished(p, h));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART58_P2, relation = formalizes, coverage = partial, quote = "議員を除名するには、出席議員の三分の二以上の多数による議決を必要とする")
+rule HouseMayExpelDisorderlyMember strict {
+    label ja official "但し、議員を除名するには、出席議員の三分の二以上の多数による議決を必要とする";
+    label en unofficial "Article 58(2) proviso. To expel a member two thirds of the members present are needed";
+    for h: House; for p: Person;
+    when member_of(p, h) and disorderly_conduct(p, h);
+    then power ExpelDisorderlyMember {
+        holder h; over p;
+        exercise house_expels_member(h, p);
+        valid_when expulsion_carried(p, h);
+        effect create(member_expelled(p, h));
+        window [@1947-05-03, infinity);
+    };
+}

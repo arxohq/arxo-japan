@@ -1,0 +1,95 @@
+{
+  "assertions": [
+    {
+      "contentHash": "sha256:63b5b7c33d8dfa6562e5d9f3580e641393317a516bf07ac99f56d88f66a7119a",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f0",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:F1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#land_sea_or_air_force"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:b17384e571ad3942731af5ff2cd45dc8c50218da66f2d3df377dfb3abf5c2fe0",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f1",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:F2",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#other_war_potential"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:24f4cac8571a0f526a4e882b30daddb098c40b66afe86910a55d1a57fd1820af",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f2",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:constitution:clir#Japan",
+            "kind": "const_ref"
+          },
+          {
+            "id": "urn:jp:case:F1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#maintains_force"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:1725b358a1bac3fabac4e8d45b3668faeab016f53f56b907628dc2b326771942",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f3",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:F1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "negative",
+        "predicate": "urn:jp:constitution:clir#exceeds_necessary_minimum_for_self_defense"
+      },
+      "origin": "adjudicated",
+      "package": "urn:jp:constitution:clir"
+    }
+  ],
+  "context": {
+    "decisionTime": "2026-06-01T12:00:00Z",
+    "knowledgeTime": "2026-06-01T12:00:00Z",
+    "legalTime": "2026-06-01",
+    "timezone": "Asia/Tokyo"
+  },
+  "options": {
+    "selectedInterpretations": [
+      "urn:jp:constitution:clir#NecessaryMinimumSelfDefenseReading"
+    ]
+  }
+}

@@ -1,0 +1,1523 @@
+// Chapter III, Rights and Duties of the People (第三章 国民の権利及び義務),
+// Articles 25-40 (stage J4; Articles 10-24 are stage J3, module ch03a).
+//
+// TWO BLOCKS
+//   Articles 25-30: social rights and duties (minimum life, education, work,
+//   labour, property, taxes).  Articles 31-40: the guarantees of the person in
+//   criminal procedure (due process, arrest, detention, search, torture,
+//   the accused's rights, confession, retroactivity, compensation).
+//
+// THE MODEL OF A GUARANTEE AGAINST AN ACT OF AUTHORITY (Arts. 29, 31, 33-35,
+// 38(3), 39). The pattern is the one verified by both evaluators in AUDIT.md
+// (items 1, 2): a protected person holds an `immunity` whose `protected_effect`
+// is the legal effect of an act of authority; the act is a `power` whose
+// `valid_when` states the constitutional CONDITIONS of a valid exercise; where
+// the text itself opens an exception (a warrant, the person caught in the act,
+// public use with just compensation) the power of the exception is preferred
+// to the general immunity by a `priority` (§116, lex_specialis). An exercise
+// that does not meet the conditions is POWER_INVALID_EXERCISE with no effect.
+// The powers named here are NOT the source of the authority to arrest, search
+// or punish (that source is statutory: an external dependency, ch. of the
+// Constitution: "as provided by law"); they state the conditions under which the
+// Constitution lets such an act take legal effect.
+//
+// EVALUATIVE ELEMENTS (DECISION-0194, channel 1 = judgment relation §47.3).
+// "healthy and cultural minimum" (25), "just compensation" and "public use" (29),
+// "public welfare" (29(2)), "adequate cause" (34, 35), "immediately" (34),
+// "impartial" and "speedy" (37), "sufficiently" (37(2)), "unduly long" (38(2)),
+// "cruel" (36) are `external judgment relation`s. The text names no organ that
+// decides them; `CourtsOfJapan` is the organ competent for the review of the
+// application of the Constitution (Art. 81, stage J-later) and is used as the
+// authority as in ch02. The answer of a court is an input fact with
+// `origin adjudicated`. No reading of any court or of the Government is
+// asserted in this module (none was retrieved from a primary source; see
+// docs/foundations/jp-constitution/coverage/J4-interpretations.md).
+//
+// EXTERNAL DEPENDENCIES ("as provided by law", 法律の定めるところにより):
+// Arts. 26, 27(2), 29(2), 30, 31, 40. The content of the statute is an INPUT of
+// the case (a relation naming the statute-defined fact), never invented here.
+//
+// NOT MODELLED AS A NORM (reasons in coverage/J4.json): Art. 27(1), the DUTY to
+// work: the sentence names its bearer but no conduct condition, window, organ or
+// consequence, and a maintenance goal over "works" would make every unemployed
+// person's duty VIOLATED, contradicting the right of the same sentence. It is an
+// institutional status only (`duty_to_work_borne`).
+//
+// NAMES. Helpers that another chapter may also need (nationals, persons,
+// officials, organs, courts) carry the prefix `r3b_`.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    JP_CONST_ART25_P1,
+    JP_CONST_ART25_P2,
+    JP_CONST_ART26_P1,
+    JP_CONST_ART26_P2,
+    JP_CONST_ART27_P1,
+    JP_CONST_ART27_P2,
+    JP_CONST_ART27_P3,
+    JP_CONST_ART28_P1,
+    JP_CONST_ART29_P1,
+    JP_CONST_ART29_P2,
+    JP_CONST_ART29_P3,
+    JP_CONST_ART30_P1,
+    JP_CONST_ART31_P1,
+    JP_CONST_ART32_P1,
+    JP_CONST_ART33_P1,
+    JP_CONST_ART34_P1,
+    JP_CONST_ART35_P1,
+    JP_CONST_ART35_P2,
+    JP_CONST_ART36_P1,
+    JP_CONST_ART37_P1,
+    JP_CONST_ART37_P2,
+    JP_CONST_ART37_P3,
+    JP_CONST_ART38_P1,
+    JP_CONST_ART38_P2,
+    JP_CONST_ART38_P3,
+    JP_CONST_ART39_P1,
+    JP_CONST_ART40_P1,
+    Nation,
+    Organ,
+    Person,
+    Statute,
+    nation,
+};
+
+// =============================================================================
+// Shared vocabulary of the module
+// =============================================================================
+
+relation r3b_national(p: Person) kind empirical {
+    label ja official "国民";
+    label en unofficial "the person is a national (国民)";
+}
+relation r3b_person(p: Person) kind empirical {
+    label ja official "何人も";
+    label en unofficial "the person is a person within the scope of the guarantee (何人)";
+}
+relation r3b_child(p: Person) kind empirical {
+    label ja official "児童";
+    label en unofficial "the person is a child (児童)";
+}
+relation r3b_worker(p: Person) kind empirical {
+    label ja official "勤労者";
+    label en unofficial "the person is a worker (勤労者)";
+}
+relation r3b_public_official(p: Person) kind empirical {
+    label ja official "公務員";
+    label en unofficial "the person is a public official (公務員)";
+}
+relation r3b_authority(o: Organ) kind empirical {
+    label ja official "国の機関";
+    label en unofficial "the organ is an authority of the state that may act against a person";
+}
+relation r3b_court(o: Organ) kind empirical {
+    label ja official "裁判所";
+    label en unofficial "the organ is a court";
+}
+
+entity Prosecution {
+    label ja official "刑事事件";
+    label en unofficial "criminal case against a person";
+}
+entity Evidence { label ja official "証拠"; label en unofficial "item of evidence"; }
+entity PropertyTaking {
+    label ja official "私有財産の収用";
+    label en unofficial "taking of private property for public use";
+}
+entity Arrest { label ja official "逮捕"; label en unofficial "arrest"; }
+entity Detention { label ja official "抑留又は拘禁"; label en unofficial "custody (抑留) or confinement (拘禁)"; }
+entity SearchOrSeizure {
+    label ja official "侵入、捜索及び押収";
+    label en unofficial "entry, search or seizure of home, papers and effects";
+}
+entity Penalty { label ja official "刑罰"; label en unofficial "punishment"; }
+entity LabourStandard {
+    label ja official "勤労条件に関する基準";
+    label en unofficial "standard of working conditions";
+}
+
+relation defendant_of(c: Prosecution, p: Person) kind empirical {
+    label ja official "被告人";
+    label en unofficial "the person is the accused in the criminal case";
+}
+
+// =============================================================================
+// Article 25 - minimum life; the duty of the state to endeavour
+// =============================================================================
+
+external judgment relation minimum_life_standard_met(p: Person) {
+    authority CourtsOfJapan;
+    label ja official "健康で文化的な最低限度の生活";
+    label en unofficial "the person's life reaches the healthy and cultural minimum standard";
+}
+relation right_to_minimum_life(p: Person) kind institutional {
+    label ja official "健康で文化的な最低限度の生活を営む権利";
+    label en unofficial "the person holds the right to a healthy and cultural minimum life";
+}
+relation minimum_life_standard_established(p: Person) kind institutional {
+    label en unofficial "it is established that the holder's life reaches the minimum standard";
+}
+
+// Art. 25(1) names a holder (国民) and an evaluative content but no bearer and no
+// conduct: the right is recorded as an institutional status and the standard
+// as a judgment; the correlate is the state's duty of endeavour of paragraph 2.
+@source(JP_CONST_ART25_P1)
+rule NationalHoldsRightToMinimumLife strict {
+    label ja official "すべて国民は、健康で文化的な最低限度の生活を営む権利を有する";
+    label en unofficial "Art. 25(1). Every national holds the right to a healthy and cultural minimum life";
+    for p: Person;
+    when r3b_national(p);
+    then right_to_minimum_life(p);
+}
+
+@source(JP_CONST_ART25_P1)
+rule MinimumLifeStandardEstablishedByJudgment strict {
+    label ja official "健康で文化的な最低限度";
+    label en unofficial "Art. 25(1). The minimum standard is an evaluative judgment (channel 1)";
+    for p: Person;
+    when right_to_minimum_life(p) and minimum_life_standard_met(p);
+    then minimum_life_standard_established(p);
+}
+
+relation endeavours_to_improve_welfare(n: Nation) kind empirical {
+    label ja official "社会福祉、社会保障及び公衆衛生の向上及び増進に努める";
+    label en unofficial "the state endeavours to improve social welfare, social security and public health";
+}
+
+// "努めなければならない": a duty of ENDEAVOUR, not of a result. The goal is a
+// maintenance over the conduct of endeavouring (window open); silence leaves
+// the duty ACTIVE, the asserted negation of the endeavour is VIOLATED. The text
+// names no beneficiary; none is invented.
+@source(JP_CONST_ART25_P2)
+rule StateEndeavoursForWelfare strict {
+    label ja official "国は、すべての生活部面について、社会福祉、社会保障及び公衆衛生の向上及び増進に努めなければならない";
+    label en unofficial "Art. 25(2). The state must endeavour to improve social welfare, security and public health in all spheres of life";
+    for n: Nation;
+    when nation(n);
+    then duty ImproveSocialWelfare {
+        bearer n;
+        goal maintenance {
+            condition endeavours_to_improve_welfare(n);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// =============================================================================
+// Article 26 - education
+// =============================================================================
+
+relation education_entitlement_defined_by_statute(p: Person) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "a statute defines the person's entitlement to education (external dependency)";
+}
+relation education_provided_equally(p: Person) kind empirical {
+    label ja official "ひとしく教育を受ける";
+    label en unofficial "the person receives education according to ability, equally";
+}
+
+@source(JP_CONST_ART26_P1)
+rule StateProvidesEducationDuty strict {
+    label ja official "すべて国民は、法律の定めるところにより、その能力に応じて、ひとしく教育を受ける権利を有する";
+    label en unofficial "Art. 26(1). The state owes education to every national, according to ability and equally, as the statute provides";
+    for n: Nation; for p: Person;
+    when nation(n) and r3b_national(p) and education_entitlement_defined_by_statute(p);
+    then duty EducationRightDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition education_provided_equally(p);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation guardian_of(g: Person, c: Person) kind empirical {
+    label ja official "その保護する子女";
+    label en unofficial "the person has the child under protection (parent or guardian)";
+}
+relation statute_prescribes_ordinary_education(c: Person) kind empirical {
+    label ja official "法律の定めるところにより（普通教育）";
+    label en unofficial "a statute prescribes ordinary education for the child (external dependency)";
+}
+relation child_receives_ordinary_education(c: Person) kind empirical {
+    label ja official "普通教育を受けさせる";
+    label en unofficial "the child is made to receive ordinary education";
+}
+
+@source(JP_CONST_ART26_P2, relation = formalizes, coverage = partial, quote = "すべて国民は、法律の定めるところにより、その保護する子女に普通教育を受けさせる義務を負ふ。")
+rule GuardianDutyToEducateChild strict {
+    label ja official "すべて国民は、法律の定めるところにより、その保護する子女に普通教育を受けさせる義務を負ふ";
+    label en unofficial "Art. 26(2). Every national must have the children under his protection receive ordinary education, as the statute provides";
+    for g: Person; for c: Person;
+    when r3b_national(g) and guardian_of(g, c) and statute_prescribes_ordinary_education(c);
+    then duty EducateChildDuty {
+        bearer g;
+        goal maintenance {
+            condition child_receives_ordinary_education(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation in_compulsory_education(c: Person) kind empirical {
+    label ja official "義務教育";
+    label en unofficial "the person is in compulsory education";
+}
+relation compulsory_education_free_of_charge(c: Person) kind empirical {
+    label ja official "無償";
+    label en unofficial "the compulsory education of the person is free of charge";
+}
+
+// "義務教育は、これを無償とする": no subject is stated. The state provides
+// compulsory education (Art. 26(1) and the statute), so the state is the
+// bearer; the pupil is the beneficiary. A judgment call recorded in J4.json.
+@source(JP_CONST_ART26_P2, relation = formalizes, coverage = partial, quote = "義務教育は、これを無償とする。")
+rule CompulsoryEducationFreeDuty strict {
+    label ja official "義務教育は、これを無償とする";
+    label en unofficial "Art. 26(2). Compulsory education is free of charge";
+    for n: Nation; for c: Person;
+    when nation(n) and in_compulsory_education(c);
+    then duty FreeCompulsoryEducationDuty {
+        bearer n;
+        beneficiary c;
+        goal maintenance {
+            condition compulsory_education_free_of_charge(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// =============================================================================
+// Article 27 - work
+// =============================================================================
+
+relation engages_in_work(p: Person) kind empirical {
+    label ja official "勤労する";
+    label en unofficial "the person engages in work";
+}
+relation duty_to_work_borne(p: Person) kind institutional {
+    label ja official "勤労の義務を負ふ";
+    label en unofficial "the national bears the constitutional duty to work (status only)";
+}
+
+@source(JP_CONST_ART27_P1, relation = formalizes, coverage = partial, quote = "すべて国民は、勤労の権利を有し")
+rule NationalMayWork strict {
+    label ja official "すべて国民は、勤労の権利を有し";
+    label en unofficial "Art. 27(1). Every national has the right to work: the freedom to engage in work";
+    for p: Person;
+    when r3b_national(p);
+    then liberty WorkFreely {
+        holder p;
+        action engages_in_work(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART27_P1, relation = formalizes, coverage = partial, quote = "義務を負ふ")
+rule NationalBearsDutyToWorkStatus strict {
+    label ja official "（すべて国民は、）義務を負ふ";
+    label en unofficial "Art. 27(1). Every national bears the duty to work (status only: no conduct condition, window or consequence in the text)";
+    for p: Person;
+    when r3b_national(p);
+    then duty_to_work_borne(p);
+}
+
+relation sets_labour_standard(m: LabourStandard) kind empirical {
+    label ja official "賃金、就業時間、休息その他の勤労条件に関する基準";
+    label en unofficial "the measure sets a standard of wages, working hours, rest or other working conditions";
+}
+relation laid_down_by_statute(m: LabourStandard, s: Statute) kind empirical {
+    label ja official "法律でこれを定める";
+    label en unofficial "the standard is laid down by the statute (external dependency: its content)";
+}
+relation labour_standard_in_constitutional_form(m: LabourStandard) kind institutional {
+    label en unofficial "the standard has the form the Constitution requires: it is set by statute";
+}
+
+@source(JP_CONST_ART27_P2)
+rule LabourStandardsBystatuteForm strict {
+    label ja official "賃金、就業時間、休息その他の勤労条件に関する基準は、法律でこれを定める";
+    label en unofficial "Art. 27(2). Standards of working conditions are set by statute";
+    for m: LabourStandard; for s: Statute;
+    when sets_labour_standard(m) and laid_down_by_statute(m, s);
+    then labour_standard_in_constitutional_form(m);
+}
+
+relation exploits_child(p: Person, c: Person) kind empirical {
+    label ja official "児童を酷使する";
+    label en unofficial "the person works the child to exhaustion or exploits the child";
+}
+
+// Addressee: the text names none ("児童は、これを酷使してはならない"): the ban
+// binds every person; the bearer is every person of the scope of the guarantee.
+@source(JP_CONST_ART27_P3)
+rule NoExploitationOfChildren strict {
+    label ja official "児童は、これを酷使してはならない";
+    label en unofficial "Art. 27(3). Children must not be exploited";
+    for p: Person; for c: Person;
+    when r3b_person(p) and r3b_child(c);
+    then prohibition NoExploitChildProhibition {
+        bearer p;
+        action exploits_child(p, c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// =============================================================================
+// Article 28 - the rights of workers
+// =============================================================================
+
+relation forms_or_joins_union(w: Person) kind empirical {
+    label ja official "団結する";
+    label en unofficial "the worker organizes or joins a union";
+}
+relation bargains_collectively(w: Person) kind empirical {
+    label ja official "団体交渉";
+    label en unofficial "the worker takes part in collective bargaining";
+}
+relation acts_collectively(w: Person) kind empirical {
+    label ja official "その他の団体行動";
+    label en unofficial "the worker takes part in other collective action";
+}
+relation labour_right_curtailed(w: Person) kind institutional {
+    label ja official "団結権等の制限";
+    label en unofficial "the workers' right of organization or collective action is curtailed by an act of authority";
+}
+
+@source(JP_CONST_ART28_P1, relation = formalizes, coverage = partial, quote = "勤労者の団結する権利")
+rule WorkersMayOrganize strict {
+    label ja official "勤労者の団結する権利";
+    label en unofficial "Art. 28. Workers may organize";
+    for w: Person;
+    when r3b_worker(w);
+    then liberty OrganizeFreely {
+        holder w;
+        action forms_or_joins_union(w);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART28_P1, relation = formalizes, coverage = partial, quote = "団体交渉")
+rule WorkersMayBargain strict {
+    label ja official "団体交渉をする権利";
+    label en unofficial "Art. 28. Workers may bargain collectively";
+    for w: Person;
+    when r3b_worker(w);
+    then liberty BargainFreely {
+        holder w;
+        action bargains_collectively(w);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART28_P1, relation = formalizes, coverage = partial, quote = "その他の団体行動をする権利")
+rule WorkersMayActCollectively strict {
+    label ja official "その他の団体行動をする権利";
+    label en unofficial "Art. 28. Workers may take other collective action";
+    for w: Person;
+    when r3b_worker(w);
+    then liberty ActCollectivelyFreely {
+        holder w;
+        action acts_collectively(w);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART28_P1, relation = formalizes, coverage = partial, quote = "これを保障する")
+rule WorkersRightsGuaranteed strict {
+    label ja official "これを保障する";
+    label en unofficial "Art. 28. The rights of workers are guaranteed against curtailment by an act of authority";
+    for w: Person;
+    when r3b_worker(w);
+    then immunity WorkersRightsImmunity {
+        holder w;
+        protected_effect labour_right_curtailed(w);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// =============================================================================
+// Article 29 - property
+// =============================================================================
+
+relation property_taking_of(t: PropertyTaking, p: Person) kind empirical {
+    label ja official "私有財産";
+    label en unofficial "the taking concerns the private property of the person";
+}
+relation takes_property(o: Organ, t: PropertyTaking) kind empirical {
+    label ja official "私有財産を公共のために用ひる";
+    label en unofficial "the organ takes the private property for public use (act of exercise)";
+}
+relation property_taken(t: PropertyTaking) kind institutional {
+    label en unofficial "the taking has legal effect";
+}
+external judgment relation taking_for_public_use(t: PropertyTaking) {
+    authority CourtsOfJapan;
+    label ja official "公共のために";
+    label en unofficial "the taking is for public use";
+}
+external judgment relation compensation_is_just(t: PropertyTaking) {
+    authority CourtsOfJapan;
+    label ja official "正当な補償";
+    label en unofficial "the compensation for the taking is just";
+}
+relation taking_compensation_paid(t: PropertyTaking) kind empirical {
+    label ja official "補償";
+    label en unofficial "the compensation for the taking has been paid";
+}
+
+@source(JP_CONST_ART29_P1)
+rule PropertyRightIsInviolable strict {
+    label ja official "財産権は、これを侵してはならない";
+    label en unofficial "Art. 29(1). The right to own property is inviolable";
+    for p: Person; for t: PropertyTaking;
+    when property_taking_of(t, p);
+    then immunity PropertyRightImmunity {
+        holder p;
+        protected_effect property_taken(t);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART29_P3)
+rule PrivatePropertyMayBeTakenForPublicUse strict {
+    label ja official "私有財産は、正当な補償の下に、これを公共のために用ひることができる";
+    label en unofficial "Art. 29(3). Private property may be taken for public use upon just compensation";
+    for o: Organ; for t: PropertyTaking;
+    when r3b_authority(o) and property_taking_of(t, _);
+    then power TakePrivateProperty {
+        holder o;
+        over t;
+        exercise takes_property(o, t);
+        valid_when (taking_for_public_use(t) and compensation_is_just(t));
+        effect create(property_taken(t));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// The exception of paragraph 3 is more specific than the general inviolability
+// of paragraph 1 (lex_specialis, §116).
+priority TakingUnderPara3OverInviolability {
+    prefer PrivatePropertyMayBeTakenForPublicUse over PropertyRightIsInviolable;
+    reason lex_specialis;
+}
+
+// A maintenance goal: the compensation accompanies the taking ("under just
+// compensation"), so an asserted non-payment is a violation of the duty at once
+// (an achievement goal with an open window could never be VIOLATED).
+// The compensation is owed by the state to the owner once the taking has legal
+// effect: "under just compensation" makes the compensation a condition of the
+// taking and its payment the correlate of the taking.
+@source(JP_CONST_ART29_P3, relation = formalizes, coverage = partial, quote = "正当な補償の下に")
+rule StateCompensatesTakenProperty strict {
+    label ja official "正当な補償の下に";
+    label en unofficial "Art. 29(3). The state owes the owner compensation for a property taken";
+    for n: Nation; for p: Person; for t: PropertyTaking;
+    when nation(n) and property_taking_of(t, p) and property_taken(t);
+    then duty CompensateOwnerDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition taking_compensation_paid(t);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation defines_property_right_content(s: Statute) kind empirical {
+    label ja official "財産権の内容";
+    label en unofficial "the statute defines the content of the right to own property";
+}
+external judgment relation conforms_to_public_welfare(s: Statute) {
+    authority CourtsOfJapan;
+    label ja official "公共の福祉に適合する";
+    label en unofficial "the statute conforms to the public welfare";
+}
+relation property_content_defined_in_constitutional_form(s: Statute) kind institutional {
+    label en unofficial "the statute defines the content of property in conformity with the public welfare";
+}
+
+@source(JP_CONST_ART29_P2)
+rule PropertyContentByStatuteInPublicWelfare strict {
+    label ja official "財産権の内容は、公共の福祉に適合するやうに、法律でこれを定める";
+    label en unofficial "Art. 29(2). The content of property is set by statute in conformity with the public welfare";
+    for s: Statute;
+    when defines_property_right_content(s) and conforms_to_public_welfare(s);
+    then property_content_defined_in_constitutional_form(s);
+}
+
+// =============================================================================
+// Article 30 - taxes (external dependency: the content of the tax is statutory)
+// =============================================================================
+
+relation taxpayer_under_statute(p: Person, s: Statute) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "the statute makes the person a taxpayer (external dependency)";
+}
+relation tax_due_date(p: Person, s: Statute, d: Date) kind empirical {
+    label ja official "納期";
+    label en unofficial "the statute fixes the due date of the tax (external dependency)";
+}
+relation tax_paid(p: Person, s: Statute) kind empirical {
+    label ja official "納税";
+    label en unofficial "the person has paid the tax due under the statute";
+}
+
+@source(JP_CONST_ART30_P1)
+rule NationalPaysTaxUnderStatute strict {
+    label ja official "国民は、法律の定めるところにより、納税の義務を負ふ";
+    label en unofficial "Art. 30. Nationals must pay taxes as the statute provides";
+    for p: Person; for s: Statute; for d: Date;
+    when r3b_national(p) and taxpayer_under_statute(p, s) and tax_due_date(p, s, d);
+    then duty PayTaxDuty {
+        bearer p;
+        goal achievement {
+            condition tax_paid(p, s);
+            window [@1947-05-03, d];
+        }
+    };
+}
+
+// =============================================================================
+// Articles 31, 33-35, 38(3), 39 - guarantees against criminal acts of authority
+// =============================================================================
+
+// --- the effect protected by the guarantees of a criminal case ----------------
+
+// One effect stands for all three things Art. 31 lists (deprivation of life,
+// deprivation of liberty, any other penalty): they share one condition.
+relation procedure_established_by_law_followed(c: Prosecution) kind empirical {
+    label ja official "法律の定める手続";
+    label en unofficial "the procedure established by law was followed (external dependency: its content)";
+}
+relation convicts_and_sentences(o: Organ, c: Prosecution) kind empirical {
+    label ja official "有罪とし、刑罰を科す";
+    label en unofficial "the court convicts and imposes the penalty (act of exercise)";
+}
+relation criminal_liability_imposed(c: Prosecution) kind institutional {
+    label ja official "有罪とされ、又は刑罰を科せられる";
+    label en unofficial "the accused is convicted or punished with legal effect";
+}
+
+// Art. 31. General inviolability of life, liberty and against any penalty
+// outside the procedure established by law. The exception is the exercise that
+// meets the condition of the text: the procedure established by law was followed.
+@source(JP_CONST_ART31_P1)
+rule NoPenaltyOutsideLawfulProcedure strict {
+    label ja official "何人も、法律の定める手続によらなければ、その生命若しくは自由を奪はれ、又はその他の刑罰を科せられない";
+    label en unofficial "Art. 31. No person shall be deprived of life or liberty nor penalized except by the procedure established by law";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p);
+    then immunity DueProcessImmunity {
+        holder p;
+        protected_effect criminal_liability_imposed(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART31_P1)
+rule CourtImposesPenaltyByLawfulProcedure strict {
+    label ja official "法律の定める手続によらなければ";
+    label en unofficial "Art. 31. A court may impose a penalty when the procedure established by law was followed";
+    for o: Organ; for c: Prosecution;
+    when r3b_court(o) and defendant_of(c, _);
+    then power ImposePenaltyByLawfulProcedure {
+        holder o;
+        over c;
+        exercise convicts_and_sentences(o, c);
+        valid_when procedure_established_by_law_followed(c);
+        effect create(criminal_liability_imposed(c));
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority LawfulProcedureOverDueProcessImmunity {
+    prefer CourtImposesPenaltyByLawfulProcedure over NoPenaltyOutsideLawfulProcedure;
+    reason lex_specialis;
+}
+
+// --- Art. 32: access to the courts -------------------------------------------
+
+relation brings_case_to_court(p: Person) kind empirical {
+    label ja official "裁判所において裁判を受ける";
+    label en unofficial "the person brings the case to a court and receives a judgment";
+}
+relation access_to_court_denied(p: Person) kind institutional {
+    label ja official "裁判を受ける権利を奪はれる";
+    label en unofficial "the person is deprived of access to a court by an act of authority";
+}
+
+@source(JP_CONST_ART32_P1)
+rule EveryoneMayGoToCourt strict {
+    label ja official "何人も、裁判所において裁判を受ける権利";
+    label en unofficial "Art. 32. Everyone has the freedom to obtain a judgment in a court";
+    for p: Person;
+    when r3b_person(p);
+    then liberty GoToCourt {
+        holder p;
+        action brings_case_to_court(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART32_P1)
+rule AccessToCourtCannotBeTakenAway strict {
+    label ja official "何人も、裁判所において裁判を受ける権利を奪はれない";
+    label en unofficial "Art. 32. No one is deprived of the right of access to a court";
+    for p: Person;
+    when r3b_person(p);
+    then immunity AccessToCourtImmunity {
+        holder p;
+        protected_effect access_to_court_denied(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Art. 33: arrest ----------------------------------------------------------
+
+relation arrest_of(a: Arrest, p: Person) kind empirical {
+    label ja official "逮捕される者";
+    label en unofficial "the arrest concerns the person";
+}
+relation performs_arrest(o: Organ, a: Arrest) kind empirical {
+    label ja official "逮捕する";
+    label en unofficial "the organ arrests (act of exercise)";
+}
+relation warrant_issued_by_competent_judicial_officer(a: Arrest) kind empirical {
+    label ja official "権限を有する司法官憲が発し";
+    label en unofficial "the warrant was issued by a competent judicial officer";
+}
+relation warrant_names_offence(a: Arrest) kind empirical {
+    label ja official "理由となつてゐる犯罪を明示する令状";
+    label en unofficial "the warrant explicitly names the offence that is the cause of the arrest";
+}
+relation arrest_warrant_valid(a: Arrest) kind institutional {
+    label en unofficial "the arrest warrant meets both conditions of Art. 33";
+}
+// The person caught in the act (現行犯) is a POSITIVE fact of the case: the
+// exception is not derived from the absence of a warrant.
+relation caught_in_the_act(a: Arrest) kind empirical {
+    label ja official "現行犯として逮捕される";
+    label en unofficial "the person is arrested while committing the offence (flagrante delicto)";
+}
+relation arrest_authorised(a: Arrest) kind institutional {
+    label en unofficial "the arrest is on a valid warrant or of a person caught in the act";
+}
+relation arrest_effective(a: Arrest) kind institutional {
+    label en unofficial "the arrest is lawful and has legal effect";
+}
+
+@source(JP_CONST_ART33_P1, relation = formalizes, coverage = partial, quote = "権限を有する司法官憲が発し、且つ理由となつてゐる犯罪を明示する令状")
+rule ArrestWarrantValid strict {
+    label ja official "権限を有する司法官憲が発し、且つ理由となつてゐる犯罪を明示する令状";
+    label en unofficial "Art. 33. A warrant is valid if issued by a competent judicial officer and naming the offence";
+    for a: Arrest;
+    when warrant_issued_by_competent_judicial_officer(a) and warrant_names_offence(a);
+    then arrest_warrant_valid(a);
+}
+
+@source(JP_CONST_ART33_P1, relation = formalizes, coverage = partial, quote = "何人も、現行犯として逮捕される場合を除いては")
+rule NoArrestWithoutWarrant strict {
+    label ja official "何人も、...令状によらなければ、逮捕されない";
+    label en unofficial "Art. 33. No person is arrested except upon a warrant or when caught in the act";
+    for a: Arrest; for p: Person;
+    when arrest_of(a, p);
+    then immunity ArrestImmunity {
+        holder p;
+        protected_effect arrest_effective(a);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART33_P1, relation = formalizes, coverage = partial, quote = "令状によらなければ、逮捕されない")
+rule ArrestAuthorisedByWarrant strict {
+    label ja official "令状による逮捕";
+    label en unofficial "Art. 33. An arrest on a valid warrant is authorised by the Constitution";
+    for a: Arrest;
+    when arrest_warrant_valid(a);
+    then arrest_authorised(a);
+}
+
+@source(JP_CONST_ART33_P1, relation = formalizes, coverage = partial, quote = "現行犯として逮捕される場合を除いては")
+rule ArrestAuthorisedInTheAct strict {
+    label ja official "現行犯として逮捕される場合";
+    label en unofficial "Art. 33. An arrest of a person caught in the act is authorised without a warrant";
+    for a: Arrest;
+    when caught_in_the_act(a);
+    then arrest_authorised(a);
+}
+
+@source(JP_CONST_ART33_P1)
+rule ArrestExercisedByAuthority strict {
+    label ja official "何人も、...逮捕されない（例外の下での逮捕）";
+    label en unofficial "Art. 33. An authority arrests; the arrest takes effect only if authorised (warrant or in the act)";
+    for o: Organ; for a: Arrest;
+    when r3b_authority(o) and arrest_of(a, _);
+    then power ArrestPower {
+        holder o;
+        over a;
+        exercise performs_arrest(o, a);
+        valid_when arrest_authorised(a);
+        effect create(arrest_effective(a));
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority ArrestPowerOverImmunity {
+    prefer ArrestExercisedByAuthority over NoArrestWithoutWarrant;
+    reason lex_specialis;
+}
+
+// --- Art. 34: custody and confinement ----------------------------------------
+
+relation detention_of(d: Detention, p: Person) kind empirical {
+    label ja official "抑留又は拘禁される者";
+    label en unofficial "the custody or confinement concerns the person";
+}
+relation is_custody(d: Detention) kind empirical {
+    label ja official "抑留";
+    label en unofficial "the detention is a custody (抑留, temporary)";
+}
+relation is_confinement(d: Detention) kind empirical {
+    label ja official "拘禁";
+    label en unofficial "the detention is a confinement (拘禁, continuing)";
+}
+relation performs_detention(o: Organ, d: Detention) kind empirical {
+    label ja official "抑留又は拘禁する";
+    label en unofficial "the organ holds the person in custody or confinement (act of exercise)";
+}
+external judgment relation reason_told_immediately(d: Detention) {
+    authority CourtsOfJapan;
+    label ja official "理由を直ちに告げられ";
+    label en unofficial "the reason was told to the person immediately";
+}
+external judgment relation counsel_right_granted_immediately(d: Detention) {
+    authority CourtsOfJapan;
+    label ja official "直ちに弁護人に依頼する権利を与へられ";
+    label en unofficial "the right to retain counsel was granted immediately";
+}
+external judgment relation adequate_cause_for_confinement(d: Detention) {
+    authority CourtsOfJapan;
+    label ja official "正当な理由";
+    label en unofficial "there is an adequate cause for the confinement";
+}
+relation detention_effective(d: Detention) kind institutional {
+    label en unofficial "the custody or confinement is lawful and has legal effect";
+}
+
+@source(JP_CONST_ART34_P1, relation = formalizes, coverage = partial, quote = "何人も、理由を直ちに告げられ、且つ、直ちに弁護人に依頼する権利を与へられなければ、抑留又は拘禁されない。")
+rule NoDetentionWithoutNoticeAndCounsel strict {
+    label ja official "何人も、...抑留又は拘禁されない";
+    label en unofficial "Art. 34. No person is held in custody or confinement without the conditions of the text";
+    for d: Detention; for p: Person;
+    when detention_of(d, p);
+    then immunity DetentionImmunity {
+        holder p;
+        protected_effect detention_effective(d);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART34_P1, relation = formalizes, coverage = partial, quote = "理由を直ちに告げられ、且つ、直ちに弁護人に依頼する権利を与へられなければ")
+rule CustodyWithNoticeAndCounsel strict {
+    label ja official "理由を直ちに告げられ、且つ、直ちに弁護人に依頼する権利を与へられ";
+    label en unofficial "Art. 34. Custody is lawful when the reason was told and the right to counsel granted immediately";
+    for o: Organ; for d: Detention;
+    when r3b_authority(o) and detention_of(d, _) and is_custody(d);
+    then power HoldInCustody {
+        holder o;
+        over d;
+        exercise performs_detention(o, d);
+        valid_when (reason_told_immediately(d) and counsel_right_granted_immediately(d));
+        effect create(detention_effective(d));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART34_P1, relation = formalizes, coverage = partial, quote = "又、何人も、正当な理由がなければ、拘禁されず")
+rule ConfinementWithNoticeCounselAndCause strict {
+    label ja official "正当な理由がなければ、拘禁されず";
+    label en unofficial "Art. 34. Confinement additionally needs an adequate cause";
+    for o: Organ; for d: Detention;
+    when r3b_authority(o) and detention_of(d, _) and is_confinement(d);
+    then power HoldInConfinement {
+        holder o;
+        over d;
+        exercise performs_detention(o, d);
+        valid_when (reason_told_immediately(d) and counsel_right_granted_immediately(d) and adequate_cause_for_confinement(d));
+        effect create(detention_effective(d));
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority CustodyOverDetentionImmunity {
+    prefer CustodyWithNoticeAndCounsel over NoDetentionWithoutNoticeAndCounsel;
+    reason lex_specialis;
+}
+priority ConfinementOverDetentionImmunity {
+    prefer ConfinementWithNoticeCounselAndCause over NoDetentionWithoutNoticeAndCounsel;
+    reason lex_specialis;
+}
+
+relation demands_open_court_disclosure(d: Detention) kind empirical {
+    label ja official "要求があれば";
+    label en unofficial "the person demands that the cause of the confinement be shown";
+}
+relation cause_shown_in_open_court_in_presence(d: Detention) kind empirical {
+    label ja official "本人及びその弁護人の出席する公開の法廷で示される";
+    label en unofficial "the cause was shown in open court in the presence of the person and counsel";
+}
+external judgment relation cause_shown_immediately(d: Detention) {
+    authority CourtsOfJapan;
+    label ja official "直ちに";
+    label en unofficial "the cause was shown immediately";
+}
+
+@source(JP_CONST_ART34_P1, relation = formalizes, coverage = partial, quote = "要求があれば、その理由は、直ちに本人及びその弁護人の出席する公開の法廷で示されなければならない")
+rule StateShowsCauseInOpenCourt strict {
+    label ja official "要求があれば、その理由は、...公開の法廷で示されなければならない";
+    label en unofficial "Art. 34. On demand the cause of the confinement must be shown in open court in the presence of the person and counsel";
+    for n: Nation; for d: Detention; for p: Person;
+    when nation(n) and detention_of(d, p) and is_confinement(d) and demands_open_court_disclosure(d);
+    then duty ShowCauseInOpenCourtDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition cause_shown_in_open_court_in_presence(d);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART34_P1, relation = formalizes, coverage = partial, quote = "その理由は、直ちに本人及びその弁護人の出席する公開の法廷で示されなければならない")
+rule StateShowsCauseImmediately strict {
+    label ja official "その理由は、直ちに...示されなければならない";
+    label en unofficial "Art. 34. The cause must be shown immediately (evaluative element)";
+    for n: Nation; for d: Detention; for p: Person;
+    when nation(n) and detention_of(d, p) and is_confinement(d) and demands_open_court_disclosure(d);
+    then duty ShowCauseImmediatelyDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition cause_shown_immediately(d);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Art. 35: entry, search and seizure --------------------------------------
+
+relation search_of(s: SearchOrSeizure, p: Person) kind empirical {
+    label ja official "その住居、書類及び所持品";
+    label en unofficial "the entry, search or seizure concerns the home, papers or effects of the person";
+}
+relation performs_search(o: Organ, s: SearchOrSeizure) kind empirical {
+    label ja official "侵入、捜索及び押収";
+    label en unofficial "the organ enters, searches or seizes (act of exercise)";
+}
+external judgment relation adequate_cause_for_search(s: SearchOrSeizure) {
+    authority CourtsOfJapan;
+    label ja official "正当な理由";
+    label en unofficial "the warrant was issued upon adequate cause";
+}
+relation warrant_describes_place_and_things(s: SearchOrSeizure) kind empirical {
+    label ja official "捜索する場所及び押収する物を明示する令状";
+    label en unofficial "the warrant particularly describes the place to be searched and the things to be seized";
+}
+relation warrant_by_competent_judicial_officer(s: SearchOrSeizure) kind empirical {
+    label ja official "権限を有する司法官憲が発する";
+    label en unofficial "the warrant was issued by a competent judicial officer";
+}
+relation separate_warrant_for_each_act(s: SearchOrSeizure) kind empirical {
+    label ja official "各別の令状";
+    label en unofficial "a separate warrant was issued for the search and for the seizure";
+}
+relation incident_to_arrest(s: SearchOrSeizure, a: Arrest) kind empirical {
+    label ja official "第三十三条の場合";
+    label en unofficial "the search or seizure is carried out in the case of an Art. 33 arrest";
+}
+relation search_warrant_substantive(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the warrant meets Art. 35(1): adequate cause and particular description";
+}
+relation search_warrant_formal(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the warrant meets Art. 35(2): a competent judicial officer, a separate warrant";
+}
+relation search_warrant_valid(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the warrant meets Art. 35(1) and (2)";
+}
+relation search_in_art33_case(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the search or seizure is incident to a lawful Art. 33 arrest";
+}
+relation search_authorised(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the entry, search or seizure is on a valid warrant or in an Art. 33 case";
+}
+relation search_effective(s: SearchOrSeizure) kind institutional {
+    label en unofficial "the entry, search or seizure is lawful and has legal effect";
+}
+
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "正当な理由に基いて発せられ、且つ捜索する場所及び押収する物を明示する令状")
+rule SearchWarrantSubstantive strict {
+    label ja official "正当な理由に基いて発せられ、且つ捜索する場所及び押収する物を明示する令状";
+    label en unofficial "Art. 35(1). Warrant issued on adequate cause that describes the place and the things";
+    for s: SearchOrSeizure;
+    when adequate_cause_for_search(s) and warrant_describes_place_and_things(s);
+    then search_warrant_substantive(s);
+}
+
+@source(JP_CONST_ART35_P2)
+rule SearchWarrantFormal strict {
+    label ja official "捜索又は押収は、権限を有する司法官憲が発する各別の令状により、これを行ふ";
+    label en unofficial "Art. 35(2). Search or seizure by separate warrants issued by a competent judicial officer";
+    for s: SearchOrSeizure;
+    when warrant_by_competent_judicial_officer(s) and separate_warrant_for_each_act(s);
+    then search_warrant_formal(s);
+}
+
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "令状がなければ、侵されない")
+rule SearchWarrantValid strict {
+    label ja official "令状";
+    label en unofficial "Art. 35. A warrant valid under paragraphs 1 and 2";
+    for s: SearchOrSeizure;
+    when search_warrant_substantive(s) and search_warrant_formal(s);
+    then search_warrant_valid(s);
+}
+
+// TECH_GAP (coverage/J4.json, T-J4-1): the exception speaks of the CASES OF
+// ARTICLE 33, i.e. a search during a lawful arrest. The natural premise would be
+// the EFFECT `arrest_effective(a)` of the arrest power, but a `valid_when` cannot
+// read the effect of another power: both evaluators give NEITHER for the search
+// (reproduction: scenario in J4.json). The premise is therefore the condition of
+// the arrest, `arrest_authorised(a)` (valid warrant or caught in the act), which
+// the arrest power itself uses as its `valid_when`.
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "第三十三条の場合を除いては")
+rule SearchInArt33Case strict {
+    label ja official "第三十三条の場合を除いては";
+    label en unofficial "Art. 35(1). The exception of Art. 33: a search incident to an arrest authorised under Art. 33 (warrant or in the act)";
+    for s: SearchOrSeizure; for a: Arrest;
+    when incident_to_arrest(s, a) and arrest_authorised(a);
+    then search_in_art33_case(s);
+}
+
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "侵入、捜索及び押収を受けることのない権利")
+rule HomePapersAndEffectsInviolable strict {
+    label ja official "その住居、書類及び所持品について、侵入、捜索及び押収を受けることのない権利";
+    label en unofficial "Art. 35(1). Home, papers and effects are secure against entry, search and seizure";
+    for s: SearchOrSeizure; for p: Person;
+    when search_of(s, p);
+    then immunity SearchImmunity {
+        holder p;
+        protected_effect search_effective(s);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "令状がなければ、侵されない")
+rule SearchAuthorisedByWarrant strict {
+    label ja official "令状による捜索及び押収";
+    label en unofficial "Art. 35. Entry, search and seizure on a valid warrant are authorised";
+    for s: SearchOrSeizure;
+    when search_warrant_valid(s);
+    then search_authorised(s);
+}
+
+@source(JP_CONST_ART35_P1, relation = formalizes, coverage = partial, quote = "第三十三条の場合を除いては")
+rule SearchAuthorisedInArt33Case strict {
+    label ja official "第三十三条の場合";
+    label en unofficial "Art. 35(1). Entry, search and seizure in an Art. 33 case need no separate warrant";
+    for s: SearchOrSeizure;
+    when search_in_art33_case(s);
+    then search_authorised(s);
+}
+
+@source(JP_CONST_ART35_P1)
+rule SearchExercisedByAuthority strict {
+    label ja official "侵入、捜索及び押収";
+    label en unofficial "Art. 35. An authority searches; the act takes effect only if authorised (warrant or Art. 33 case)";
+    for o: Organ; for s: SearchOrSeizure;
+    when r3b_authority(o) and search_of(s, _);
+    then power SearchPower {
+        holder o;
+        over s;
+        exercise performs_search(o, s);
+        valid_when search_authorised(s);
+        effect create(search_effective(s));
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority SearchPowerOverImmunity {
+    prefer SearchExercisedByAuthority over HomePapersAndEffectsInviolable;
+    reason lex_specialis;
+}
+
+// --- Art. 36: torture and cruel punishment - ABSOLUTE ban --------------------
+
+relation tortures_person(p: Person) kind empirical {
+    label ja official "拷問";
+    label en unofficial "the official tortures a person";
+}
+relation imposes_penalty(p: Person, x: Penalty) kind empirical {
+    label ja official "刑罰を科す";
+    label en unofficial "the official imposes the penalty";
+}
+external judgment relation penalty_is_cruel(x: Penalty) {
+    authority CourtsOfJapan;
+    label ja official "残虐な";
+    label en unofficial "the penalty is cruel (残虐)";
+}
+relation imposes_cruel_penalty(p: Person) kind institutional {
+    label ja official "残虐な刑罰を科す";
+    label en unofficial "the official imposes a penalty that is cruel";
+}
+
+// The ban is "absolute" (絶対に): the norms carry no exception, no `unless`, no
+// priority that could defeat them and a window that never closes.
+@source(JP_CONST_ART36_P1, relation = formalizes, coverage = partial, quote = "公務員による拷問")
+rule NoTortureByOfficials strict {
+    label ja official "公務員による拷問は、絶対にこれを禁ずる";
+    label en unofficial "Art. 36. Torture by public officials is absolutely forbidden";
+    for p: Person;
+    when r3b_public_official(p);
+    then prohibition NoTortureProhibition {
+        bearer p;
+        action tortures_person(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART36_P1, relation = formalizes, coverage = partial, quote = "残虐な刑罰")
+rule CruelPenaltyDerived strict {
+    label ja official "残虐な刑罰";
+    label en unofficial "Art. 36. A penalty adjudged cruel (evaluative judgment, channel 1)";
+    for p: Person; for x: Penalty;
+    when r3b_public_official(p) and imposes_penalty(p, x) and penalty_is_cruel(x);
+    then imposes_cruel_penalty(p);
+}
+
+@source(JP_CONST_ART36_P1, relation = formalizes, coverage = partial, quote = "残虐な刑罰は、絶対にこれを禁ずる")
+rule NoCruelPenaltyByOfficials strict {
+    label ja official "公務員による...残虐な刑罰は、絶対にこれを禁ずる";
+    label en unofficial "Art. 36. Cruel penalties imposed by public officials are absolutely forbidden";
+    for p: Person;
+    when r3b_public_official(p);
+    then prohibition NoCruelPenaltyProhibition {
+        bearer p;
+        action imposes_cruel_penalty(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Art. 37: the accused in criminal cases ----------------------------------
+
+relation trial_open_to_public(c: Prosecution) kind empirical {
+    label ja official "公開裁判";
+    label en unofficial "the trial is public";
+}
+external judgment relation tribunal_impartial(c: Prosecution) {
+    authority CourtsOfJapan;
+    label ja official "公平な裁判所";
+    label en unofficial "the tribunal is impartial";
+}
+external judgment relation trial_speedy(c: Prosecution) {
+    authority CourtsOfJapan;
+    label ja official "迅速な";
+    label en unofficial "the trial is speedy";
+}
+
+@source(JP_CONST_ART37_P1, relation = formalizes, coverage = partial, quote = "公開裁判を受ける権利")
+rule AccusedHasPublicTrial strict {
+    label ja official "被告人は、...公開裁判を受ける権利を有する";
+    label en unofficial "Art. 37(1). The accused is owed a public trial";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p);
+    then duty PublicTrialDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition trial_open_to_public(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART37_P1, relation = formalizes, coverage = partial, quote = "公平な裁判所")
+rule AccusedHasImpartialTribunal strict {
+    label ja official "被告人は、公平な裁判所の...裁判を受ける権利を有する";
+    label en unofficial "Art. 37(1). The accused is owed an impartial tribunal (evaluative)";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p);
+    then duty ImpartialTribunalDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition tribunal_impartial(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART37_P1, relation = formalizes, coverage = partial, quote = "迅速な")
+rule AccusedHasSpeedyTrial strict {
+    label ja official "被告人は、...迅速な...裁判を受ける権利を有する";
+    label en unofficial "Art. 37(1). The accused is owed a speedy trial (evaluative)";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p);
+    then duty SpeedyTrialDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition trial_speedy(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+external judgment relation sufficient_opportunity_to_examine_witnesses(c: Prosecution) {
+    authority CourtsOfJapan;
+    label ja official "審問する機会を充分に";
+    label en unofficial "the accused had a sufficient opportunity to examine all witnesses";
+}
+relation defendant_requests_witness(c: Prosecution) kind empirical {
+    label ja official "証人を求める";
+    label en unofficial "the accused requests a witness";
+}
+relation witness_summoned_by_compulsory_process_at_public_expense(c: Prosecution) kind empirical {
+    label ja official "公費で自己のために強制的手続により証人を求める";
+    label en unofficial "the witness was summoned by compulsory process at public expense";
+}
+
+@source(JP_CONST_ART37_P2, relation = formalizes, coverage = partial, quote = "すべての証人に対して審問する機会を充分に与へられ")
+rule AccusedMayExamineAllWitnesses strict {
+    label ja official "すべての証人に対して審問する機会を充分に与へられ";
+    label en unofficial "Art. 37(2). The accused must have a full opportunity to examine all witnesses";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p);
+    then duty ExamineWitnessesDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition sufficient_opportunity_to_examine_witnesses(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+@source(JP_CONST_ART37_P2, relation = formalizes, coverage = partial, quote = "公費で自己のために強制的手続により証人を求める権利")
+rule AccusedMayCompelWitnessesAtPublicExpense strict {
+    label ja official "公費で自己のために強制的手続により証人を求める権利";
+    label en unofficial "Art. 37(2). The accused may have witnesses summoned by compulsory process at public expense";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p) and defendant_requests_witness(c);
+    then duty SummonWitnessesAtPublicExpenseDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition witness_summoned_by_compulsory_process_at_public_expense(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+relation retains_qualified_counsel(p: Person) kind empirical {
+    label ja official "資格を有する弁護人を依頼する";
+    label en unofficial "the accused retains qualified counsel";
+}
+relation defendant_unable_to_retain_counsel(c: Prosecution) kind empirical {
+    label ja official "被告人が自らこれを依頼することができないとき";
+    label en unofficial "the accused cannot retain counsel by himself";
+}
+relation counsel_appointed_by_state(c: Prosecution) kind empirical {
+    label ja official "国でこれを附する";
+    label en unofficial "the state has appointed counsel for the accused";
+}
+
+// "いかなる場合にも" (in all circumstances): no exception is modelled.
+@source(JP_CONST_ART37_P3, relation = formalizes, coverage = partial, quote = "刑事被告人は、いかなる場合にも、資格を有する弁護人を依頼することができる。")
+rule AccusedMayRetainCounsel strict {
+    label ja official "刑事被告人は、いかなる場合にも、資格を有する弁護人を依頼することができる";
+    label en unofficial "Art. 37(3). The accused may in all circumstances retain qualified counsel";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p);
+    then liberty RetainCounselFreely {
+        holder p;
+        action retains_qualified_counsel(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART37_P3, relation = formalizes, coverage = partial, quote = "被告人が自らこれを依頼することができないときは、国でこれを附する。")
+rule StateAppointsCounsel strict {
+    label ja official "被告人が自らこれを依頼することができないときは、国でこれを附する";
+    label en unofficial "Art. 37(3). If the accused cannot retain counsel, the state appoints one";
+    for n: Nation; for c: Prosecution; for p: Person;
+    when nation(n) and defendant_of(c, p) and defendant_unable_to_retain_counsel(c);
+    then duty AppointCounselDuty {
+        bearer n;
+        beneficiary p;
+        goal maintenance {
+            condition counsel_appointed_by_state(c);
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Art. 38: confession -----------------------------------------------------
+
+relation compels_self_incriminating_statement(p: Person) kind institutional {
+    label ja official "自己に不利益な供述を強要される";
+    label en unofficial "the person is compelled to make a self-incriminating statement";
+}
+
+@source(JP_CONST_ART38_P1)
+rule NoCompulsionToSelfIncriminate strict {
+    label ja official "何人も、自己に不利益な供述を強要されない";
+    label en unofficial "Art. 38(1). No person is compelled to testify against himself";
+    for p: Person;
+    when r3b_person(p);
+    then immunity SelfIncriminationImmunity {
+        holder p;
+        protected_effect compels_self_incriminating_statement(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+relation is_confession(e: Evidence) kind empirical {
+    label ja official "自白";
+    label en unofficial "the item is a confession";
+}
+relation obtained_by_compulsion(e: Evidence) kind empirical {
+    label ja official "強制";
+    label en unofficial "the confession was obtained by compulsion";
+}
+relation obtained_by_torture(e: Evidence) kind empirical {
+    label ja official "拷問";
+    label en unofficial "the confession was obtained by torture";
+}
+relation obtained_by_threat(e: Evidence) kind empirical {
+    label ja official "脅迫";
+    label en unofficial "the confession was obtained by threat";
+}
+relation made_after_detention(e: Evidence, d: Detention) kind empirical {
+    label ja official "抑留若しくは拘禁された後の自白";
+    label en unofficial "the confession was made after the person was held in custody or confinement";
+}
+external judgment relation detention_unduly_prolonged(d: Detention) {
+    authority CourtsOfJapan;
+    label ja official "不当に長く";
+    label en unofficial "the custody or confinement was unduly long";
+}
+relation evidence_excluded(e: Evidence) kind institutional {
+    label ja official "これを証拠とすることができない";
+    label en unofficial "the item cannot be used as evidence";
+}
+
+@source(JP_CONST_ART38_P2, relation = formalizes, coverage = partial, quote = "強制、拷問若しくは脅迫による自白")
+rule ConfessionByCompulsionExcluded strict {
+    label ja official "強制による自白は、これを証拠とすることができない";
+    label en unofficial "Art. 38(2). A confession by compulsion cannot be evidence";
+    for e: Evidence;
+    when is_confession(e) and obtained_by_compulsion(e);
+    then evidence_excluded(e);
+}
+
+@source(JP_CONST_ART38_P2, relation = formalizes, coverage = partial, quote = "強制、拷問若しくは脅迫による自白")
+rule ConfessionByTortureExcluded strict {
+    label ja official "拷問による自白は、これを証拠とすることができない";
+    label en unofficial "Art. 38(2). A confession by torture cannot be evidence";
+    for e: Evidence;
+    when is_confession(e) and obtained_by_torture(e);
+    then evidence_excluded(e);
+}
+
+@source(JP_CONST_ART38_P2, relation = formalizes, coverage = partial, quote = "強制、拷問若しくは脅迫による自白")
+rule ConfessionByThreatExcluded strict {
+    label ja official "脅迫による自白は、これを証拠とすることができない";
+    label en unofficial "Art. 38(2). A confession by threat cannot be evidence";
+    for e: Evidence;
+    when is_confession(e) and obtained_by_threat(e);
+    then evidence_excluded(e);
+}
+
+@source(JP_CONST_ART38_P2, relation = formalizes, coverage = partial, quote = "不当に長く抑留若しくは拘禁された後の自白")
+rule ConfessionAfterUnduePrologationExcluded strict {
+    label ja official "不当に長く抑留若しくは拘禁された後の自白は、これを証拠とすることができない";
+    label en unofficial "Art. 38(2). A confession after unduly long custody or confinement cannot be evidence";
+    for e: Evidence; for d: Detention;
+    when is_confession(e) and made_after_detention(e, d) and detention_unduly_prolonged(d);
+    then evidence_excluded(e);
+}
+
+// Art. 38(3). "The only evidence against him is his own confession" is
+// COMPUTABLE: the case has an own confession that is still evidence and NO
+// corroborating item. A corroborating item is incriminating evidence other than
+// the accused's own confession (empirical relation: aggregates read empirical
+// facts only, §111).
+relation own_confession_of(c: Prosecution, e: Evidence) kind empirical {
+    label ja official "本人の自白";
+    label en unofficial "the evidence is the accused's own confession in the case";
+}
+relation corroborating_evidence(c: Prosecution, e: Evidence) kind empirical {
+    label ja official "自白以外の自己に不利益な証拠";
+    label en unofficial "incriminating evidence other than the accused's own confession (corroboration)";
+}
+relation sole_evidence_is_own_confession(c: Prosecution) kind institutional {
+    label ja official "自己に不利益な唯一の証拠が本人の自白である";
+    label en unofficial "the only incriminating evidence is the accused's own confession";
+}
+
+@source(JP_CONST_ART38_P3, relation = formalizes, coverage = partial, quote = "自己に不利益な唯一の証拠が本人の自白である場合")
+rule SoleEvidenceIsOwnConfession strict {
+    label ja official "自己に不利益な唯一の証拠が本人の自白である場合";
+    label en unofficial "Art. 38(3). The only incriminating evidence is the accused's own (admissible) confession";
+    for c: Prosecution; for e: Evidence;
+    when own_confession_of(c, e)
+        and not_known(evidence_excluded(e))
+        and (count distinct x: Evidence where corroborating_evidence(c, x)) == 0;
+    then sole_evidence_is_own_confession(c);
+}
+
+@source(JP_CONST_ART38_P3, relation = formalizes, coverage = partial, quote = "有罪とされ、又は刑罰を科せられない")
+rule NoConvictionOnSoleConfession strict {
+    label ja official "何人も、自己に不利益な唯一の証拠が本人の自白である場合には、有罪とされ、又は刑罰を科せられない";
+    label en unofficial "Art. 38(3). No one is convicted or punished when the sole evidence is his own confession";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p) and sole_evidence_is_own_confession(c);
+    then immunity SoleConfessionImmunity {
+        holder p;
+        protected_effect criminal_liability_imposed(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority SoleConfessionOverImposingPenalty {
+    prefer NoConvictionOnSoleConfession over CourtImposesPenaltyByLawfulProcedure;
+    reason lex_specialis;
+}
+
+// --- Art. 39: retroactivity and double jeopardy ------------------------------
+
+relation act_lawful_when_committed(c: Prosecution) kind empirical {
+    label ja official "実行の時に適法であつた行為";
+    label en unofficial "the act was lawful at the time it was committed";
+}
+relation act_previously_acquitted(c: Prosecution) kind empirical {
+    label ja official "既に無罪とされた行為";
+    label en unofficial "the act was already adjudged not guilty";
+}
+relation same_offence_previously_adjudicated(c: Prosecution) kind empirical {
+    label ja official "同一の犯罪について、重ねて";
+    label en unofficial "the same offence was already finally adjudicated (acquittal or conviction)";
+}
+
+@source(JP_CONST_ART39_P1, relation = formalizes, coverage = partial, quote = "実行の時に適法であつた行為又は既に無罪とされた行為については、刑事上の責任を問はれない。")
+rule NoLiabilityForActLawfulWhenCommitted strict {
+    label ja official "実行の時に適法であつた行為については、刑事上の責任を問はれない";
+    label en unofficial "Art. 39. No criminal liability for an act lawful when committed (no retroactivity)";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p) and act_lawful_when_committed(c);
+    then immunity NoRetroactiveLiabilityImmunity {
+        holder p;
+        protected_effect criminal_liability_imposed(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART39_P1, relation = formalizes, coverage = partial, quote = "実行の時に適法であつた行為又は既に無罪とされた行為については、刑事上の責任を問はれない。")
+rule NoLiabilityForActAlreadyAcquitted strict {
+    label ja official "既に無罪とされた行為については、刑事上の責任を問はれない";
+    label en unofficial "Art. 39. No criminal liability for an act already adjudged not guilty";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p) and act_previously_acquitted(c);
+    then immunity NoLiabilityAfterAcquittalImmunity {
+        holder p;
+        protected_effect criminal_liability_imposed(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART39_P1, relation = formalizes, coverage = partial, quote = "同一の犯罪について、重ねて刑事上の責任を問はれない。")
+rule NoDoubleJeopardy strict {
+    label ja official "同一の犯罪について、重ねて刑事上の責任を問はれない";
+    label en unofficial "Art. 39. No criminal liability twice for the same offence";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p) and same_offence_previously_adjudicated(c);
+    then immunity NoDoubleJeopardyImmunity {
+        holder p;
+        protected_effect criminal_liability_imposed(c);
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority NoRetroactiveLiabilityOverImposingPenalty {
+    prefer NoLiabilityForActLawfulWhenCommitted over CourtImposesPenaltyByLawfulProcedure;
+    reason lex_specialis;
+}
+priority AcquittedActOverImposingPenalty {
+    prefer NoLiabilityForActAlreadyAcquitted over CourtImposesPenaltyByLawfulProcedure;
+    reason lex_specialis;
+}
+priority DoubleJeopardyOverImposingPenalty {
+    prefer NoDoubleJeopardy over CourtImposesPenaltyByLawfulProcedure;
+    reason lex_specialis;
+}
+
+// --- Art. 40: compensation after acquittal -----------------------------------
+
+relation held_in_custody_or_confinement_in_case(c: Prosecution) kind empirical {
+    label ja official "抑留又は拘禁された後";
+    label en unofficial "the accused was held in custody or confinement in the case";
+}
+// The judgment of not guilty is the act of a court: a fact `origin adjudicated`.
+relation judgment_of_not_guilty(c: Prosecution) kind empirical {
+    label ja official "無罪の裁判";
+    label en unofficial "the court delivered a judgment of not guilty";
+}
+relation statute_provides_compensation(c: Prosecution) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "a statute provides for compensation in the case (external dependency: its content)";
+}
+relation may_demand_compensation(p: Person, c: Prosecution) kind institutional {
+    label ja official "国にその補償を求めることができる";
+    label en unofficial "the person may demand compensation from the state";
+}
+relation compensation_demanded(p: Person, c: Prosecution) kind empirical {
+    label ja official "補償を求める";
+    label en unofficial "the person demanded compensation from the state";
+}
+relation compensation_due_date(c: Prosecution, d: Date) kind empirical {
+    label ja official "法律の定めるところにより（補償の時期）";
+    label en unofficial "the statute fixes the date by which the compensation is due (external dependency)";
+}
+relation compensation_paid_to_acquitted(c: Prosecution) kind empirical {
+    label ja official "補償";
+    label en unofficial "the state paid the compensation";
+}
+
+@source(JP_CONST_ART40_P1)
+rule AcquittedMayDemandCompensation strict {
+    label ja official "何人も、抑留又は拘禁された後、無罪の裁判を受けたときは、法律の定めるところにより、国にその補償を求めることができる";
+    label en unofficial "Art. 40. A person acquitted after custody or confinement may demand compensation, as the statute provides";
+    for c: Prosecution; for p: Person;
+    when defendant_of(c, p) and held_in_custody_or_confinement_in_case(c) and judgment_of_not_guilty(c) and statute_provides_compensation(c);
+    then may_demand_compensation(p, c);
+}
+
+@source(JP_CONST_ART40_P1, relation = formalizes, coverage = partial, quote = "国にその補償を求めることができる")
+rule StateCompensatesAcquittedDuty strict {
+    label ja official "国にその補償を求めることができる";
+    label en unofficial "Art. 40. On demand the state owes the compensation the statute provides";
+    for n: Nation; for c: Prosecution; for p: Person; for d: Date;
+    when nation(n) and may_demand_compensation(p, c) and compensation_demanded(p, c) and compensation_due_date(c, d);
+    then duty CompensateAcquittedDuty {
+        bearer n;
+        beneficiary p;
+        goal achievement {
+            condition compensation_paid_to_acquitted(c);
+            window [@1947-05-03, d];
+        }
+    };
+}

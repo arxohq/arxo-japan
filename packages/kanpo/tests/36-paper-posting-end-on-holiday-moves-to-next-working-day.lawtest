@@ -1,0 +1,18 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第二十二条第一項括弧書: 掲示 2025-06-07（土）→ 06-14（土）は行政機関の休日、06-15（日）も休日 → 06-16（月）午前八時三十分まで。
+test "urn:query:kanpo-t36" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t36-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t36"), @2025-06-07) { origin case_input; }
+        assert "kanpo-t36-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t36"), @2025-06-07) { origin case_input; }
+        assert "kanpo-t36-03": administrative_holiday(@2025-06-14) { origin case_input; }
+        assert "kanpo-t36-04": administrative_holiday(@2025-06-15) { origin case_input; }
+    }
+    evaluate truth(paper_posting_period_ends_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t36"), @2025-06-16));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

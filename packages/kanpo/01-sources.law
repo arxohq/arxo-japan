@@ -1,0 +1,281 @@
+// 出典・版・公表・断片（§194）— 官報の発行に関する法律（令和五年法律第八十五号）.
+// Bytes: the flat extraction of the e-Gov法令API v2 revision
+// 505AC0000000085_20250401_000000000000000 — PINNED_UNOFFICIAL_COPY: e-Gov is
+// the Digital Agency's legislation database, not 官報, and whether a text is
+// 官報 is exactly what this package derives (arts. 3, 5, 6, 11, 12). Generated
+// by corpus/tools/sources/fetch/fetch_jp_kanpo_text.py; fragments are exact
+// contiguous substrings of the pinned file.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+source KANPO_HAKKO_HO {
+    kind act;
+    jurisdiction JP;
+    number "令和五年法律第八十五号";
+    label ja official "官報の発行に関する法律";
+}
+
+edition KANPO_HAKKO_HO_2025 of KANPO_HAKKO_HO {
+    language ja;
+    officiality official;
+    materialization_status PINNED_UNOFFICIAL_COPY;
+    adopted @2023-12-13;
+    in_force [@2025-04-01, infinity);
+    label ja official "官報の発行に関する法律（令和五年法律第八十五号）、令和七年四月一日施行の版（e-Gov 505AC0000000085_20250401_000000000000000）";
+}
+
+publication KANPO_HAKKO_HO_JA_TEXT of KANPO_HAKKO_HO_2025 {
+    media_type "text/plain; charset=utf-8";
+    uri "https://laws.e-gov.go.jp/api/2/law_data/505AC0000000085_20250401_000000000000000?law_full_text_format=xml";
+    retrieved_at @2026-09-15T10:00:00Z;
+    content_hash "sha256:cd09715099a791913fda86e3e8a49d56d0377275dcc622d5e734fa7a9168be3f";
+    local_path "sources/kanpo-hakko-ho/ja.txt";
+}
+
+fragment KANPO_ART3 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/3";
+    text ja official """（官報による公布等）
+第三条　日本国憲法改正、法律及び法律に基づく命令（最高裁判所規則その他の規則で内閣府令で指定するものを含む。以下「法令」という。）、条約並びに詔書の公布は、官報をもって行う。
+２　内閣法（昭和二十二年法律第五号）第二十五条第五項、内閣府設置法（平成十一年法律第八十九号）第七条第五項若しくは第五十八条第六項若しくは宮内庁法（昭和二十二年法律第七十号）第八条第五項、デジタル庁設置法（令和三年法律第三十六号）第七条第五項又は国家行政組織法（昭和二十三年法律第百二十号）第十四条第一項の告示で次に掲げるものの公示は、官報をもって行う。
+一　処分（行政庁の処分その他公権力の行使に当たる行為をいう。）の要件を定める告示
+二　前号に掲げるもののほか、これに類する告示として内閣府令で定めるもの""";
+    content_hash "sha256:cc44f22ba1a761905d2c194bb43ec6a9e0c60d57b9b0bfd81d4690e3d1f2d6ab";
+}
+
+fragment KANPO_ART5 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/5";
+    text ja official """（官報の発行の方法）
+第五条　内閣総理大臣は、官報を発行しようとするときは、内閣府令で定める官報の種別ごとに、内閣府令で定めるところにより、官報を発行する年月日、当該年月日に係る公布等事項及び前条に規定する事項その他内閣府令で定める事項（以下「官報掲載事項」という。）を記録した電磁的記録（電子的方式、磁気的方式その他人の知覚によっては認識することができない方式で作られる記録であって、電子計算機による情報処理の用に供されるものをいう。第十二条及び第十三条第一項において同じ。）を内閣総理大臣の使用に係る電子計算機に備えられた官報掲載事項を記録するためのファイル（以下この条、次条及び第十三条第一項において「官報ファイル」という。）に記録しなければならない。
+２　官報の発行は、内閣総理大臣が、官報ファイルに記録された官報掲載事項（以下「電磁的官報記録」という。）について、内閣府令で定めるところにより、当該官報ファイルを電気通信回線に接続して行う自動公衆送信（公衆によって直接受信されることを目的として公衆からの求めに応じ自動的に送信を行うことをいい、放送又は有線放送に該当するものを除く。第十四条第三項において同じ。）を利用して公衆が閲覧することができる状態に置く措置をとることにより行うものとする。
+３　官報ファイルを識別するための文字、番号、記号その他の符号は、内閣府令で定める。
+４　第二項の自動公衆送信により送信される電磁的官報記録に係る情報は、次の各号に掲げる措置のいずれもがとられたものでなければならない。
+一　当該情報を暗号化する措置その他の当該情報の安全性及び信頼性を確実に確保するための措置として内閣府令で定める措置
+二　当該情報が改変されているかどうかを確認することができる措置その他の当該情報が内閣総理大臣の作成に係るものであることを確実に示すことができる措置として内閣府令で定める措置
+５　第二項の自動公衆送信は、当該自動公衆送信により送信される電磁的官報記録に係る情報について、当該情報を受信した者がその使用に係る電子計算機に備えられたファイルに複写することができるものでなければならない。この場合において、当該ファイルに複写される電磁的官報記録に係る情報は、前項第二号に掲げる措置がとられているものであることを確認するために必要な事項を証明する情報が分離することができない状態で付加されたものでなければならない。""";
+    content_hash "sha256:10fca91f12f5a21a0f63362080014aeb7abd62b139ea06fb5ea0cba2961a5ff1";
+}
+
+fragment KANPO_ART6 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/6";
+    text ja official """（公布等事項の公布等の効力）
+第六条　官報ファイルに記録された公布等事項の第三条の規定による公布又は公示は、当該公布等事項に係る官報について前条第二項の措置がとられた時に行われたものとする。""";
+    content_hash "sha256:d24c0b88bd7f03e2da12183330cd9883bc54751257be50d85edcf7e803b65922";
+}
+
+fragment KANPO_ART8 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/8";
+    text ja official """（電磁的官報記録の継続的な閲覧のための措置）
+第八条　内閣総理大臣は、第五条第二項の措置をとったときは、当該措置をとった時から起算して同項の閲覧又は同条第五項前段の複写をするために必要かつ適当な期間として内閣府令で定める期間（以下「閲覧期間」という。）が経過するまでの間、継続して当該措置をとるものとする。
+２　内閣総理大臣は、第五条第二項の措置を開始した後、閲覧期間が経過するまでの間に、災害その他のやむを得ない事情又は同項の自動公衆送信に係る障害であって当該自動公衆送信に著しい支障を生じさせるものとして内閣府令で定めるもの（以下この項、次項及び第十一条第一項において「災害等の事情」という。）が生じたことにより継続して当該措置をとることができなくなった場合には、その旨及びその理由を公表し、当該災害等の事情が解消した場合には、その旨及び当該閲覧期間のうち当該措置をとることができなかった期間（次項において「閲覧不能期間」という。）を公表するものとする。
+３　内閣総理大臣は、前項の規定により災害等の事情が解消した旨の公表をしたときは、第一項の規定にかかわらず、内閣府令で定めるところにより、第五条第二項の措置に係る電磁的官報記録について、閲覧期間が経過した後（災害等の事情により当該閲覧期間が経過した時においても当該措置をとることができない場合にあっては、当該災害等の事情が解消した後）引き続いて、閲覧不能期間に相当する期間（次項及び第十三条第一項において「追加措置期間」という。）、継続して当該措置をとるものとする。
+４　内閣総理大臣は、第五条第二項の措置に係る電磁的官報記録のうち法令その他の内閣府令で定める事項については、閲覧期間又は追加措置期間の経過後においても引き続いて、内閣府令で定めるところにより、当該事項に係る情報を同項の自動公衆送信を利用して公衆が閲覧することができる状態に置く措置をとるものとする。""";
+    content_hash "sha256:13b7fc9749e0404b2e31e2ec491425bc9113b1392f638b1a3add0486e1dae086";
+}
+
+fragment KANPO_ART11 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/11";
+    text ja official """（電磁的官報記録を閲覧に供する措置をとることができなくなった場合の措置）
+第十一条　内閣総理大臣は、災害等の事情が生じたことにより、第五条第二項の措置をとることができなくなったときは、同項の規定にかかわらず、内閣府令で定めるところにより、官報掲載事項を記載した書面（以下「書面官報」という。）を内閣府の掲示場に掲示することにより官報の発行を行うことができる。
+２　書面官報に記載された公布等事項の第三条の規定による公布又は公示は、当該公布等事項に係る書面官報について前項の掲示がされた時に行われたものとする。
+３　内閣総理大臣は、第一項の規定により書面官報の発行をするときは、あらかじめ、その旨及びその理由を公表しなければならない。
+４　内閣総理大臣は、第一項の掲示をしたときは、内閣府令で定める期間、その掲示を継続するものとする。
+５　内閣総理大臣は、第一項の掲示をしたときは、直ちに（大規模災害その他の特別の事情があるときは、当該特別の事情がやんだ後直ちに）、当該掲示に係る書面官報を頒布しなければならない。
+６　内閣総理大臣は、第一項の規定により書面官報の発行をした後に、第五条第二項の措置をとることができることとなったときは、その旨を公表するとともに、当該措置をとることができることとなった後に当該措置をとることにより発行する官報に、当該書面官報の発行の年月日及び当該書面官報に掲載された事項の内容の要旨を掲載するものとする。
+７　前各項に定めるもののほか、書面官報の発行に関し必要な事項は、内閣府令で定める。""";
+    content_hash "sha256:9c24907a3024a757b91219a781847e027b6c8e5728ee65d9203366832f7775b6";
+}
+
+fragment KANPO_ART12 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "article/12";
+    text ja official """（官報の送付等に関する他の法令の規定の適用）
+第十二条　第五条第五項又は第十条の規定により電磁的官報記録に係る情報を複写した電磁的記録は、他の法令における官報の提供、送付その他これらに類する行為に関する規定の適用については、当該他の法令における官報に該当するものとする。""";
+    content_hash "sha256:fe5c15f4af1ed29ddc7cd1e95c25bfa0e9338b734587abb4c969e8831bfe8563";
+}
+
+fragment KANPO_SUPPL_ART1_3 in KANPO_HAKKO_HO_2025 {
+    kind article;
+    locator "supplementary/article/1-3";
+    text ja official """（施行期日）
+第一条　この法律は、公布の日から起算して一年六月を超えない範囲内において政令で定める日から施行する。ただし、附則第四条及び第六条の規定は、公布の日から施行する。
+（経過措置）
+第二条　この法律の規定は、この法律の施行の日（以下「施行日」という。）以後に発行する官報について適用する。
+（施行日前に発行された官報とこの法律との関係）
+第三条　この法律の規定は、施行日前に発行された官報について、その法制上の位置付けに影響を及ぼすものと解してはならない。""";
+    content_hash "sha256:450e72ba1d14abe191327e630abaff0ef45e10a15d4126cbc03a15723bf8c4de";
+}
+
+// --- 官報の発行に関する法律の施行期日を定める政令（令和六年政令第三百九号） ---------------
+// Закреплён 15.09.2026 дважды: сначала как строка, несущая дату окна in_force
+// редакции акта; затем как источник правила: 附則第一条 отсылает день к 政令, и
+// 20-application.law выводит enforcement_day из 本則 (фрагменты ниже). Байты —
+// только полоса 政令第三百九号 страницы 3 (фетчер fetch_provision_of_law_dates.py).
+// Окно редакции: 政令 своего 附則 не имеет, день начала действия в байтах не
+// назван; объявлена НИЖНЯЯ ГРАНИЦА — день 公布 令和六年九月二十七日 (до него 政令
+// не существовал). Правила акта, читающие день, действуют с 2025-04-01, поэтому
+// на их исход эта граница не влияет.
+source KANPO_SEIREI_309 {
+    kind order;
+    jurisdiction JP;
+    number "令和六年政令第三百九号";
+    label ja official "官報の発行に関する法律の施行期日を定める政令";
+}
+
+edition KANPO_SEIREI_309_2024 of KANPO_SEIREI_309 {
+    language ja;
+    officiality official;
+    materialization_status PINNED_UNOFFICIAL_COPY;
+    adopted @2024-09-27;
+    in_force [@2024-09-27, infinity);
+    label ja official "官報 令和6年9月27日 本紙第1314号 第3頁（インターネット版官報 PDF の Wayback Machine 写し）";
+}
+
+publication KANPO_SEIREI_309_JA_TEXT of KANPO_SEIREI_309_2024 {
+    media_type "text/plain; charset=utf-8";
+    uri "https://web.archive.org/web/20240927032557id_/https://kanpou.npb.go.jp/20240927/20240927h01314/pdf/20240927h01314full00010032.pdf";
+    retrieved_at @2026-09-15T18:00:00Z;
+    content_hash "sha256:e087c2072e534135c6f7ad15058c7e46daa915d0623fd6a248a2d94747a02e2b";
+    local_path "sources/seirei-309/ja.txt";
+}
+
+fragment KANPO_SEIREI_309_ENACTING in KANPO_SEIREI_309_2024 {
+    kind note;
+    locator "enacting-clause";
+    text ja official """内閣は、官報の発行に関する法律（令和五年法律第八十五号）附則第一条の規定に基づき、この政令を制定する。""";
+    content_hash "sha256:e3b2295d843ae582cf07277f2ef89fb137200882b4da6c4437e5a52e0ebb9154";
+}
+
+fragment KANPO_SEIREI_309_MAIN in KANPO_SEIREI_309_2024 {
+    kind note;
+    locator "main-provision";
+    text ja official """官報の発行に関する法律の施行期日は、令和七年四月一日とする。""";
+    content_hash "sha256:30100dfe39802f7c786373c79f5e54f5a7d0db1acb1f8c06497a86a2f6ce2e24";
+}
+
+// --- 官報の発行に関する内閣府令（令和六年内閣府令第八十号） ---------------------------
+// Pinned 15.09.2026: arts. 11–12 turn the art. 5(2) measure into a derived
+// conclusion (10-promulgation.law); art. 10 (08:30 start, two exceptions) and
+// art. 15 (inspection period with Act art. 8(1)) are modelled at day granularity.
+// Window of the edition: 附則第一条 «この府令は、法の施行の日から施行する» — the day
+// of the Act's enforcement, pinned as 2025-04-01 by 政令 309 (KANPO_SEIREI_309).
+
+source KANPO_FUREI_80 {
+    kind minister_order;
+    jurisdiction JP;
+    number "令和六年内閣府令第八十号";
+    label ja official "官報の発行に関する内閣府令";
+}
+
+edition KANPO_FUREI_80_2025 of KANPO_FUREI_80 {
+    language ja;
+    officiality official;
+    materialization_status PINNED_UNOFFICIAL_COPY;
+    adopted @2024-09-17;
+    in_force [@2025-04-01, infinity);
+    label ja official "官報の発行に関する内閣府令（令和六年内閣府令第八十号）、令和七年四月一日施行の版（e-Gov 506M60000002080_20250401_000000000000000）";
+}
+
+publication KANPO_FUREI_80_JA_TEXT of KANPO_FUREI_80_2025 {
+    media_type "text/plain; charset=utf-8";
+    uri "https://laws.e-gov.go.jp/api/2/law_data/506M60000002080_20250401_000000000000000?law_full_text_format=xml";
+    retrieved_at @2026-09-15T21:40:00Z;
+    content_hash "sha256:0c8bbc41e20bfbb2ddf86d44fe18e1a72891ef99464b87a165dddc326ee90c1e";
+    local_path "sources/kanpo-furei-80/ja.txt";
+}
+
+fragment KANPO_FUREI_ART10 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/10";
+    text ja official """（官報の発行を行うべき時刻）
+第十条　法第五条第二項の措置は、原則として、午前八時三十分に開始するものとする。ただし、次に掲げる場合を除く。
+一　特別号外の官報に係る電磁的官報記録について当該措置をとる場合
+二　前号のほか、災害等の事情が生じたことにより午前八時三十分に当該措置をとることができなくなった後、同日において当該事情が解消したことにより当該措置をとる場合""";
+    content_hash "sha256:9da15657dec2c272f235955ef062f9c9af1794cf10d03ea656ce02a751306f0e";
+}
+
+fragment KANPO_FUREI_ART11 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/11";
+    text ja official """（公衆の閲覧の方法）
+第十一条　法第五条第二項及び第八条第四項の規定による公衆の閲覧は、内閣府のウェブサイトへの掲載により行うものとする。""";
+    content_hash "sha256:06d66e2879d40728db576f05f4d66690c0ab908c24d9b49daf1adda36c58aa7c";
+}
+
+fragment KANPO_FUREI_ART12 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/12";
+    text ja official """（官報ファイルを識別するための文字、番号、記号その他の符号）
+第十二条　法第五条第三項の官報ファイルを識別するための文字、番号、記号その他の符号は、ｈｔｔｐｓ：／／ｗｗｗ．ｋａｎｐｏ．ｇｏ．ｊｐとする。""";
+    content_hash "sha256:08b316889f53037285f32c1d569d89bf90203336ed06f8a5663c8ebe1236b3f7";
+}
+
+fragment KANPO_FUREI_ART15 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/15";
+    text ja official """（閲覧期間）
+第十五条　法第八条第一項の閲覧期間は、法第五条第二項の措置をとった日から起算して九十日を経過した日の午前八時三十分までとする。""";
+    content_hash "sha256:c5642031d1a5edd8edee02042d5043622eb9b6238965e1d47a4c1d335c07f1eb";
+}
+
+fragment KANPO_FUREI_ART16 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/16";
+    text ja official """（自動公衆送信に著しい支障を生じさせる障害）
+第十六条　内閣総理大臣は、法第五条第二項の自動公衆送信を行うための設備（以下この項及び次項において「自動公衆送信設備」という。）が所在する都道府県以外の都道府県の区域内に、自動公衆送信設備と同等の機能を有する設備（次項において「代替設備」という。）を設置するものとする。
+２　法第八条第二項の内閣府令で定めるものは、自動公衆送信設備及び代替設備において前項の自動公衆送信を行うために利用するインターネットへの接続を可能とする電気通信役務（電気通信事業法（昭和五十九年法律第八十六号）第二条第三号に規定する電気通信役務をいう。）の提供を停止させた事故（自動公衆送信設備及び代替設備のいずれもが当該電気通信役務の提供の停止を受けたものに限る。）に起因する当該自動公衆送信に係る障害をいう。""";
+    content_hash "sha256:0ef544ea2d633eca0613b2b8dadf260e9186ed0ff55abd6c66501911f6d3009f";
+}
+
+fragment KANPO_FUREI_ART17 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/17";
+    text ja official """（追加措置期間の措置）
+第十七条　法第八条第三項の追加措置期間の措置は、法第五条第二項の措置に係る電磁的官報記録について、閲覧期間が経過した日（災害等の事情により当該閲覧期間が経過した時においても当該措置をとることができない場合にあっては、当該災害等の事情が解消した日）から起算して、当該閲覧期間内において一日につき合計十二時間以上当該措置をとることができなかった日の日数を合算した期間を経過した日の午前八時三十分までの期間、継続してとるものとする。""";
+    content_hash "sha256:0b6d3f381d3fd054b88e0984260f499f7b79640318fb2b7ad7f88e3b4dee134d";
+}
+
+fragment KANPO_FUREI_ART18 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/18";
+    text ja official """（閲覧期間経過後の情報提供の対象）
+第十八条　法第八条第四項の法令その他の内閣府令で定める事項は、法令のほか、電磁的官報記録（号外国会会議録の官報に係るものを除く。）のうち次に掲げる事項（公益性が特に高いと認められる事項を除く。）のいずれにも該当しないものとする。
+一　個人の氏名及び住所、生年月日その他個人に関する情報が含まれる事項であって、当該事項を法第五条第二項の自動公衆送信を利用して公衆が無期限に閲覧することができる状態に置くことにより当該個人のプライバシーの確保に支障が生ずるおそれがあると認められるもの
+二　前号に掲げるもののほか、特定の名あて人に対する処分、通知その他の行政庁の行為（指定等法人に対するものを除く。）に関する事項であって、当該行為の性質に照らして当該事項を法第五条第二項の自動公衆送信を利用して公衆が無期限に閲覧することができる状態に置くことにより当該名あて人又は当該行為に係る事案の関係者のプライバシーの確保に支障が生ずるおそれがあると認められるもの
+三　前二号に掲げるもののほか、特別の理由により法第五条第二項の自動公衆送信を利用して公衆が無期限に閲覧することができる状態に置くことに特に支障があると認められる事項""";
+    content_hash "sha256:76f63d18abb63a091adcd2efbdf46ba8ea1e0c23f303fced7cc433f7c6994c53";
+}
+
+fragment KANPO_FUREI_ART22 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/22";
+    text ja official """（書面官報の掲示期間）
+第二十二条　法第十一条第四項の内閣府令で定める期間は、同条第一項の掲示をした日から起算して一週間を経過した日（同日が行政機関の休日に当たるときは、行政機関の休日の翌日）の午前八時三十分までとする。
+２　前項の規定にかかわらず、法第十一条第一項の規定により書面官報の発行をした日から起算して一週間を経過する日までの間に、当該書面官報に掲載された事項に係る情報について第二十四条第一項の措置を開始したときは、法第十一条第四項の内閣府令で定める期間は、当該措置を開始した日の翌日（同日が行政機関の休日に当たるときは、行政機関の休日の翌日）の午前八時三十分までとする。""";
+    content_hash "sha256:0bcf42cc33475c6fc8c1b13b31df3dabf778f1ebc729def5c70c3b34de63a92c";
+}
+
+fragment KANPO_FUREI_ART24 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "article/24";
+    text ja official """（書面官報に掲載された事項の提供）
+第二十四条　内閣総理大臣は、法第十一条第一項の規定により書面官報の発行をした後に、法第五条第二項の措置をとることができることとなったときは、速やかに、当該書面官報に掲載された事項に係る情報を同項の自動公衆送信を利用して公衆が閲覧することができる状態に置く措置をとるものとする。
+２　前項の規定による公衆の閲覧は、内閣府のウェブサイトへの掲載により行うものとする。
+３　内閣総理大臣は、第一項の措置をとったときは、当該措置をとった日から起算して九十日を経過した日の午前八時三十分までの期間、継続して当該措置をとるものとする。
+４　内閣総理大臣は、第一項の措置に係る書面官報に掲載された事項のうち第十八条各号に掲げる事項（公益性が特に高いと認められる事項を除く。）を除いたものについては、前項の期間の経過後においても引き続いて、当該事項に係る情報を法第五条第二項の自動公衆送信を利用して公衆が閲覧することができる状態に置く措置をとるものとする。""";
+    content_hash "sha256:de5c8cb3f0be38c58959c59c0eb6ea2ff576d9710b8a163db00b9471667bf43b";
+}
+
+fragment KANPO_FUREI_SUPPL_ART1 in KANPO_FUREI_80_2025 {
+    kind article;
+    locator "supplementary/article/1";
+    text ja official """（施行期日）
+第一条　この府令は、法の施行の日（附則第三条において「施行日」という。）から施行する。ただし、同条の規定は、公布の日から施行する。""";
+    content_hash "sha256:3eb6551d9f2fcfe780a4d293028ecccefc489ce355f6af73b500b2ac9909c8e2";
+}

@@ -1,0 +1,195 @@
+// 第八条第四項、内閣府令第十八条: 閲覧期間経過後の情報提供.
+//
+// Art. 8(4): for 法令 and other matters prescribed by 府令, the PM keeps the
+// information open to public inspection by automatic public transmission even
+// after the inspection period or the additional period has elapsed. 府令 art. 18
+// prescribes: 法令, and matters in electronic 官報 records (except 号外国会会議録)
+// that fall under none of three items — (1) personal information whose
+// indefinite posting is recognised to risk the individual's privacy, (2) a
+// disposition, notice or other act toward a specific addressee (not toward a
+// 指定等法人) recognised to risk the privacy of the addressee or persons
+// concerned, (3) a matter recognised to be specially impeded for a special
+// reason — the items themselves excluding matters recognised to be of
+// particularly high public interest.
+//
+// All four "…と認められる" are evaluative (DECISION-0194): the owner chose the
+// judgment channel §47.3 with the PM — who runs the measure — as authority. Until
+// answered, an exclusion does not defeat the retention: the answer is TRUE_ONLY
+// with REQUIRES_JUDGMENT and the open requests. Each exclusion is a defeater; a
+// matter of particularly high public interest is retained over the exclusion by
+// a rule with priority (§107.3). Guards that close the requests sit in the SAME
+// body and over the matter itself (not the issue): a judgment request is
+// withdrawn only by a refuted premise over the judgment's own arguments, and an
+// absent fact does not refute (probe 15.09.2026). Hence 号外国会会議録 is a fact
+// about the matter, and a case that the matter is not an act toward an addressee
+// states it as `not concerns_act_toward_specific_addressee(i)`. The result is a
+// conclusion about the matter; the PM's duty is not a position.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    KANPO_ART8,
+    KANPO_FUREI_ART18,
+    KanpoIssue,
+    act_applies_to,
+    inspection_measure_taken_on,
+};
+
+entity KanpoItem { label ja official "官報掲載事項（電磁的官報記録に記録された各事項）"; }
+
+relation item_published_in(i: KanpoItem, k: KanpoIssue) kind empirical {
+    label ja official "当該事項が当該官報に係る電磁的官報記録に記録されている";
+}
+relation item_in_extra_diet_proceedings_issue(i: KanpoItem) kind empirical {
+    label ja official "当該事項が号外国会会議録の官報に係る電磁的官報記録に記録されている";
+}
+relation item_is_law_or_regulation(i: KanpoItem) kind empirical {
+    label ja official "当該事項が法令である";
+}
+relation concerns_act_toward_specific_addressee(i: KanpoItem) kind empirical {
+    label ja official "当該事項が特定の名あて人に対する処分、通知その他の行政庁の行為に関する事項である";
+}
+relation addressee_is_designated_corporation(i: KanpoItem) kind empirical {
+    label ja official "当該行為が指定等法人に対するものである";
+}
+
+pub external judgment relation indefinite_posting_risks_individual_privacy(i: KanpoItem) {
+    authority PrimeMinisterOfJapan;
+    label ja official "内閣府令第十八条第一号　個人に関する情報が含まれる事項であって、公衆が無期限に閲覧することができる状態に置くことにより当該個人のプライバシーの確保に支障が生ずるおそれがあると認められる";
+}
+pub external judgment relation indefinite_posting_risks_addressee_privacy(i: KanpoItem) {
+    authority PrimeMinisterOfJapan;
+    label ja official "内閣府令第十八条第二号　当該行為の性質に照らして、公衆が無期限に閲覧することができる状態に置くことにより当該名あて人又は当該行為に係る事案の関係者のプライバシーの確保に支障が生ずるおそれがあると認められる";
+}
+pub external judgment relation indefinite_posting_specially_impeded(i: KanpoItem) {
+    authority PrimeMinisterOfJapan;
+    label ja official "内閣府令第十八条第三号　特別の理由により公衆が無期限に閲覧することができる状態に置くことに特に支障があると認められる";
+}
+pub external judgment relation public_interest_particularly_high(i: KanpoItem) {
+    authority PrimeMinisterOfJapan;
+    label ja official "内閣府令第十八条柱書　公益性が特に高いと認められる事項である";
+}
+
+relation kept_available_after_inspection_period(i: KanpoItem) kind institutional {
+    label ja official "閲覧期間又は追加措置期間の経過後においても引き続いて、当該事項に係る情報を公衆が閲覧することができる状態に置く措置をとる";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART18)
+rule LawOrRegulationKeptAvailable(i: KanpoItem, k: KanpoIssue, day: Date) strict {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when item_is_law_or_regulation(i);
+    then kept_available_after_inspection_period(i);
+    label ja official "法第八条第四項・内閣府令第十八条　法令は、閲覧期間又は追加措置期間の経過後においても引き続いて閲覧に供する";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART18)
+rule OtherMatterKeptAvailable(i: KanpoItem, k: KanpoIssue, day: Date) defeasible {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    then kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条柱書　電磁的官報記録（号外国会会議録の官報に係るものを除く。）のうち次に掲げる事項のいずれにも該当しないもの";
+}
+
+@source(KANPO_FUREI_ART18)
+rule IndividualPrivacyExcluded(i: KanpoItem, k: KanpoIssue, day: Date) defeater {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when indefinite_posting_risks_individual_privacy(i);
+    defeat kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条第一号　個人のプライバシーの確保に支障が生ずるおそれがあると認められる事項を除く";
+}
+
+@source(KANPO_FUREI_ART18)
+rule AddresseePrivacyExcluded(i: KanpoItem, k: KanpoIssue, day: Date) defeater {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when concerns_act_toward_specific_addressee(i);
+    when not_known(addressee_is_designated_corporation(i));
+    when indefinite_posting_risks_addressee_privacy(i);
+    defeat kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条第二号　特定の名あて人に対する行政庁の行為（指定等法人に対するものを除く。）に関する事項であって、プライバシーの確保に支障が生ずるおそれがあると認められるものを除く";
+}
+
+@source(KANPO_FUREI_ART18)
+rule SpecialImpedimentExcluded(i: KanpoItem, k: KanpoIssue, day: Date) defeater {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when indefinite_posting_specially_impeded(i);
+    defeat kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条第三号　特別の理由により特に支障があると認められる事項を除く";
+}
+
+@source(KANPO_FUREI_ART18)
+rule HighPublicInterestOverIndividualPrivacy(i: KanpoItem, k: KanpoIssue, day: Date) defeasible {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when indefinite_posting_risks_individual_privacy(i);
+    when public_interest_particularly_high(i);
+    then kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条柱書括弧書　公益性が特に高いと認められる事項は、第一号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART18)
+rule HighPublicInterestOverAddresseePrivacy(i: KanpoItem, k: KanpoIssue, day: Date) defeasible {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when concerns_act_toward_specific_addressee(i);
+    when not_known(addressee_is_designated_corporation(i));
+    when indefinite_posting_risks_addressee_privacy(i);
+    when public_interest_particularly_high(i);
+    then kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条柱書括弧書　公益性が特に高いと認められる事項は、第二号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART18)
+rule HighPublicInterestOverSpecialImpediment(i: KanpoItem, k: KanpoIssue, day: Date) defeasible {
+    when item_published_in(i, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    when not_known(item_in_extra_diet_proceedings_issue(i));
+    when not_known(item_is_law_or_regulation(i));
+    when indefinite_posting_specially_impeded(i);
+    when public_interest_particularly_high(i);
+    then kept_available_after_inspection_period(i);
+    label ja official "内閣府令第十八条柱書括弧書　公益性が特に高いと認められる事項は、第三号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART18)
+priority PublicInterestPrevailsOverIndividualPrivacy {
+    prefer HighPublicInterestOverIndividualPrivacy over IndividualPrivacyExcluded;
+    reason explicit_exception;
+}
+
+@source(KANPO_FUREI_ART18)
+priority PublicInterestPrevailsOverAddresseePrivacy {
+    prefer HighPublicInterestOverAddresseePrivacy over AddresseePrivacyExcluded;
+    reason explicit_exception;
+}
+
+@source(KANPO_FUREI_ART18)
+priority PublicInterestPrevailsOverSpecialImpediment {
+    prefer HighPublicInterestOverSpecialImpediment over SpecialImpedimentExcluded;
+    reason explicit_exception;
+}

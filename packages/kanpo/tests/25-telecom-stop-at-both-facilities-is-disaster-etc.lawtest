@@ -1,0 +1,16 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十六条第二項: 自動公衆送信設備と代替設備の双方で電気通信役務の提供が停止した事故による障害は災害等の事情に該当する。
+test "urn:query:kanpo-t25" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t25-01": telecom_service_stopped_at_main_facility(entity_ref("urn:jp:case:outage-2025-08")) { origin case_input; }
+        assert "kanpo-t25-02": telecom_service_stopped_at_alternate_facility(entity_ref("urn:jp:case:outage-2025-08")) { origin case_input; }
+    }
+    evaluate truth(disruption_is_disaster_etc(entity_ref("urn:jp:case:outage-2025-08")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

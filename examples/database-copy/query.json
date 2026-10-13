@@ -1,0 +1,15 @@
+{
+  "kind": "truth",
+  "literal": {
+    "args": [
+      {
+        "id": "urn:jp:case:database-copy",
+        "kind": "entity_ref"
+      }
+    ],
+    "kind": "literal",
+    "polarity": "positive",
+    "predicate": "urn:jp:corpus:clir:kanpo#counts_as_kanpo_for_other_laws"
+  },
+  "queryId": "urn:jp:corpus:clir:kanpo#test/urn%3Aquery%3Akanpo-t04/query/0"
+}

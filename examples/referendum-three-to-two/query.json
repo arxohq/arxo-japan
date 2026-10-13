@@ -1,0 +1,15 @@
+{
+  "kind": "truth",
+  "literal": {
+    "args": [
+      {
+        "id": "urn:jp:case:x1",
+        "kind": "entity_ref"
+      }
+    ],
+    "kind": "literal",
+    "polarity": "positive",
+    "predicate": "urn:jp:constitution:clir#people_majority_approves"
+  },
+  "queryId": "urn:jp:constitution:clir#test/ART96-36-THREE-FOR-TWO-AGAINST-CARRIES-THE-REFERENDUM/query/0"
+}

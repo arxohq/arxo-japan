@@ -1,0 +1,17 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 第十一条第二項: 災害等により電磁的官報を発行できないときの書面官報では、掲示の時（日）に公布が行われる。
+test "urn:query:kanpo-t02" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t02-a": recorded_in_paper_kanpo(entity_ref("urn:jp:case:order-y"), entity_ref("urn:jp:case:paper-kanpo-2025-09-01")) { origin case_input; }
+        assert "kanpo-t02-b": issued_on(entity_ref("urn:jp:case:paper-kanpo-2025-09-01"), @2025-09-01) { origin case_input; }
+        assert "kanpo-t02-c": paper_kanpo_posted_on(entity_ref("urn:jp:case:paper-kanpo-2025-09-01"), @2025-09-01) { origin case_input; }
+    }
+    evaluate truth(promulgated_on(entity_ref("urn:jp:case:order-y"), @2025-09-01));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

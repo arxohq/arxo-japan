@@ -1,0 +1,17 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 第六条: 官報ファイルに記録された法律の公布は、第五条第二項の措置がとられた時（日）に行われる。
+test "urn:query:kanpo-t01" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t01-a": recorded_in_kanpo_file(entity_ref("urn:jp:case:law-x"), entity_ref("urn:jp:case:kanpo-2025-06-02")) { origin case_input; }
+        assert "kanpo-t01-b": issued_on(entity_ref("urn:jp:case:kanpo-2025-06-02"), @2025-06-02) { origin case_input; }
+        assert "kanpo-t01-c": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-06-02"), "https://www.kanpo.go.jp", @2025-06-02) { origin case_input; }
+    }
+    evaluate truth(promulgated_on(entity_ref("urn:jp:case:law-x"), @2025-06-02));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

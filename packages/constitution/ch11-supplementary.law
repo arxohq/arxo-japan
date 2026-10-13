@@ -1,0 +1,277 @@
+// Chapter XI, Supplementary Provisions (第十一章 補則), Articles 100-103.
+//
+// These are TRANSITIONAL provisions of 1946-47. Their historical character is no ground
+// for calling them non-executable: they are modelled in the historical temporal domain with
+// windows and computed dates; the scenarios set decision_time, knowledge_time and legal_time
+// to the same historical date (AUDIT.md, common idioms).
+//
+// MODEL
+//   * ARTICLE 100(1). The Constitution takes effect on the day on which six months have
+//     elapsed, counted from the day of promulgation. Computed, not asserted:
+//     `add_calendar_period(d, 6 calendar_month)` under DIET_CALENDAR_STEP (ch04a): the same
+//     day of the month, and at the end of a short month its last day (1946-11-03 -> 1947-05-03;
+//     1946-08-31 -> 1947-02-28). The promulgation day is an input fact (`constitution_promulgated_on`).
+//     The constant window `[@1947-05-03, infinity)` of the rules of the other chapters is the
+//     result of this computation for the actual promulgation of 3 November 1946.
+//   * ARTICLE 100(2). Before that day the enactment of the laws necessary to enforce the
+//     Constitution, the election of the members of the House of Councillors, the procedure of
+//     convoking the Diet and the other preparatory procedures MAY be done. A LIBERTY of the
+//     State (permission, `action` = its own conduct) in the window `[-infinity, e)`, where `e` is
+//     the COMPUTED day of Art. 100(1) (1947-05-03 for the actual promulgation): the window is
+//     open at the entry into force (the day itself is outside it) and has no lower bound,
+//     because the text sets none. Four kinds of preparatory act.
+//   * ARTICLE 101. If at the entry into force the House of Councillors has not yet been
+//     constituted, the House of Representatives exercises the powers of the Diet until it is:
+//     `reps_exercise_diet_powers_from(h, e)` from the entry, `..._until(h, d)` to the day on which
+//     the House of Councillors is constituted. Not constituted = no constitution on or before the
+//     entry (count over the facts `house_of_councillors_constituted_on`).
+//   * ARTICLE 102. Of the FIRST Councillors of the House of Councillors under this Constitution the
+//     term of HALF is three years; the statute determines whom. Modelled: the statute's
+//     designation is an input (`statute_designates_short_term`, EXTERNAL_DEPENDENCY, no content
+//     invented); the end of the short term is `add_calendar_period(start, 3 calendar_year)`;
+//     `first_term_designation_is_half` counts that exactly half are designated (exact equality
+//     is the letter of 「その半数」; an odd number has no exact half). The term of the OTHER half
+//     is not set by Art. 102 (it is six years by Art. 46, ch04a); nothing is invented for it.
+//   * ARTICLE 103. A Minister of State, a member of the House of Representatives, a judge or another
+//     public official in office at the entry into force whose corresponding position is recognised
+//     by the Constitution does not lose the post as a matter of course, unless a statute provides
+//     otherwise (`post_retained_from`); he loses it when a successor is elected or appointed under
+//     the Constitution (`post_lost_on`). "Corresponding position is recognised" and "the statute
+//     provides otherwise" are inputs (classification, external statute). A successor chosen before
+//     the entry into force is not a successor "under this Constitution" (d >= e).
+//
+// Public producers: constitution_enters_into_force_on(e), post_retained_from(p, e), post_lost_on(p, d).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    House,
+    HouseOfRepresentatives,
+    JP_CONST_ART100_P1,
+    JP_CONST_ART100_P2,
+    JP_CONST_ART101_P1,
+    JP_CONST_ART102_P1,
+    JP_CONST_ART103_P1,
+    Nation,
+    Person,
+    nation,
+};
+
+entity PreparatoryAct {
+    label ja official "この憲法を施行するために必要な準備手続";
+    label en unofficial "a preparatory act done before the entry into force";
+}
+
+enum PreparatoryActKind {
+    label en unofficial "kinds of preparatory acts for enforcing the Constitution";
+    implementing_law;
+    councillor_election;
+    diet_convocation_procedure;
+    other_preparatory_procedure;
+}
+
+enum TransitionalPostKind {
+    label en unofficial "kinds of posts covered by the transitional provisions";
+    minister_of_state_post;
+    representative_post;
+    judge_post;
+    other_official_post;
+}
+
+// --- Article 100(1) -------------------------------------------------------------------
+relation constitution_promulgated_on(d: Date) kind empirical {
+    label ja official "公布の日";
+    label en unofficial "the day on which the Constitution was promulgated";
+}
+relation constitution_enters_into_force_on(e: Date) kind institutional {
+    label ja official "施行する";
+    label en unofficial "the day on which the Constitution enters into force (six calendar months after the promulgation)";
+}
+
+@source(JP_CONST_ART100_P1, relation = formalizes, coverage = exact, quote = "この憲法は、公布の日から起算して六箇月を経過した日から、これを施行する")
+rule ConstitutionEntersIntoForceSixMonthsAfterPromulgation strict {
+    label ja official "この憲法は、公布の日から起算して六箇月を経過した日から、これを施行する";
+    label en unofficial "Article 100(1). The Constitution enters into force on the day on which six months have elapsed from the day of promulgation";
+    for d: Date;
+    when constitution_promulgated_on(d);
+    then constitution_enters_into_force_on(add_calendar_period(d, 6 calendar_month));
+}
+
+// --- Article 100(2) -------------------------------------------------------------------
+relation preparatory_act_kind(x: PreparatoryAct, k: PreparatoryActKind) kind empirical {
+    label en unofficial "the kind of the preparatory act";
+}
+relation preparatory_act(x: PreparatoryAct) kind institutional {
+    label ja official "この憲法を施行するために必要な準備";
+    label en unofficial "the act is a preparatory act named by Art. 100(2)";
+}
+relation performs_preparatory_act(n: Nation, x: PreparatoryAct) kind empirical {
+    label ja official "これを行ふ";
+    label en unofficial "the State does the preparatory act (its own conduct)";
+}
+
+@source(JP_CONST_ART100_P2, relation = formalizes, coverage = partial, quote = "この憲法を施行するために必要な法律の制定")
+rule ImplementingLawIsPreparatoryAct strict {
+    label en unofficial "Enacting a law needed to implement the Constitution is a preparatory act";
+    for x: PreparatoryAct; for k: PreparatoryActKind;
+    when preparatory_act_kind(x, k) and k == implementing_law;
+    then preparatory_act(x);
+}
+@source(JP_CONST_ART100_P2, relation = formalizes, coverage = partial, quote = "参議院議員の選挙")
+rule CouncillorElectionIsPreparatoryAct strict {
+    label en unofficial "The election of members of the House of Councillors is a preparatory act";
+    for x: PreparatoryAct; for k: PreparatoryActKind;
+    when preparatory_act_kind(x, k) and k == councillor_election;
+    then preparatory_act(x);
+}
+@source(JP_CONST_ART100_P2, relation = formalizes, coverage = partial, quote = "国会召集の手続")
+rule ConvocationProcedureIsPreparatoryAct strict {
+    label en unofficial "The procedure for convening the Diet is a preparatory act";
+    for x: PreparatoryAct; for k: PreparatoryActKind;
+    when preparatory_act_kind(x, k) and k == diet_convocation_procedure;
+    then preparatory_act(x);
+}
+@source(JP_CONST_ART100_P2, relation = formalizes, coverage = partial, quote = "この憲法を施行するために必要な準備手続")
+rule OtherPreparatoryProcedureIsPreparatoryAct strict {
+    label en unofficial "Other preparatory procedures needed to implement the Constitution are preparatory acts";
+    for x: PreparatoryAct; for k: PreparatoryActKind;
+    when preparatory_act_kind(x, k) and k == other_preparatory_procedure;
+    then preparatory_act(x);
+}
+
+@source(JP_CONST_ART100_P2, relation = formalizes, coverage = exact, quote = "前項の期日よりも前に、これを行ふことができる")
+rule PreparatoryActsMayBeDoneBeforeEntryIntoForce strict {
+    label ja official "前項の期日よりも前に、これを行ふことができる";
+    label en unofficial "Article 100(2). The preparatory acts may be done before the day of Art. 100(1)";
+    for n: Nation; for x: PreparatoryAct; for e: Date;
+    when nation(n) and preparatory_act(x) and constitution_enters_into_force_on(e);
+    then liberty DoPreparatoryActsBeforeEntryIntoForce {
+        holder n;
+        action performs_preparatory_act(n, x);
+        window [-infinity, e);
+    };
+}
+
+// --- Article 101 ----------------------------------------------------------------------
+relation house_of_councillors_constituted_on(d: Date) kind empirical {
+    label ja official "参議院が成立する";
+    label en unofficial "the House of Councillors was constituted on the day";
+}
+relation reps_exercise_diet_powers_from(h: House, e: Date) kind institutional {
+    label ja official "衆議院は、国会としての権限を行ふ";
+    label en unofficial "the House of Representatives exercises the powers of the Diet from the entry into force (the House of Councillors not yet constituted)";
+}
+relation reps_exercise_diet_powers_until(h: House, d: Date) kind institutional {
+    label ja official "その成立するまでの間";
+    label en unofficial "the House of Representatives exercises the powers of the Diet until the day on which the House of Councillors is constituted";
+}
+
+@source(JP_CONST_ART101_P1, relation = formalizes, coverage = partial, quote = "この憲法施行の際、参議院がまだ成立してゐないときは")
+rule RepresentativesActAsDietFromEntryIntoForce strict {
+    label ja official "この憲法施行の際、参議院がまだ成立してゐないときは、…衆議院は、国会としての権限を行ふ";
+    label en unofficial "Article 101. If at the entry into force the House of Councillors is not yet constituted, the House of Representatives exercises the powers of the Diet";
+    for e: Date;
+    when constitution_enters_into_force_on(e)
+        and (count distinct d: Date where house_of_councillors_constituted_on(d) and d <= e) == 0;
+    then reps_exercise_diet_powers_from(HouseOfRepresentatives, e);
+}
+
+@source(JP_CONST_ART101_P1, relation = formalizes, coverage = partial, quote = "その成立するまでの間")
+rule RepresentativesActAsDietUntilCouncillorsConstituted strict {
+    label ja official "その成立するまでの間、衆議院は、国会としての権限を行ふ";
+    label en unofficial "Article 101. The House of Representatives acts as the Diet until the House of Councillors is constituted";
+    for e: Date; for d: Date;
+    when reps_exercise_diet_powers_from(HouseOfRepresentatives, e)
+        and house_of_councillors_constituted_on(d) and d > e;
+    then reps_exercise_diet_powers_until(HouseOfRepresentatives, d);
+}
+
+// --- Article 102 ----------------------------------------------------------------------
+relation first_term_councillor(p: Person) kind empirical {
+    label ja official "この憲法による第一期の参議院議員";
+    label en unofficial "the person is a member of the first House of Councillors under this Constitution";
+}
+relation first_term_began(p: Person, s: Date) kind empirical {
+    label ja official "任期の開始";
+    label en unofficial "the first term of the person began on the day";
+}
+relation statute_designates_short_term(p: Person) kind empirical {
+    label ja official "法律の定めるところにより、これを定める";
+    label en unofficial "the statute designates the person among the half whose term is three years (content of the statute: an external input)";
+}
+relation first_term_short_term_end(p: Person, e: Date) kind institutional {
+    label ja official "その半数の者の任期は、これを三年とする";
+    label en unofficial "the three-year term of a designated first Councillor ends on the day";
+}
+relation first_term_designation_is_half(n: Nation) kind institutional {
+    label ja official "その半数";
+    label en unofficial "exactly half of the first Councillors are designated for the three-year term";
+}
+
+@source(JP_CONST_ART102_P1, relation = formalizes, coverage = partial, quote = "その半数の者の任期は、これを三年とする")
+rule DesignatedFirstCouncillorsServeThreeYears strict {
+    label ja official "その半数の者の任期は、これを三年とする";
+    label en unofficial "Article 102. Half of the first Councillors, whom the statute designates, serve three years";
+    for p: Person; for s: Date;
+    when first_term_councillor(p) and statute_designates_short_term(p) and first_term_began(p, s);
+    then first_term_short_term_end(p, add_calendar_period(s, 3 calendar_year));
+}
+
+@source(JP_CONST_ART102_P1, relation = formalizes, coverage = partial, quote = "その半数の者の任期は")
+rule DesignationCoversExactlyHalf strict {
+    label ja official "その半数の者";
+    label en unofficial "Article 102. The designation covers exactly half of the first Councillors";
+    for n: Nation;
+    when nation(n)
+        and (count distinct p: Person where first_term_councillor(p)) > 0
+        and (count distinct p: Person where first_term_councillor(p) and statute_designates_short_term(p)) * 2
+            == (count distinct p: Person where first_term_councillor(p));
+    then first_term_designation_is_half(n);
+}
+
+// --- Article 103 ----------------------------------------------------------------------
+relation post_at_entry(p: Person, k: TransitionalPostKind) kind empirical {
+    label ja official "この憲法施行の際現に在職する";
+    label en unofficial "the person is in the post at the entry into force";
+}
+relation corresponding_post_recognised(p: Person) kind empirical {
+    label ja official "その地位に相応する地位がこの憲法で認められてゐる";
+    label en unofficial "a position corresponding to the person's post is recognised by the Constitution (classification of the post: an input)";
+}
+relation statute_provides_loss_of_post(p: Person) kind empirical {
+    label ja official "法律で特別の定をした";
+    label en unofficial "a statute makes a special provision under which the person loses the post (content of the statute: external)";
+}
+relation successor_chosen_on(p: Person, d: Date) kind empirical {
+    label ja official "後任者が選挙又は任命された";
+    label en unofficial "a successor of the person was elected or appointed under this Constitution on the day";
+}
+relation post_retained_from(p: Person, e: Date) kind institutional {
+    label ja official "当然にはその地位を失ふことはない";
+    label en unofficial "the person keeps the post from the entry into force (does not lose it as a matter of course)";
+}
+relation post_lost_on(p: Person, d: Date) kind institutional {
+    label ja official "当然その地位を失ふ";
+    label en unofficial "the person loses the post on the day on which a successor is elected or appointed";
+}
+
+@source(JP_CONST_ART103_P1, relation = formalizes, coverage = partial, quote = "この憲法施行のため、当然にはその地位を失ふことはない")
+rule PostRetainedAtEntryIntoForce strict {
+    label ja official "この憲法施行のため、当然にはその地位を失ふことはない";
+    label en unofficial "Article 103. A person in office at the entry into force whose corresponding position is recognised does not lose it as a matter of course, unless a statute provides otherwise";
+    for p: Person; for k: TransitionalPostKind; for e: Date;
+    when post_at_entry(p, k) and corresponding_post_recognised(p) and constitution_enters_into_force_on(e)
+        and not_known(statute_provides_loss_of_post(p));
+    then post_retained_from(p, e);
+}
+
+@source(JP_CONST_ART103_P1, relation = formalizes, coverage = exact, quote = "但し、この憲法によつて、後任者が選挙又は任命されたときは、当然その地位を失ふ")
+rule PostLostOnSuccessor strict {
+    label ja official "但し、この憲法によつて、後任者が選挙又は任命されたときは、当然その地位を失ふ";
+    label en unofficial "Article 103 proviso. When a successor is elected or appointed under the Constitution, the person loses the post";
+    for p: Person; for e: Date; for d: Date;
+    when post_retained_from(p, e) and successor_chosen_on(p, d) and d >= e;
+    then post_lost_on(p, d);
+}

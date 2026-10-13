@@ -1,0 +1,15 @@
+{
+  "source": "e-Gov Law Search API v2",
+  "uri": "https://laws.e-gov.go.jp/api/2/law_data/321CONSTITUTION_19470503_000000000000000?law_full_text_format=xml",
+  "lawId": "321CONSTITUTION",
+  "lawRevisionId": "321CONSTITUTION_19470503_000000000000000",
+  "promulgationDate": "1946-11-03",
+  "enforcementDate": "1947-05-03",
+  "currentRevisionStatus": "CurrentEnforced",
+  "retrievedAt": "2026-09-25T00:00:00Z",
+  "rawResponseHash": "sha256:a9c5daba9d5756d6cae9ecad455462adb4e26df1f39a158b7d6c3db5718bc07d",
+  "xmlHash": "sha256:3c636539819b7e90b8e65b344cd151dd70a8fc79e7903fdff9a3c041db48c43e",
+  "textHash": "sha256:6940ddcc8f782ec899f8ef6cf446b1ff243f83c86cac0ab1d84ee0f477e46bd4",
+  "chapters": 11,
+  "articles": 103
+}

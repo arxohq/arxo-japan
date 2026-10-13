@@ -1,0 +1,75 @@
+# Манифест §10 — маркер корня пакета (DECISION-0033). Нормативны заголовки §22
+# в самих .law; манифест обязан с ними совпадать (LDC-E1109, lawc check).
+[package]
+name = "jp.kanpo"
+version = "0.1.0"
+language = "0.2"
+namespace = "urn:jp:corpus:clir:kanpo"
+
+[metadata]
+act = "jp-kanpo-hakko-ho"
+title = "官報の発行に関する法律（令和五年法律第八十五号）: 官報による公布、電磁的官報の発行と公布の時点、災害時の書面官報、複写記録の官報該当性、施行日前の官報との関係"
+primarySource = "KANPO_HAKKO_HO"
+jurisdiction = "JP"
+instrument = "act"
+sourceFidelity = "pinned_unofficial_copy"
+legalStatus = "in_force"
+issuer = "国会 (National Diet of Japan)"
+
+[[tests]]
+family = "jp.kanpo#authored"
+regression = false
+suites = [
+    "tests/01-electronic-kanpo-promulgation-at-inspection-measure.lawtest",
+    "tests/02-paper-kanpo-promulgation-at-posting.lawtest",
+    "tests/03-copied-record-counts-as-kanpo.lawtest",
+    "tests/04-database-copy-is-not-kanpo.lawtest",
+    "tests/05-kanpo-before-enforcement-day-outside-act.lawtest",
+    "tests/06-kanpo-on-enforcement-day-within-act.lawtest",
+    "tests/07-earlier-kanpo-position-unaffected.lawtest",
+    "tests/08-witness-jp-constitution-egov-copy.lawtest",
+    "tests/09-kanpo-on-enforcement-day-is-not-earlier-kanpo.lawtest",
+    "tests/10-promulgation-in-earlier-kanpo-outside-act.lawtest",
+    "tests/11-in-force-window-day-before.lawtest",
+    "tests/12-in-force-window-first-day.lawtest",
+    "tests/13-posting-on-other-website-is-not-the-measure.lawtest",
+    "tests/14-promulgation-on-first-day-of-ordinance-window.lawtest",
+    "tests/15-enforcement-day-fixed-by-cabinet-order.lawtest",
+    "tests/16-enforcement-day-before-cabinet-order-promulgated.lawtest",
+    "tests/17-measure-starts-at-0830-on-issue-day.lawtest",
+    "tests/18-special-extra-issue-not-bound-to-0830.lawtest",
+    "tests/19-same-day-after-disaster-not-bound-to-0830.lawtest",
+    "tests/20-inspection-period-ends-ninety-days-after-measure.lawtest",
+    "tests/21-no-inspection-period-for-kanpo-before-enforcement-day.lawtest",
+    "tests/22-additional-measure-after-announced-resolution.lawtest",
+    "tests/23-no-additional-measure-without-resolution-announcement.lawtest",
+    "tests/24-additional-measure-counts-from-resolution-day.lawtest",
+    "tests/25-telecom-stop-at-both-facilities-is-disaster-etc.lawtest",
+    "tests/26-telecom-stop-at-main-facility-only-is-not-disaster-etc.lawtest",
+    "tests/27-law-kept-available-without-judgment.lawtest",
+    "tests/28-other-matter-awaits-prime-minister-judgments.lawtest",
+    "tests/29-other-matter-kept-when-no-exclusion-recognised.lawtest",
+    "tests/30-individual-privacy-recognised-asks-public-interest.lawtest",
+    "tests/31-high-public-interest-prevails-over-privacy.lawtest",
+    "tests/32-privacy-without-high-public-interest-is-excluded.lawtest",
+    "tests/33-extra-diet-proceedings-issue-not-kept.lawtest",
+    "tests/34-act-toward-designated-corporation-not-item-2.lawtest",
+    "tests/35-paper-posting-ends-one-week-after-posting.lawtest",
+    "tests/36-paper-posting-end-on-holiday-moves-to-next-working-day.lawtest",
+    "tests/37-measure-started-next-day-shortens-posting.lawtest",
+    "tests/38-measure-started-on-week-elapsed-day-does-not-shorten.lawtest",
+    "tests/39-shortened-posting-end-on-holiday-moves.lawtest",
+    "tests/40-week-rule-displaced-when-measure-started-within-week.lawtest",
+    "tests/41-holiday-is-not-the-posting-end-day.lawtest",
+    "tests/42-paper-matters-period-ends-ninety-days-after-web-posting.lawtest",
+    "tests/43-web-posting-before-paper-posting-is-not-the-measure.lawtest",
+    "tests/44-paper-matter-awaits-prime-minister-judgments.lawtest",
+    "tests/45-paper-matter-privacy-recognised-asks-public-interest.lawtest",
+    "tests/46-paper-matter-high-public-interest-prevails.lawtest",
+    "tests/47-paper-kanpo-summary-carried-after-recovery.lawtest",
+    "tests/48-summary-in-kanpo-before-recovery-does-not-count.lawtest",
+]
+world = ["jp.kanpo"]
+
+[authoring]
+local_imports = "explicit"

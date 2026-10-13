@@ -1,0 +1,489 @@
+{
+  "assertions": [
+    {
+      "contentHash": "sha256:2a5a834f3174300e27cb9fa344c42a66d094f0a794418641d0ee8c69c8751603",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f0",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:x1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#amendment_before_diet"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:cd763b3e7593cdb8bfb6e3d14ef0ceadbe227925225b66f0d621c0f562204704",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f1",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:constitution:clir#HouseOfRepresentatives",
+            "kind": "const_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#motion_before"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:7085841c1d0f5ba899145cf9f7be812997fcee65faa187677910d84f84a73f17",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f2",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#put_to_vote"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:185305f6a11b8b40a0fff47ffe75f2cd80136c8b81e70906a06eb932b3702aeb",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f3",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:constitution:clir#HouseOfRepresentatives",
+            "kind": "const_ref"
+          },
+          {
+            "kind": "value",
+            "type": {
+              "name": "urn:law:std#Integer"
+            },
+            "value": 12
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#member_count"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:e68813669544d59c27bcd0eecaa750a0d38fab4f9fc3e40a8c8264ea0341f926",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f4",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv0",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:62347eb8441e8545997be58d2e0f8d548900f00d31a9afb8b0cb5dddc2966ee5",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f5",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:9d920337d1a31eff94ebf683329b7f4d5e4fcad2bbf2269431a4dc47105be1f2",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f6",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv2",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:bbd123c79523db5d117c80417d3f61084b962f010602714b750bfa379a340c81",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f7",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv3",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:bed293189f26420a0cbf088dd24e4659d0ff0a56f51c2c25a3d3b8e703cbd249",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f8",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv4",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:87a60afa4970d93416e964e52437850a8545c236a85eedef3b05b120ab0a38d2",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f9",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv5",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:ca95ba2f6ced21d1fe3cff932ebe3a69d81fdfbe44ac0fe1c0a733dc59d38173",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f10",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv6",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:8cf4c809f640cb70486a1a6ee2579781c108fbe9a0a15b5f3a7aef191be60e31",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f11",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv7",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#present_at"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:e2b5c8e39fffcd6c2ad10ef9e8635cad4b0a798714b751320fa59ca3ffda9d0b",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f12",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv0",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:012caff66812e5b7b733bead7c524e7937230577c45ba7e93b905915ae74e9c9",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f13",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:f7f8c4cf63178602b877b47b009a307d754fb77a1521f5cd2987eda8fd3e5d19",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f14",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv2",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:b21fb9bfcba911517cbae9991493c2356628fc0efdfa1fdd844496a963c7b5be",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f15",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv3",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:3831dba6b0c4780439dc7754f2340f4f31010c79421db9ebd3f869bafd5a32a7",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f16",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv4",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:5072b161292b9b1d03c8b965621fe1314c0a6127243680e8a1651bd857f97470",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f17",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv5",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:a726e09e91854460d7e59c2afabb23d668f371384aab098573a753b1bb3509cb",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f18",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv6",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:02efe0a85e00a4d2163fb20eab1bcf436bc5adf27e7121f6c670b367cfd53fe5",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f19",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:initrv7",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#votes_for"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    },
+    {
+      "contentHash": "sha256:4952bd582cbe366afa92edcbfb4eb24124da9aa4189ab7de1b37212c022fde1e",
+      "evidence": [],
+      "id": "urn:jp:constitution:clir#f20",
+      "kind": "assertion",
+      "literal": {
+        "args": [
+          {
+            "id": "urn:jp:case:initr",
+            "kind": "entity_ref"
+          },
+          {
+            "id": "urn:jp:case:x1",
+            "kind": "entity_ref"
+          }
+        ],
+        "kind": "literal",
+        "polarity": "positive",
+        "predicate": "urn:jp:constitution:clir#amendment_initiation_vote"
+      },
+      "origin": "case_input",
+      "package": "urn:jp:constitution:clir"
+    }
+  ],
+  "context": {
+    "decisionTime": "2026-06-01T12:00:00Z",
+    "knowledgeTime": "2026-06-01T12:00:00Z",
+    "legalTime": "2026-06-01",
+    "timezone": "Asia/Tokyo"
+  },
+  "options": {}
+}

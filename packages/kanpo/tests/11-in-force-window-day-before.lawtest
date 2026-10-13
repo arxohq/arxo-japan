@@ -1,0 +1,17 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// In-force window boundary (criterion 6): 版 KANPO_HAKKO_HO_2025 は令和七年四月一日から施行（令和六年政令第三百九号）; 附則第二条は KANPO_SUPPL_ART1_3 に錨定.
+// Copy of 06-kanpo-on-enforcement-day-within-act.lawtest at legal_time 2025-03-31 — the day before the edition window opens: the anchored rule is outside the edition, no conclusion.
+// 附則第二条、境界の対: 施行日当日に発行された官報にはこの法律が適用される。
+test "urn:query:kanpo-t06-in-force-window-day-before" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2025-03-31; decision_time @2025-03-31T12:00:00Z; knowledge_time @2025-03-31T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t06-a": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01"), @2025-04-01) { origin case_input; }
+    }
+    evaluate truth(act_applies_to(entity_ref("urn:jp:case:kanpo-2025-04-01")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

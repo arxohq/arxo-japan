@@ -1,0 +1,16 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 法第十一条第四項・内閣府令第二十二条第一項: 掲示 2025-06-04（水）→ 一週間を経過した日 2025-06-11（水）午前八時三十分まで。
+test "urn:query:kanpo-t35" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t35-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t35"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t35-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t35"), @2025-06-04) { origin case_input; }
+    }
+    evaluate truth(paper_posting_period_ends_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t35"), @2025-06-11));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+}

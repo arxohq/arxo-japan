@@ -1,0 +1,835 @@
+// Chapter IV, The Diet (第四章 国会), Articles 41-52: the status of the Diet, the
+// composition of the Houses, the position of members and the regular session.
+// Articles 53-58 are in ch04b-diet-sessions.law, Articles 59-64 in
+// ch04c-diet-legislation.law. The thresholds and the decision of a House (Art. 56)
+// are in 01-voting.law.
+//
+// MODEL
+//   * Constants `Diet`, `HouseOfRepresentatives`, `HouseOfCouncillors` and `Cabinet`
+//     are the shared organs of the chapter (the Cabinet is used as the holder and
+//     bearer of Arts. 53, 54, 60; Chapter V may refine it, it must not redefine it).
+//   * ARTICLE 41 (highest organ, sole legislative organ): "highest organ of State
+//     power" is recorded as an institutional fact only: the text names no consequence.
+//     "Sole legislative organ" is modelled like Article 4(1) of Chapter I, as the
+//     ABSENCE of a power: an enactment by an organ other than the Diet has no
+//     authority behind it (`legislation_without_authority`), unless another provision
+//     of the Constitution authorises that organ (the fact
+//     `legislative_authority_from_constitution`; the provisions themselves are in
+//     other chapters: Arts. 58(2), 73(6), 77, 94). A law is made only by Article 59
+//     (ch04c): `enacted_as_law`.
+//   * ARTICLES 43-49 are institutional definitions and prohibitions. What the text
+//     leaves to a statute (the number of members, the qualifications, the districts,
+//     the payment) is an explicit input contract: a fact naming the statute-defined
+//     content, never invented content of the statute.
+//   * ARTICLE 44 proviso: a prohibition addressed to the organ that sets the
+//     qualifications, i.e. the Diet (Art. 41 makes the Diet the legislator). The
+//     listed grounds are closed, as in the text.
+//   * ARTICLES 45-46: terms computed with `add_calendar_period` (policy
+//     DIET_CALENDAR_STEP below). The four-year term of a member of the House of
+//     Representatives ends earlier on dissolution; the House is dissolved by the act
+//     of Article 7(3) (`house_dissolved`, a PUBLIC producer used by Chapter V).
+//     Article 46: six years, half of the House every three years: the cohort test
+//     `half_of_councillors_renewed_on` counts the members whose term began on the
+//     same day (empirical facts, aggregates run over empirical relations only).
+//     Judgment call: the end date of a term is the date on which the counted period
+//     is complete (the anniversary of the day the term began); the day the term began
+//     is fixed by the election statutes (external input `*_term_began`).
+//   * ARTICLE 50 uses the device of Chapter III (Art. 11 there): the ordinary-law
+//     power of arrest is a power of the arresting organ whose content is external
+//     (`arrest_authorised_by_law`); the immunity of a member, active during the
+//     session, blocks its effect, with a `priority` (§116) in favour of the immunity;
+//     the statutory exceptions (in the text: 法律の定める場合) defeat the immunity
+//     (`arrest_within_statutory_exception`, content of the statute external). The
+//     release of a member arrested BEFORE the session, at the demand of his House, is a
+//     power of the House (valid only for such a member) plus a duty of the custodian.
+//   * ARTICLE 51: the same device for liability outside the House: an immunity for
+//     speeches, debates and votes made in the House, priority over the ordinary-law
+//     power to impose liability. The disciplinary power of the House itself (Art.
+//     58(2)) is inside the House and is not blocked.
+//   * ARTICLE 52: a duty of the State, achievement inside the calendar year given by
+//     the case (`calendar_year_span`). The text names no addressee; the State
+//     (`Japan`) is used as the bearer, the Emperor's act of convocation (Art. 7(2))
+//     being its instrument. "Once a year" is read as "at least once"; whether a second
+//     regular session is excluded is not asserted (no source retrieved).
+//
+// THE "TODAY" WORKAROUND (AUDIT.md, gap 8). A rule cannot read the case axis
+// `legal_time`. Norms whose effect arises on the ELAPSE of a term (Arts. 54(3),
+// 59(4), 60(2)) need the date on which the elapse is assessed; the case supplies it as
+// the fact `assessment_date(x)`, which MUST equal the `legal_time` of the case.
+// This is recorded as a technical gap in coverage/J5.json (never as a provision of
+// the text).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Emperor,
+    House,
+    JP_CONST_ART41_P1,
+    JP_CONST_ART42_P1,
+    JP_CONST_ART43_P1,
+    JP_CONST_ART43_P2,
+    JP_CONST_ART44_P1,
+    JP_CONST_ART45_P1,
+    JP_CONST_ART46_P1,
+    JP_CONST_ART47_P1,
+    JP_CONST_ART48_P1,
+    JP_CONST_ART49_P1,
+    JP_CONST_ART50_P1,
+    JP_CONST_ART51_P1,
+    JP_CONST_ART52_P1,
+    JP_CONST_ART7_P1,
+    Japan,
+    Organ,
+    Person,
+    StateAct,
+    StateActKind,
+    act_kind,
+    cabinet_advised_and_approved,
+    member_count,
+    performs_act,
+};
+
+// A term of days runs from the day of the event and the day of the event is not
+// counted: the step of N days lands N days later (`start_count same_day` is the
+// step from the event date; SPEC §86 reads `start_count` for the calendar step).
+// The month-end convention is read by the year and month steps only (E-0187).
+deadline policy DIET_CALENDAR_STEP {
+    start_count same_day;
+    include_end true;
+    roll no_roll;
+    month_end last_day_of_month;
+}
+
+const Diet: Organ = entity_ref("urn:jp:constitution:clir#Diet") {
+    label ja official "国会";
+    label en unofficial "the Diet";
+};
+const HouseOfRepresentatives: House = entity_ref("urn:jp:constitution:clir#HouseOfRepresentatives") {
+    label ja official "衆議院";
+    label en unofficial "the House of Representatives";
+};
+const HouseOfCouncillors: House = entity_ref("urn:jp:constitution:clir#HouseOfCouncillors") {
+    label ja official "参議院";
+    label en unofficial "the House of Councillors";
+};
+const Cabinet: Organ = entity_ref("urn:jp:constitution:clir#Cabinet") {
+    label ja official "内閣";
+    label en unofficial "the Cabinet";
+};
+
+entity Session { label ja official "会期"; label en unofficial "a session of the Diet"; }
+entity QualificationRule { label ja official "資格を定める法律"; label en unofficial "a statute that fixes qualifications of members or electors"; }
+entity DietElection { label ja official "国会議員の選挙"; label en unofficial "an election of members of a House"; }
+entity HouseAct { label ja official "院で行つた演説、討論又は表決"; label en unofficial "a member's act: a speech, a debate or a vote (in or outside the House)"; }
+entity LiabilityClaim { label ja official "責任を問ふこと"; label en unofficial "a claim to hold a person liable (civil, criminal or disciplinary)"; }
+// A matter voted on by the Houses: a bill (Art. 59), the budget (Art. 60), the
+// approval of a treaty (Art. 61), the designation of the Prime Minister (Art. 67,
+// Chapter V). Used by ch04c.
+entity Proposal : Enactment { label ja official "議案"; label en unofficial "a matter on which the Diet resolves"; }
+
+enum SessionKind {
+    label en unofficial "kinds of Diet session";
+    session_regular;
+    session_extraordinary;
+    session_emergency_councillors;
+}
+
+enum QualificationGround {
+    label en unofficial "grounds of discrimination in qualifications of members and electors";
+    qg_race;
+    qg_creed;
+    qg_sex;
+    qg_social_status;
+    qg_family_origin;
+    qg_education;
+    qg_property;
+    qg_income;
+    qg_other;
+}
+
+enum HouseActKind {
+    label en unofficial "kinds of acts done in a House";
+    hak_speech;
+    hak_debate;
+    hak_vote;
+    hak_other;
+}
+
+// --- Vocabulary shared with ch04b and ch04c ------------------------------------
+relation diet(o: Organ) kind institutional {
+    label ja official "国会";
+    label en unofficial "the organ is the Diet";
+}
+@source(JP_CONST_ART41_P1, relation = formalizes, coverage = partial, quote = "国会は")
+assert diet(Diet);
+
+relation member_of(p: Person, h: House) kind empirical {
+    label ja official "議員";
+    label en unofficial "the person holds a seat in the House";
+}
+relation session_kind(s: Session, k: SessionKind) kind empirical {
+    label ja official "会の種類";
+    label en unofficial "the kind of the session";
+}
+relation session_span(s: Session, first: Date, last: Date) kind empirical {
+    key(s);
+    label ja official "会期";
+    label en unofficial "the session lasts from the first to the last day (inclusive)";
+}
+// The date on which the elapse of a term is assessed (the "today" workaround, see the header).
+relation assessment_date(x: Date) kind empirical {
+    label en unofficial "the date on which the elapse of a term is assessed; equals the legal_time of the case (AUDIT gap 8)";
+}
+relation state_act_dated(a: StateAct, d: Date) kind empirical {
+    key(a);
+    label en unofficial "the date of the act of the Emperor in matters of state";
+}
+
+// --- Article 41 ------------------------------------------------------------------
+relation highest_organ_of_state_power(o: Organ) kind institutional {
+    label ja official "国権の最高機関";
+    label en unofficial "the organ is the highest organ of State power";
+}
+relation sole_legislative_organ(o: Organ) kind institutional {
+    label ja official "国の唯一の立法機関";
+    label en unofficial "the organ is the sole law-making organ of the State";
+}
+relation performs_legislation(o: Organ, l: Proposal) kind empirical {
+    label ja official "立法";
+    label en unofficial "the organ purports to enact the bill as a law";
+}
+relation legislative_authority_from_constitution(o: Organ, l: Proposal) kind empirical {
+    label en unofficial "another provision of the Constitution authorises this organ to make this rule (contract: Arts. 58(2), 73(6), 77, 94)";
+}
+relation legislation_without_authority(l: Proposal) kind institutional {
+    label en unofficial "the bill was enacted by an organ that is not the sole legislative organ and has no authority from the Constitution: no legal effect (Art. 41)";
+}
+relation enacted_as_law(l: Proposal) kind institutional {
+    label ja official "法律となる";
+    label en unofficial "the bill becomes a law (Art. 59; producer of the chapter)";
+}
+
+@source(JP_CONST_ART41_P1, relation = formalizes, coverage = partial, quote = "国会は、国権の最高機関")
+rule DietIsHighestOrganOfStatePower strict {
+    label ja official "国会は、国権の最高機関である";
+    label en unofficial "Article 41. The Diet is the highest organ of State power";
+    for o: Organ;
+    when diet(o);
+    then highest_organ_of_state_power(o);
+}
+
+@source(JP_CONST_ART41_P1, relation = formalizes, coverage = partial, quote = "国の唯一の立法機関である")
+rule DietIsSoleLegislativeOrgan strict {
+    label ja official "国の唯一の立法機関である";
+    label en unofficial "Article 41. The Diet is the sole law-making organ of the State";
+    for o: Organ;
+    when diet(o);
+    then sole_legislative_organ(o);
+}
+
+@source(JP_CONST_ART41_P1, relation = formalizes, coverage = partial, quote = "国の唯一の立法機関である")
+rule LegislationOutsideDietHasNoAuthority strict {
+    label en unofficial "Article 41. Absence of power, not a prohibition: an enactment by another organ lacks authority unless the Constitution itself authorises it";
+    for o: Organ; for l: Proposal;
+    when performs_legislation(o, l) and not_known(diet(o)) and not_known(legislative_authority_from_constitution(o, l));
+    then legislation_without_authority(l);
+}
+
+// --- Article 42 --------------------------------------------------------------------
+relation constituent_house(o: Organ, h: House) kind institutional {
+    label ja official "両議院";
+    label en unofficial "the House is a constituent House of the organ";
+}
+relation bicameral_diet(o: Organ) kind institutional {
+    label ja official "衆議院及び参議院の両議院でこれを構成する";
+    label en unofficial "the organ is constituted by the House of Representatives and the House of Councillors";
+}
+@source(JP_CONST_ART42_P1, relation = formalizes, coverage = partial, quote = "衆議院及び参議院の両議院")
+assert constituent_house(Diet, HouseOfRepresentatives);
+@source(JP_CONST_ART42_P1, relation = formalizes, coverage = partial, quote = "衆議院及び参議院の両議院")
+assert constituent_house(Diet, HouseOfCouncillors);
+
+@source(JP_CONST_ART42_P1)
+rule DietConstitutedByTwoHouses strict {
+    label ja official "国会は、衆議院及び参議院の両議院でこれを構成する";
+    label en unofficial "Article 42. The Diet is constituted by the two Houses";
+    for o: Organ;
+    when diet(o) and constituent_house(o, HouseOfRepresentatives) and constituent_house(o, HouseOfCouncillors);
+    then bicameral_diet(o);
+}
+
+// --- Article 43 --------------------------------------------------------------------
+relation elected_by_the_people(p: Person, h: House) kind empirical {
+    label ja official "選挙された";
+    label en unofficial "the member was elected by the people to the House";
+}
+relation elected_member(p: Person, h: House) kind institutional {
+    label ja official "選挙された議員";
+    label en unofficial "the person sits in the House and was elected: a member in the sense of Art. 43(1)";
+}
+relation represents_all_the_people(p: Person) kind institutional {
+    label ja official "全国民を代表する";
+    label en unofficial "the member represents all the people";
+}
+relation statute_fixes_member_total(h: House) kind empirical {
+    label ja official "法律でこれを定める（議員の定数）";
+    label en unofficial "a statute fixes the number of members of the House (its content is member_count)";
+}
+relation total_members_fixed_by_statute(h: House, n: Integer) kind institutional {
+    label ja official "議員の定数";
+    label en unofficial "the total number of members of the House is fixed by statute";
+}
+
+@source(JP_CONST_ART43_P1, relation = formalizes, coverage = partial, quote = "選挙された議員でこれを組織する")
+rule HousesConsistOfElectedMembers strict {
+    label ja official "両議院は、選挙された議員でこれを組織する";
+    label en unofficial "Article 43(1). The Houses consist of elected members";
+    for p: Person; for h: House;
+    when member_of(p, h) and elected_by_the_people(p, h);
+    then elected_member(p, h);
+}
+
+@source(JP_CONST_ART43_P1, relation = formalizes, coverage = partial, quote = "全国民を代表する")
+rule ElectedMemberRepresentsAllThePeople strict {
+    label ja official "全国民を代表する選挙された議員";
+    label en unofficial "Article 43(1). An elected member represents all the people";
+    for p: Person; for h: House;
+    when elected_member(p, h);
+    then represents_all_the_people(p);
+}
+
+@source(JP_CONST_ART43_P2)
+rule TotalMembersFixedByStatute strict {
+    label ja official "両議院の議員の定数は、法律でこれを定める";
+    label en unofficial "Article 43(2). The number of members is fixed by statute (the number is the statutory total member_count of 01-voting)";
+    for h: House; for n: Integer;
+    when statute_fixes_member_total(h) and member_count(h, n);
+    then total_members_fixed_by_statute(h, n);
+}
+
+// --- Article 44 --------------------------------------------------------------------
+relation qualification_statute_of(h: House) kind empirical {
+    label ja official "法律でこれを定める（資格）";
+    label en unofficial "a statute fixes the qualifications of members and electors of the House (its content: the two facts below)";
+}
+relation member_qualification_met(p: Person, h: House) kind empirical {
+    label en unofficial "the person meets the statutory qualifications of a member of the House";
+}
+relation elector_qualification_met(p: Person, h: House) kind empirical {
+    label en unofficial "the person meets the statutory qualifications of an elector of the House";
+}
+relation qualified_member(p: Person, h: House) kind institutional {
+    label ja official "議員の資格";
+    label en unofficial "the person is qualified to be a member of the House";
+}
+relation qualified_elector(p: Person, h: House) kind institutional {
+    label ja official "選挙人の資格";
+    label en unofficial "the person is qualified to elect members of the House";
+}
+relation qualification_enacted_by(q: QualificationRule, o: Organ) kind empirical {
+    label en unofficial "the qualification statute was enacted by the organ";
+}
+relation qualification_discriminates_on(q: QualificationRule, g: QualificationGround) kind empirical {
+    label en unofficial "the qualification statute distinguishes persons by the ground";
+}
+relation ground_listed_in_art44(g: QualificationGround) kind institutional {
+    label ja official "人種、信条、性別、社会的身分、門地、教育、財産又は収入";
+    label en unofficial "a ground named in the proviso of Art. 44 (closed list)";
+}
+relation discriminatory_qualification(o: Organ, q: QualificationRule) kind institutional {
+    label ja official "差別";
+    label en unofficial "the qualification statute discriminates on a ground named in Art. 44";
+}
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_race);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_creed);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_sex);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_social_status);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_family_origin);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_education);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_property);
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+assert ground_listed_in_art44(qg_income);
+
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "両議院の議員及びその選挙人の資格は、法律でこれを定める")
+rule MemberQualificationsSetByStatute strict {
+    label ja official "両議院の議員の資格は、法律でこれを定める";
+    label en unofficial "Article 44. Qualifications of members are fixed by statute (content external)";
+    for p: Person; for h: House;
+    when qualification_statute_of(h) and member_qualification_met(p, h);
+    then qualified_member(p, h);
+}
+
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "両議院の議員及びその選挙人の資格は、法律でこれを定める")
+rule ElectorQualificationsSetByStatute strict {
+    label ja official "両議院の議員の選挙人の資格は、法律でこれを定める";
+    label en unofficial "Article 44. Qualifications of electors are fixed by statute (content external)";
+    for p: Person; for h: House;
+    when qualification_statute_of(h) and elector_qualification_met(p, h);
+    then qualified_elector(p, h);
+}
+
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+rule QualificationOnListedGroundIsDiscriminatory strict {
+    label en unofficial "A qualification of members or electors discriminating on a ground listed in Article 44 is discriminatory";
+    for o: Organ; for q: QualificationRule; for g: QualificationGround;
+    when qualification_enacted_by(q, o) and qualification_discriminates_on(q, g) and ground_listed_in_art44(g);
+    then discriminatory_qualification(o, q);
+}
+
+@source(JP_CONST_ART44_P1, relation = formalizes, coverage = partial, quote = "人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない")
+rule NoDiscriminationInQualifications strict {
+    label ja official "但し、人種、信条、性別、社会的身分、門地、教育、財産又は収入によつて差別してはならない";
+    label en unofficial "Article 44 proviso. The organ that fixes the qualifications (the Diet) must not discriminate on the listed grounds";
+    for o: Organ; for q: QualificationRule;
+    when diet(o) and qualification_enacted_by(q, o);
+    then prohibition NoDiscriminatoryQualifications {
+        bearer o;
+        action discriminatory_qualification(o, q);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 45: House of Representatives, four years --------------------------------
+relation representative_term_began(p: Person, s: Date) kind empirical {
+    key(p);
+    label en unofficial "the day the term of the member of the House of Representatives began (fixed by the election statutes: external)";
+}
+relation house_dissolved(h: House, d: Date) kind institutional {
+    label ja official "衆議院が解散されたとき";
+    label en unofficial "the House was dissolved on the day (PUBLIC producer for Chapter V; the act of Art. 7(3))";
+}
+relation representative_full_term_end(p: Person, d: Date) kind institutional {
+    key(p);
+    label ja official "任期は、四年とする";
+    label en unofficial "the day on which the four-year term is complete";
+}
+relation representative_term_cut_short(p: Person) kind institutional {
+    label ja official "その期間満了前に終了する";
+    label en unofficial "the term ends before expiry, by dissolution";
+}
+relation representative_term_ends_on(p: Person, d: Date) kind institutional {
+    label ja official "任期の終了";
+    label en unofficial "the term of the member ends on the day (expiry or dissolution)";
+}
+
+// The dissolution is recognised from the FACTS that make the act of Article 7(3) valid (the
+// act, its kind, its performance by the Emperor, the Cabinet's advice and approval of
+// Art. 3), NOT from `act_has_legal_effect`: that is the effect of a power, materialised
+// after all strata (§280.3), so a default that reads `not_known`/`unless` over it would be
+// evaluated before it exists (LDC-E4103 for a strict rule; SILENT for a defeasible one:
+// ART45-09). The condition repeats the `valid_when` of `EmperorDissolveHouse` (ch01);
+// the scenarios ART45-16/17/20 keep the two in step.
+@source(JP_CONST_ART7_P1, relation = applies, coverage = partial, quote = "衆議院を解散すること")
+rule HouseDissolvedByValidAct strict {
+    label en unofficial "The House of Representatives is dissolved on the day of an act of dissolution (Art. 7(3)) performed by the Emperor on the advice and approval of the Cabinet (Art. 3)";
+    for a: StateAct; for k: StateActKind; for d: Date;
+    when act_kind(a, k) and k == dissolve_house and performs_act(Emperor, a) and cabinet_advised_and_approved(a) and state_act_dated(a, d);
+    then house_dissolved(HouseOfRepresentatives, d);
+}
+
+@source(JP_CONST_ART45_P1, relation = formalizes, coverage = partial, quote = "衆議院議員の任期は、四年とする")
+rule RepresentativeFullTerm strict {
+    label ja official "衆議院議員の任期は、四年とする";
+    label en unofficial "Article 45. The term of a Representative is four years";
+    for p: Person; for s: Date;
+    when member_of(p, HouseOfRepresentatives) and representative_term_began(p, s);
+    then representative_full_term_end(p, add_calendar_period(s, 4 calendar_year));
+}
+
+@source(JP_CONST_ART45_P1, relation = formalizes, coverage = partial, quote = "衆議院解散の場合には、その期間満了前に終了する")
+rule RepresentativeTermCutShortByDissolution strict {
+    label ja official "但し、衆議院解散の場合には、その期間満了前に終了する";
+    label en unofficial "Article 45 proviso. Dissolution inside the term ends it before expiry";
+    for p: Person; for s: Date; for e: Date; for d: Date;
+    when member_of(p, HouseOfRepresentatives) and representative_term_began(p, s)
+        and representative_full_term_end(p, e) and house_dissolved(HouseOfRepresentatives, d)
+        and d >= s and d < e;
+    then representative_term_cut_short(p);
+}
+
+@source(JP_CONST_ART45_P1, relation = formalizes, coverage = partial, quote = "衆議院解散の場合には、その期間満了前に終了する")
+rule RepresentativeTermEndsOnDissolution strict {
+    label en unofficial "The term of a member of the House of Representatives ends on dissolution before the full term expires";
+    for p: Person; for s: Date; for e: Date; for d: Date;
+    when member_of(p, HouseOfRepresentatives) and representative_term_began(p, s)
+        and representative_full_term_end(p, e) and house_dissolved(HouseOfRepresentatives, d)
+        and d >= s and d < e;
+    then representative_term_ends_on(p, d);
+}
+
+@source(JP_CONST_ART45_P1, relation = formalizes, coverage = partial, quote = "衆議院議員の任期は、四年とする")
+rule RepresentativeTermEndsOnExpiry defeasible {
+    label en unofficial "The term of a member of the House of Representatives ends at the expiry of four years unless cut short";
+    for p: Person; for e: Date;
+    when representative_full_term_end(p, e);
+    unless (representative_term_cut_short(p) and representative_full_term_end(p, e));
+    then representative_term_ends_on(p, e);
+}
+
+// --- Article 46: House of Councillors, six years, half every three years -----------
+relation councillor_term_began(p: Person, s: Date) kind empirical {
+    key(p);
+    label en unofficial "the day the term of the Councillor began (fixed by the election statutes: external)";
+}
+relation councillor_term_end(p: Person, d: Date) kind institutional {
+    key(p);
+    label ja official "参議院議員の任期は、六年とし";
+    label en unofficial "the day on which the six-year term is complete";
+}
+relation councillor_half_renewal_due(p: Person, d: Date) kind institutional {
+    key(p);
+    label ja official "三年ごとに議員の半数を改選する";
+    label en unofficial "the day, three years after the term began, on which half of the House stands for re-election";
+}
+relation half_of_councillors_renewed_on(s: Date) kind institutional {
+    label ja official "議員の半数を改選する";
+    label en unofficial "exactly half of the statutory total of members began their terms on the day";
+}
+
+@source(JP_CONST_ART46_P1, relation = formalizes, coverage = partial, quote = "参議院議員の任期は、六年とし")
+rule CouncillorTermSixYears strict {
+    label ja official "参議院議員の任期は、六年とし";
+    label en unofficial "Article 46. The term of a Councillor is six years";
+    for p: Person; for s: Date;
+    when member_of(p, HouseOfCouncillors) and councillor_term_began(p, s);
+    then councillor_term_end(p, add_calendar_period(s, 6 calendar_year));
+}
+
+@source(JP_CONST_ART46_P1, relation = formalizes, coverage = partial, quote = "三年ごとに議員の半数を改選する")
+rule CouncillorHalfRenewalEveryThreeYears strict {
+    label ja official "三年ごとに議員の半数を改選する";
+    label en unofficial "Article 46. Half of the House is renewed every three years: the renewal falls three years after a term began";
+    for p: Person; for s: Date;
+    when member_of(p, HouseOfCouncillors) and councillor_term_began(p, s);
+    then councillor_half_renewal_due(p, add_calendar_period(s, 3 calendar_year));
+}
+
+@source(JP_CONST_ART46_P1, relation = formalizes, coverage = partial, quote = "三年ごとに議員の半数を改選する")
+rule HalfOfCouncillorsRenewedOnTheDay strict {
+    label en unofficial "Article 46. The cohort test: exactly half of the statutory total began their terms on the same day";
+    for p: Person; for s: Date; for n: Integer;
+    when member_of(p, HouseOfCouncillors) and councillor_term_began(p, s) and member_count(HouseOfCouncillors, n)
+        and (count distinct q: Person where member_of(q, HouseOfCouncillors) and councillor_term_began(q, s)) * 2 == n;
+    then half_of_councillors_renewed_on(s);
+}
+
+// --- Article 47: elections (statute) --------------------------------------------------
+relation election_of_house(e: DietElection, h: House) kind empirical {
+    label ja official "議院の議員の選挙";
+    label en unofficial "the election is an election of members of the House";
+}
+relation election_statute_applies(e: DietElection) kind empirical {
+    label ja official "法律でこれを定める（選挙）";
+    label en unofficial "the election is conducted under the statute (districts, method of voting and other matters: content external)";
+}
+relation election_matters_set_by_statute(e: DietElection) kind institutional {
+    label ja official "選挙区、投票の方法その他両議院の議員の選挙に関する事項";
+    label en unofficial "the districts, the method of voting and other matters of the election are those of the statute";
+}
+
+@source(JP_CONST_ART47_P1)
+rule ElectionMattersSetByStatute strict {
+    label ja official "選挙区、投票の方法その他両議院の議員の選挙に関する事項は、法律でこれを定める";
+    label en unofficial "Article 47. Districts, method of voting and other election matters are fixed by statute";
+    for e: DietElection; for h: House;
+    when election_of_house(e, h) and election_statute_applies(e);
+    then election_matters_set_by_statute(e);
+}
+
+// --- Article 48: no dual membership ------------------------------------------------------
+relation member_of_both_houses(p: Person) kind institutional {
+    label ja official "同時に両議院の議員たること";
+    label en unofficial "the person holds seats in both Houses at the same time";
+}
+
+@source(JP_CONST_ART48_P1)
+rule SimultaneousMembershipEstablished strict {
+    label en unofficial "A person who is a member of both Houses at once is a member of both Houses";
+    for p: Person;
+    when member_of(p, HouseOfRepresentatives) and member_of(p, HouseOfCouncillors);
+    then member_of_both_houses(p);
+}
+
+@source(JP_CONST_ART48_P1)
+rule NoDualMembership strict {
+    label ja official "何人も、同時に両議院の議員たることはできない";
+    label en unofficial "Article 48. No one may be a member of both Houses at the same time";
+    for p: Person; for h: House;
+    when member_of(p, h);
+    then prohibition NoMembershipOfBothHouses {
+        bearer p;
+        action member_of_both_houses(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 49: payment ----------------------------------------------------------------------
+// "Appropriate amount" (相当額) is an evaluative element (DECISION-0194, channel 2):
+// whether the amount is appropriate is a fact established by a court or the organ that
+// reviews it (`origin adjudicated`), never an arithmetic guard.
+relation salary_statute_applies(h: House) kind empirical {
+    label ja official "法律の定めるところにより（歳費）";
+    label en unofficial "a statute governs the annual payment to the members of the House (content external)";
+}
+relation salary_received_from_treasury(p: Person) kind empirical {
+    label ja official "国庫から歳費を受ける";
+    label en unofficial "the member receives the annual payment from the national treasury";
+}
+relation salary_amount_appropriate(p: Person) kind empirical {
+    label ja official "相当額";
+    label en unofficial "the amount is appropriate (evaluative element; established by an adjudicated fact)";
+}
+
+@source(JP_CONST_ART49_P1)
+rule MembersReceiveAppropriateSalary strict {
+    label ja official "両議院の議員は、法律の定めるところにより、国庫から相当額の歳費を受ける";
+    label en unofficial "Article 49. Members receive an appropriate annual payment from the national treasury as provided by law";
+    for p: Person; for h: House;
+    when member_of(p, h) and salary_statute_applies(h);
+    then duty MembersSalaryFromTreasury {
+        bearer Japan; beneficiary p;
+        goal maintenance {
+            condition (salary_received_from_treasury(p) and salary_amount_appropriate(p));
+            window [@1947-05-03, infinity);
+        }
+    };
+}
+
+// --- Article 50: immunity from arrest ------------------------------------------------------------
+relation arresting_authority(o: Organ) kind empirical {
+    label en unofficial "the organ has the ordinary-law power of arrest (police, prosecution; content external)";
+}
+relation arrests_member(o: Organ, p: Person) kind empirical {
+    label ja official "逮捕";
+    label en unofficial "the organ arrests the member (the act of exercise)";
+}
+relation arrest_authorised_by_law(p: Person) kind empirical {
+    label en unofficial "the arrest is authorised by the ordinary law of criminal procedure (Art. 33; content external)";
+}
+relation arrest_takes_effect(p: Person) kind institutional {
+    label ja official "逮捕";
+    label en unofficial "the arrest of the member takes legal effect";
+}
+relation arrest_within_statutory_exception(p: Person) kind empirical {
+    label ja official "法律の定める場合";
+    label en unofficial "the case is one that the statute excepts from the immunity (e.g. taken in the act; content external)";
+}
+relation member_arrest_date(p: Person, d: Date) kind empirical {
+    key(p);
+    label en unofficial "the day on which the member was arrested";
+}
+relation arrested_before_session(p: Person, s: Session) kind institutional {
+    label ja official "会期前に逮捕された議員";
+    label en unofficial "the member was arrested before the session began";
+}
+relation held_in_custody_by(o: Organ, p: Person) kind empirical {
+    label en unofficial "the organ holds the member in custody";
+}
+relation house_demands_release(h: House, p: Person) kind empirical {
+    label ja official "その議院の要求";
+    label en unofficial "the House demands the release of its member (act of exercise)";
+}
+relation release_required(p: Person) kind institutional {
+    label ja official "釈放しなければならない";
+    label en unofficial "the release of the member is required by the demand of his House";
+}
+relation member_released(p: Person) kind empirical {
+    label en unofficial "the member has been released";
+}
+
+// Device of Chapter III (M1 there): the ordinary-law power of arrest, so that the immunity has an effect to block.
+@source(JP_CONST_ART50_P1, relation = formalizes, coverage = partial, quote = "国会の会期中逮捕されず")
+rule ArrestOfMemberByOrdinaryLaw strict {
+    label en unofficial "Device: the ordinary-law power of an arresting authority over a member (content external); Art. 50 limits its effect";
+    for o: Organ; for p: Person; for h: House;
+    when arresting_authority(o) and member_of(p, h);
+    then power ArrestMember {
+        holder o; over p;
+        exercise arrests_member(o, p);
+        valid_when arrest_authorised_by_law(p);
+        effect create(arrest_takes_effect(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART50_P1, relation = formalizes, coverage = partial, quote = "国会の会期中逮捕されず")
+rule MemberImmuneFromArrestDuringSession defeasible {
+    label ja official "両議院の議員は、法律の定める場合を除いては、国会の会期中逮捕されず";
+    label en unofficial "Article 50, first clause. During the session a member is not arrested, except in the cases provided by law";
+    for p: Person; for h: House; for s: Session; for a: Date; for b: Date;
+    when member_of(p, h) and session_span(s, a, b);
+    unless (arrest_within_statutory_exception(p) and session_span(s, a, b));
+    then immunity ImmunityFromArrestDuringSession {
+        holder p;
+        protected_effect arrest_takes_effect(p);
+        window [a, b];
+    };
+}
+
+priority ArrestImmunityOverArrestPower {
+    prefer MemberImmuneFromArrestDuringSession over ArrestOfMemberByOrdinaryLaw;
+    reason lex_specialis;
+}
+
+@source(JP_CONST_ART50_P1, relation = formalizes, coverage = partial, quote = "会期前に逮捕された議員は")
+rule ArrestedBeforeSessionEstablished strict {
+    label en unofficial "A member arrested before the session began is treated as arrested before the session";
+    for p: Person; for s: Session; for d: Date; for a: Date; for b: Date;
+    when member_arrest_date(p, d) and session_span(s, a, b) and d < a;
+    then arrested_before_session(p, s);
+}
+
+@source(JP_CONST_ART50_P1, relation = formalizes, coverage = partial, quote = "その議院の要求があれば")
+rule HouseMayDemandReleaseOfMember strict {
+    label ja official "会期前に逮捕された議員は、その議院の要求があれば";
+    label en unofficial "Article 50, second clause. The House may demand the release of a member arrested before the session";
+    for h: House; for p: Person; for s: Session; for a: Date; for b: Date;
+    when member_of(p, h) and session_span(s, a, b);
+    then power HouseDemandsRelease {
+        holder h; over p;
+        exercise house_demands_release(h, p);
+        valid_when arrested_before_session(p, s);
+        effect create(release_required(p));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART50_P1, relation = formalizes, coverage = partial, quote = "会期中これを釈放しなければならない")
+rule CustodianMustReleaseMemberDuringSession strict {
+    label ja official "会期中これを釈放しなければならない";
+    label en unofficial "Article 50, second clause. On the demand the member must be released during the session";
+    for o: Organ; for p: Person; for s: Session; for a: Date; for b: Date;
+    when held_in_custody_by(o, p) and release_required(p) and session_span(s, a, b);
+    then duty ReleaseMemberOnDemandOfHouse {
+        bearer o; beneficiary p;
+        goal achievement {
+            condition member_released(p);
+            window [a, b];
+        }
+    };
+}
+
+// --- Article 51: freedom of speech in the House -----------------------------------------------------
+relation act_of_member(x: HouseAct, p: Person) kind empirical {
+    label en unofficial "the act is the member's own";
+}
+relation act_kind_of(x: HouseAct, k: HouseActKind) kind empirical {
+    label en unofficial "the kind of the act";
+}
+relation act_done_in_house(x: HouseAct, h: House) kind empirical {
+    label ja official "議院で行つた";
+    label en unofficial "the act was done in the House";
+}
+relation protected_house_act(x: HouseAct) kind institutional {
+    label ja official "議院で行つた演説、討論又は表決";
+    label en unofficial "a speech, debate or vote made in the House";
+}
+relation liability_for_act(l: LiabilityClaim, x: HouseAct) kind empirical {
+    label en unofficial "the claim seeks to hold the member liable for the act";
+}
+relation outside_house_organ(o: Organ) kind empirical {
+    label ja official "院外";
+    label en unofficial "the organ is outside the House (court, prosecution, administration, private claimant's forum)";
+}
+relation imposes_liability(o: Organ, l: LiabilityClaim) kind empirical {
+    label en unofficial "the organ imposes the liability (the act of exercise)";
+}
+relation liability_grounded_in_ordinary_law(l: LiabilityClaim) kind empirical {
+    label en unofficial "the liability has a basis in ordinary law (content external)";
+}
+relation liability_takes_effect(l: LiabilityClaim) kind institutional {
+    label ja official "責任を問はれる";
+    label en unofficial "the liability takes legal effect";
+}
+
+@source(JP_CONST_ART51_P1, relation = formalizes, coverage = partial, quote = "議院で行つた演説、討論又は表決")
+rule SpeechInHouseIsProtected strict {
+    label en unofficial "A speech made in a House is a protected act of the House";
+    for x: HouseAct; for k: HouseActKind; for h: House;
+    when act_kind_of(x, k) and k == hak_speech and act_done_in_house(x, h);
+    then protected_house_act(x);
+}
+
+@source(JP_CONST_ART51_P1, relation = formalizes, coverage = partial, quote = "議院で行つた演説、討論又は表決")
+rule DebateInHouseIsProtected strict {
+    label en unofficial "A debate held in a House is a protected act of the House";
+    for x: HouseAct; for k: HouseActKind; for h: House;
+    when act_kind_of(x, k) and k == hak_debate and act_done_in_house(x, h);
+    then protected_house_act(x);
+}
+
+@source(JP_CONST_ART51_P1, relation = formalizes, coverage = partial, quote = "議院で行つた演説、討論又は表決")
+rule VoteInHouseIsProtected strict {
+    label en unofficial "A vote cast in a House is a protected act of the House";
+    for x: HouseAct; for k: HouseActKind; for h: House;
+    when act_kind_of(x, k) and k == hak_vote and act_done_in_house(x, h);
+    then protected_house_act(x);
+}
+
+// Device (as in Art. 50): the ordinary-law power of an organ outside the House to impose liability.
+@source(JP_CONST_ART51_P1, relation = formalizes, coverage = partial, quote = "院外で責任を問はれない")
+rule LiabilityImposedOutsideHouseByOrdinaryLaw strict {
+    label en unofficial "Device: an organ outside the House imposes liability on the member under ordinary law (content external); Art. 51 blocks it for protected acts";
+    for o: Organ; for l: LiabilityClaim; for x: HouseAct;
+    when outside_house_organ(o) and liability_for_act(l, x);
+    then power ImposeLiabilityOutsideHouse {
+        holder o; over l;
+        exercise imposes_liability(o, l);
+        valid_when liability_grounded_in_ordinary_law(l);
+        effect create(liability_takes_effect(l));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART51_P1)
+rule MemberNotLiableOutsideHouseForHouseActs strict {
+    label ja official "両議院の議員は、議院で行つた演説、討論又は表決について、院外で責任を問はれない";
+    label en unofficial "Article 51. A member is not held liable outside the House for speeches, debates or votes in the House";
+    for p: Person; for x: HouseAct; for l: LiabilityClaim; for h: House;
+    when member_of(p, h) and act_of_member(x, p) and protected_house_act(x) and liability_for_act(l, x);
+    then immunity NoLiabilityOutsideHouseForHouseActs {
+        holder p;
+        protected_effect liability_takes_effect(l);
+        window [@1947-05-03, infinity);
+    };
+}
+
+priority HouseActImmunityOverLiabilityPower {
+    prefer MemberNotLiableOutsideHouseForHouseActs over LiabilityImposedOutsideHouseByOrdinaryLaw;
+    reason lex_specialis;
+}
+
+// --- Article 52: the regular session --------------------------------------------------------------------
+relation calendar_year_span(y: Integer, first: Date, last: Date) kind empirical {
+    key(y);
+    label ja official "毎年";
+    label en unofficial "the calendar year y runs from the first to the last day";
+}
+relation regular_session_convened_in(y: Integer) kind empirical {
+    label ja official "国会の常会を召集する";
+    label en unofficial "a regular session of the Diet was convened in the year";
+}
+
+@source(JP_CONST_ART52_P1)
+rule RegularSessionConvenedEveryYear strict {
+    label ja official "国会の常会は、毎年一回これを召集する";
+    label en unofficial "Article 52. A regular session of the Diet is convened once every year";
+    for y: Integer; for first: Date; for last: Date;
+    when calendar_year_span(y, first, last);
+    then duty ConveneRegularSessionEachYear {
+        bearer Japan;
+        goal achievement {
+            condition regular_session_convened_in(y);
+            window [first, last];
+        }
+    };
+}

@@ -1,0 +1,38 @@
+// 官報の発行に関する法律（令和五年法律第八十五号）— the Act on the Issuance of
+// the Official Gazette, in force from the day fixed by 政令 (附則第一条).
+//
+// This is the набор 1 "provision of law" package for Japan (stage C). Its
+// mechanism is the closest to Germany's and the Netherlands': promulgation is
+// CONSTITUTED by the gazette issue, not proved or presumed —
+//
+// (a) officiality: 公布 of laws, orders and treaties is made BY 官報 (art. 3);
+//     官報 is issued by putting the electronic record at the public's disposal
+//     through automatic public transmission (art. 5(2)); the promulgation takes
+//     place AT THE TIME that measure is taken (art. 6). If disaster makes that
+//     impossible, a paper 書面官報 posted at the Cabinet Office board issues the
+//     gazette, and promulgation takes place at the time of posting (art. 11).
+//     An electronic record copied from the gazette record under art. 5(5) or
+//     art. 10 counts as 官報 for other laws' provisions on supplying or
+//     sending the gazette (art. 12);
+// (b) commencement: the Act does not set the commencement day of promulgated
+//     laws. Its own application is by issue: the Act applies to 官報 issued on
+//     or after its enforcement day, and does not affect the legal position of
+//     官報 issued before (附則第二条・第三条). The day itself is delegated to
+//     政令 (附則第一条) — 令和六年政令第三百九号 fixes 2025-04-01, and
+//     20-application.law derives the day from it;
+// (c) precedence of a consolidation over the original: the Act is silent.
+//     A legislation database copy (e-Gov) is not made 官報 by art. 12 —
+//     declared boundary, not a rule.
+//
+// Witness: `jp.constitution` pins the Constitution from the e-Gov
+// API (PINNED_UNOFFICIAL_COPY); tests/08 asks whether that copy is 官報.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// --- Entities --------------------------------------------------------------
+
+entity KanpoIssue { label ja official "官報（発行される各号）"; }
+entity PromulgationMatter { label ja official "公布等事項（法令、条約、詔書、告示など第三条の対象）"; }
+entity CopiedRecord { label ja official "電磁的官報記録に係る情報を複写した電磁的記録その他の複写"; }

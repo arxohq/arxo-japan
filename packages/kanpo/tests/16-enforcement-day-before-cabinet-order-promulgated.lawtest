@@ -1,0 +1,15 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// Окно KANPO_SEIREI_309_2024: накануне 公布 政令 (令和六年九月二十六日) его ещё нет, а редакция акта
+// откроется только 2025-04-01 — день вступления в силу не выводится.
+test "urn:query:kanpo-t16" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2024-09-26; decision_time @2024-09-26T12:00:00Z; knowledge_time @2024-09-26T12:00:00Z; timezone "Asia/Tokyo"; }
+    }
+    evaluate truth(enforcement_day(@2025-04-01));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == COMPUTED;
+}

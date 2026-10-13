@@ -1,0 +1,152 @@
+// 第三条・第五条・第六条・第十一条・第十二条: 官報による公布、電磁的官報の発行、
+// 公布の時点、災害時の書面官報、複写記録の官報該当性.
+//
+// Promulgation is CONSTITUTED by the gazette issue (like DE § 3 VkBkmG and
+// NL art. 1), not proved or presumed: art. 6 fixes the moment — the time the
+// art. 5(2) measure (putting the electronic record at the public's disposal by
+// automatic public transmission) is taken; art. 11(2) fixes it for a paper
+// 書面官報 at the time of posting. The package works at day granularity, so
+// "the time" is the day of the measure (a boundary of the language's `Date`,
+// the same as CA I-21 s. 6(1)).
+//
+// Every rule reads `act_applies_to(k)` from 20-application.law: the Act
+// governs only 官報 issued on or after its enforcement day (附則第二条).
+//
+// Since 15.09.2026 the art. 5(2) measure is DERIVED from 官報の発行に関する内閣府令
+// (令和六年内閣府令第八十号, pinned in 01-sources.law, window from 2025-04-01):
+// public inspection is by posting on the Cabinet Office website (府令 art. 11),
+// and the 官報 file is identified by https://www.kanpo.go.jp (府令 art. 12; the
+// ordinance writes the address in full-width characters, the rule matches the
+// ASCII form a case records).
+//
+// 府令 art. 10 and art. 15 are modelled at day granularity: the language builds
+// no Instant from a Date and a time of day, so "08:30" lives in the labels. Art.
+// 10 — the measure for an issue starts, as a rule, at 08:30 of its issue day,
+// except for 特別号外 and for a measure taken the same day after a disaster
+// cleared (defeasible rule with two `unless`). Art. 15 with Act art. 8(1) — the
+// inspection period ends at 08:30 of the day on which ninety days have elapsed
+// counting from the day of the measure (that day counts as the first), i.e. the
+// day of the measure stepped by 90 calendar days. The PM's duty to keep the
+// measure for the period (Act art. 8(1)) is not a position here, and art. 8(2)–(4)
+// (interruption, extension, continued posting) stay outside the layer.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    CopiedRecord,
+    KANPO_ART11,
+    KANPO_ART12,
+    KANPO_ART6,
+    KANPO_ART8,
+    KANPO_FUREI_ART10,
+    KANPO_FUREI_ART11,
+    KANPO_FUREI_ART12,
+    KANPO_FUREI_ART15,
+    KanpoIssue,
+    PromulgationMatter,
+    act_applies_to,
+    issued_on,
+};
+
+relation recorded_in_kanpo_file(m: PromulgationMatter, k: KanpoIssue) kind empirical {
+    label ja official "公布等事項が当該官報に係る官報ファイルに記録されている";
+}
+relation made_available_for_inspection_at(k: KanpoIssue, site: Text, day: Date) kind empirical {
+    label ja official "当該官報に係る官報ファイルがこの識別符号のウェブサイトに掲載され、公衆が閲覧することができる状態に置かれた日";
+}
+relation inspection_measure_taken_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "当該官報について第五条第二項の措置（自動公衆送信により公衆が閲覧することができる状態に置く措置）がとられた日";
+}
+relation recorded_in_paper_kanpo(m: PromulgationMatter, k: KanpoIssue) kind empirical {
+    label ja official "公布等事項が当該書面官報に記載されている";
+}
+relation paper_kanpo_posted_on(k: KanpoIssue, day: Date) kind empirical {
+    label ja official "書面官報が第十一条第一項により内閣府の掲示場に掲示された日";
+    key(k);
+}
+relation copied_from_kanpo_record(r: CopiedRecord, k: KanpoIssue) kind empirical {
+    label ja official "第五条第五項又は第十条の規定により当該官報の電磁的官報記録に係る情報を複写した電磁的記録である";
+}
+
+// 府令第十五条「法第五条第二項の措置をとった日から起算して九十日を経過した日」: the day
+// of the measure counts as the first day (start_count same_day), so the ninety
+// days have elapsed on that day stepped by 90 calendar days. A calendar step
+// reads only start_count; roll must be no_roll and include_end true (§86).
+deadline policy KANPO_INSPECTION_PERIOD {
+    start_count same_day;
+    include_end true;
+    roll no_roll;
+}
+
+relation special_extra_issue(k: KanpoIssue) kind empirical {
+    label ja official "当該官報が特別号外の官報である";
+}
+relation measure_taken_same_day_after_disaster_cleared(k: KanpoIssue, day: Date) kind empirical {
+    label ja official "災害等の事情が生じたことにより午前八時三十分に当該官報に係る第五条第二項の措置をとることができなくなった後、この日において当該事情が解消したことにより当該措置をとる";
+}
+relation inspection_measure_due_at_0830_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "当該官報に係る第五条第二項の措置は、この日の午前八時三十分に開始するものとする";
+}
+relation inspection_period_ends_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "当該官報に係る第八条第一項の閲覧期間は、この日の午前八時三十分までとする";
+}
+
+relation promulgated_on(m: PromulgationMatter, day: Date) kind institutional {
+    label ja official "第三条の規定による公布又は公示が行われた日";
+}
+relation counts_as_kanpo_for_other_laws(r: CopiedRecord) kind institutional {
+    label ja official "他の法令における官報の提供、送付その他これらに類する行為に関する規定の適用について官報に該当する";
+}
+
+@source(KANPO_FUREI_ART11, KANPO_FUREI_ART12)
+rule InspectionMeasureIsPostingOnKanpoWebsite(k: KanpoIssue, day: Date) strict {
+    when made_available_for_inspection_at(k, "https://www.kanpo.go.jp", day);
+    then inspection_measure_taken_on(k, day);
+    label ja official "内閣府令第十一条・第十二条　法第五条第二項の規定による公衆の閲覧は、内閣府のウェブサイトへの掲載により行い、官報ファイルを識別するための符号は https://www.kanpo.go.jp とする";
+}
+
+@source(KANPO_FUREI_ART10)
+rule InspectionMeasureStartsAt0830OnIssueDay(k: KanpoIssue, day: Date) defeasible {
+    when issued_on(k, day);
+    when act_applies_to(k);
+    then inspection_measure_due_at_0830_on(k, day);
+    unless issued_on(k, day) and special_extra_issue(k);
+    unless measure_taken_same_day_after_disaster_cleared(k, day);
+    label ja official "内閣府令第十条　法第五条第二項の措置は、原則として、午前八時三十分に開始するものとする。ただし、特別号外の官報に係る場合及び災害等の事情が同日において解消したことにより当該措置をとる場合を除く";
+}
+
+@source(KANPO_ART8, KANPO_FUREI_ART15)
+rule InspectionPeriodEndsAt0830AfterNinetyDays(k: KanpoIssue, day: Date) strict {
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    then inspection_period_ends_on(k, add_calendar_period(day, 90 calendar_day));
+    label ja official "法第八条第一項・内閣府令第十五条　閲覧期間は、法第五条第二項の措置をとった日から起算して九十日を経過した日の午前八時三十分までとする";
+}
+
+@source(KANPO_ART6)
+rule ElectronicPromulgationTakesPlaceAtInspectionMeasure(m: PromulgationMatter, k: KanpoIssue, day: Date) strict {
+    when recorded_in_kanpo_file(m, k);
+    when inspection_measure_taken_on(k, day);
+    when act_applies_to(k);
+    then promulgated_on(m, day);
+    label ja official "第六条　官報ファイルに記録された公布等事項の公布又は公示は、当該官報について第五条第二項の措置がとられた時に行われたものとする";
+}
+
+@source(KANPO_ART11)
+rule PaperKanpoPromulgationTakesPlaceAtPosting(m: PromulgationMatter, k: KanpoIssue, day: Date) strict {
+    when recorded_in_paper_kanpo(m, k);
+    when paper_kanpo_posted_on(k, day);
+    when act_applies_to(k);
+    then promulgated_on(m, day);
+    label ja official "第十一条第二項　書面官報に記載された公布等事項の公布又は公示は、当該書面官報について前項の掲示がされた時に行われたものとする";
+}
+
+@source(KANPO_ART12)
+rule CopiedRecordCountsAsKanpo(r: CopiedRecord, k: KanpoIssue) strict {
+    when copied_from_kanpo_record(r, k);
+    when act_applies_to(k);
+    then counts_as_kanpo_for_other_laws(r);
+    label ja official "第十二条　第五条第五項又は第十条の規定により電磁的官報記録に係る情報を複写した電磁的記録は、他の法令における官報の提供、送付その他これらに類する行為に関する規定の適用については、官報に該当するものとする";
+}

@@ -1,0 +1,59 @@
+// The Constitution of Japan (日本国憲法, promulgated 3 November 1946, in force
+// 3 May 1947): package skeleton — the shared ontology. The text is pinned
+// whole (`sources.law`, generated from `sources/jp-constitution/ja.txt`); the
+// modules below formalize it chapter by chapter.
+//
+// LANGUAGE OF THE PACKAGE. The single pinned edition is the Japanese text
+// (`label ja official` quotes it). English labels are `unofficial` glosses; no
+// English translation is pinned as a second edition (Article 98 speaks of
+// laws, not translations). Comments, README and QUESTIONS are English.
+//
+// MODULE MAP
+//   00-package.law                — shared ontology (this file)
+//   01-voting.law                 — the vote model and the thresholds of the
+//                                   Constitution (denominators named)
+//   ch02-renunciation-of-war.law  — Chapter II, Article 9 (two competing
+//                                   readings of paragraph 2, judgment channel)
+//   (chapter modules ch01-…, ch03-…, … are added stage by stage; see
+//   docs/foundations/jp-constitution/TASKS.json)
+//
+// CONVENTIONS (all modules)
+//   * names are unique across the package: `grep` before adding a relation;
+//   * a court's or an organ's decision is a FACT of the case with
+//     `origin adjudicated`, never `case_input` (AUDIT.md, item 10);
+//   * historical scenarios set decision_time, knowledge_time and legal_time
+//     to the same date (AUDIT.md, common idioms);
+//   * a threshold over a vote uses the predicates of 01-voting.law; each
+//     names its own denominator.
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    JP_CONST_ART9_P1,
+};
+
+entity Person { label ja official "人"; label en unofficial "person"; }
+entity Organ { label ja official "機関"; label en unofficial "organ of the state"; }
+entity House : Organ { label ja official "議院"; label en unofficial "House of the Diet"; }
+
+entity Nation { label ja official "国"; label en unofficial "state"; }
+entity MilitaryForce {
+    label ja official "陸海空軍その他の戦力";
+    label en unofficial "armed forces or other war potential";
+}
+
+relation nation(n: Nation) kind institutional {
+    label ja official "日本国";
+    label en unofficial "the state addressed by Article 9";
+}
+
+// The only named party of Article 9 is Japan itself; the article is not
+// addressed to a class of states, so no other `Nation` instance is introduced.
+@source(JP_CONST_ART9_P1)
+assert nation(Japan);
+
+const Japan: Nation = entity_ref("urn:jp:constitution:clir#Japan") {
+    label en unofficial "Japan";
+};

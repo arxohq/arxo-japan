@@ -1,0 +1,349 @@
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+// Scenarios moved from the former Python runner of the family
+// the retired family of Article 9. Titles keep the former scenario IDs; expectations
+// derive from the FORMER checks, not from engine answers.
+
+test "JC9-01-WAR-AS-SOVEREIGN-RIGHT-IS-VIOLATED" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": wages_war(Japan) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(WarAsSovereignRight, VIOLATED);
+    expect not position(WarAsSovereignRight, ACTIVE);
+}
+
+test "JC9-02-THREAT-OR-USE-OF-FORCE-IS-VIOLATED" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": threatens_or_uses_force_to_settle_dispute(Japan) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(ThreatOrUseOfForceToSettleDispute, VIOLATED);
+    expect not position(ThreatOrUseOfForceToSettleDispute, ACTIVE);
+}
+
+test "JC9-03-BELLIGERENT-STATUS-IS-VIOLATED" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": invokes_belligerent_status(Japan) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(BelligerentStatusInvocation, VIOLATED);
+    expect not position(BelligerentStatusInvocation, ACTIVE);
+}
+
+test "JC9-04-NECESSARY-MINIMUM-REQUIRES-JUDGMENT" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(force_exceeds_necessary_minimum_established(entity_ref("urn:jp:case:force:1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect issues_within(info);
+    expect judgment_requests(1);
+    expect judgment_request(exceeds_necessary_minimum_for_self_defense);
+}
+
+test "JC9-05-NECESSARY-MINIMUM-ESTABLISHED-BY-CASE" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+
+        assert "assert-f1": exceeds_necessary_minimum_for_self_defense(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(force_exceeds_necessary_minimum_established(entity_ref("urn:jp:case:force:1")));
+    expect evaluation_status == COMPUTED;
+    expect truth_status == TRUE_ONLY;
+    expect issues_within(info);
+}
+
+test "JC9-06-LITERAL-READING-IS-UNCONDITIONAL" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation LiteralPacifistReading;
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:1")));
+    expect truth_status == TRUE_ONLY;
+    expect issues_within(info);
+}
+
+test "JC9-06B-LITERAL-READING-COVERS-OTHER-WAR-POTENTIAL" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation LiteralPacifistReading;
+        }
+
+        assert "assert-f0": other_war_potential(entity_ref("urn:jp:case:force:2")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:2")));
+    expect truth_status == TRUE_ONLY;
+    expect issues_within(info);
+}
+
+test "JC9-07-NECESSARY-MINIMUM-READING-WITHOUT-ADJUDICATION" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation NecessaryMinimumSelfDefenseReading;
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:1")));
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect issues_within(info);
+    expect judgment_requests(1);
+    expect judgment_request(exceeds_necessary_minimum_for_self_defense);
+}
+
+test "JC9-08-NECESSARY-MINIMUM-READING-WITH-ADJUDICATION" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation NecessaryMinimumSelfDefenseReading;
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+
+        assert "assert-f1": exceeds_necessary_minimum_for_self_defense(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:1")));
+    expect truth_status == TRUE_ONLY;
+    expect issues_within(info);
+}
+
+test "JC9-08B-NECESSARY-MINIMUM-COVERS-OTHER-WAR-POTENTIAL" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation NecessaryMinimumSelfDefenseReading;
+        }
+
+        assert "assert-f0": other_war_potential(entity_ref("urn:jp:case:force:2")) {
+            origin case_input;
+        }
+
+        assert "assert-f1": exceeds_necessary_minimum_for_self_defense(entity_ref("urn:jp:case:force:2")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:2")));
+    expect truth_status == TRUE_ONLY;
+    expect issues_within(info);
+}
+
+test "JC9-09-NO-READING-SELECTED-IS-SILENT-NOT-A-DEFAULT" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate truth(war_potential(entity_ref("urn:jp:case:force:1")));
+    expect truth_status == NEITHER;
+    expect issues_within(info);
+}
+
+test "JC9-11-MAINTAINING-WAR-POTENTIAL-IS-VIOLATED" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation LiteralPacifistReading;
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+
+        assert "assert-f1": maintains_force(Japan, entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(MaintainWarPotential, VIOLATED);
+    expect not position(MaintainWarPotential, ACTIVE);
+}
+
+test "JC9-10-BEFORE-COMMENCEMENT-IS-PENDING" {
+    given {
+        context {
+            decision_time @1947-05-02T12:00:00Z;
+            knowledge_time @1947-05-02T12:00:00Z;
+            legal_time @1947-05-02;
+            timezone "Asia/Tokyo";
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(BelligerentStatusInvocation, PENDING);
+    expect position(ThreatOrUseOfForceToSettleDispute, PENDING);
+    expect position(WarAsSovereignRight, PENDING);
+}
+
+// Errata E-0179: the prohibitions stand ACTIVE while the act is not established.
+test "JC9-12-NO-ACT-ESTABLISHED-PROHIBITIONS-STAND-ACTIVE" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(WarAsSovereignRight, ACTIVE);
+    expect position(ThreatOrUseOfForceToSettleDispute, ACTIVE);
+    expect position(BelligerentStatusInvocation, ACTIVE);
+    expect not position(WarAsSovereignRight, VIOLATED);
+    expect not position(ThreatOrUseOfForceToSettleDispute, VIOLATED);
+    expect not position(BelligerentStatusInvocation, VIOLATED);
+}
+
+test "JC9-13-WAR-POTENTIAL-NOT-MAINTAINED-STANDS-ACTIVE" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+            interpretation LiteralPacifistReading;
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect position(MaintainWarPotential, ACTIVE);
+    expect not position(MaintainWarPotential, VIOLATED);
+}
+
+test "JC9-14-MAINTAINED-FORCE-UNDER-NO-READING-CREATES-NO-POSITION" {
+    given {
+        context {
+            decision_time @2026-01-01T12:00:00Z;
+            knowledge_time @2026-01-01T12:00:00Z;
+            legal_time @2026-01-01;
+            timezone "Asia/Tokyo";
+        }
+
+        assert "assert-f0": land_sea_or_air_force(entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+
+        assert "assert-f1": maintains_force(Japan, entity_ref("urn:jp:case:force:1")) {
+            origin case_input;
+        }
+    }
+
+    evaluate positions();
+    expect issues_within(info);
+    expect not position(MaintainWarPotential, VIOLATED);
+    expect not position(MaintainWarPotential, ACTIVE);
+}

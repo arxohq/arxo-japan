@@ -1,0 +1,19 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 法第八条第四項・内閣府令第十八条: 法令は判断を要せず閲覧期間経過後も引き続き閲覧に供される。
+test "urn:query:kanpo-t27" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t27-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t27"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t27-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t27"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t27-03": item_published_in(entity_ref("urn:jp:case:item-law"), entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t27")) { origin case_input; }
+        assert "kanpo-t27-04": item_is_law_or_regulation(entity_ref("urn:jp:case:item-law")) { origin case_input; }
+    }
+    evaluate truth(kept_available_after_inspection_period(entity_ref("urn:jp:case:item-law")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+    expect judgment_requests(0);
+}

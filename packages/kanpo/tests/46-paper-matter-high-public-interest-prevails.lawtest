@@ -1,0 +1,23 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第二十四条第四項括弧書: 公益性が特に高いと認められる事項は第十八条第一号に該当しても除かれない。
+test "urn:query:kanpo-t46" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t46-01": issued_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t46"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t46-02": paper_kanpo_posted_on(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t46"), @2025-06-04) { origin case_input; }
+        assert "kanpo-t46-03": paper_matters_posted_on_cabinet_office_website(entity_ref("urn:jp:case:shomen-kanpo-kanpo-t46"), @2025-06-05) { origin case_input; }
+        assert "kanpo-t46-04": item_carried_in_paper_kanpo(entity_ref("urn:jp:case:paper-item-public"), entity_ref("urn:jp:case:shomen-kanpo-kanpo-t46")) { origin case_input; }
+        assert "kanpo-t46-05": not concerns_act_toward_specific_addressee(entity_ref("urn:jp:case:paper-item-public")) { origin case_input; }
+        assert "kanpo-t46-06": indefinite_posting_risks_individual_privacy(entity_ref("urn:jp:case:paper-item-public")) { origin adjudicated; }
+        assert "kanpo-t46-07": not indefinite_posting_specially_impeded(entity_ref("urn:jp:case:paper-item-public")) { origin adjudicated; }
+        assert "kanpo-t46-08": public_interest_particularly_high(entity_ref("urn:jp:case:paper-item-public")) { origin adjudicated; }
+    }
+    evaluate truth(paper_item_kept_available_after_period(entity_ref("urn:jp:case:paper-item-public")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == TRUE_ONLY;
+    expect evaluation_status == COMPUTED;
+    expect judgment_requests(0);
+}

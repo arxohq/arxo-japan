@@ -1,0 +1,10 @@
+{
+  "name": "jp.kanpo",
+  "version": "0.1.0",
+  "title": "Official Gazette issuance",
+  "description": "Selected Japanese statutory publication rules from the regime commencing 2025-04-01.",
+  "license": "Apache-2.0",
+  "maintainer": "Arxo contributors",
+  "repository": "https://github.com/arxohq/arxo-japan",
+  "sourceTexts": "See repository NOTICE; Japanese legal instruments are excluded from copyright under Copyright Act Article 13."
+}

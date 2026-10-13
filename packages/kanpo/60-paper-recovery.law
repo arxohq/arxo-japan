@@ -1,0 +1,195 @@
+// 第十一条第六項、内閣府令第二十四条: 書面官報の発行後に第五条第二項の措置をとることが
+// できることとなった場合.
+//
+// 府令 art. 24(1)–(2): after a paper 書面官報 was issued and the art. 5(2) measure
+// becomes possible, the PM puts the paper issue's matters open to public
+// inspection, by posting on the Cabinet Office website. The measure start is
+// derived from that posting on or after the paper posting day; art. 24(2) names
+// the Cabinet Office website without an identifier (the art. 12 identifier is
+// for the 官報ファイル of the Act's art. 5(3)), so the case records the posting,
+// not an address. «速やかに» (promptly) and the PM's duty are not modelled
+// (boundary, owner's decision). The same start shortens the posting period of
+// art. 22(2) (50-paper-posting.law).
+//
+// Art. 24(3): the measure continues until 08:30 of the day ninety days have
+// elapsed counting from the start day (KANPO_INSPECTION_PERIOD, as art. 15).
+// Art. 24(4): after that period the matters stay open, except those falling
+// under an art. 18 item (a matter of particularly high public interest is not
+// excepted) — the same PM judgments §47.3 as 40-retention.law, with a separate
+// conclusion; as the text of art. 24(4) says, there is no separate rule for 法令
+// and no 号外国会会議録 exception.
+//
+// Act art. 11(6): the date and a summary of the paper issue are carried in a
+// 官報 issued by the art. 5(2) measure after the measure became possible again.
+// The package concludes that the summary has been carried when such an issue
+// (measure day on or after the recovery day) carries it; an issue before the
+// recovery does not count. The announcement «その旨を公表» and the duty are not
+// modelled.
+
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+use self::{
+    KANPO_ART11,
+    KANPO_FUREI_ART18,
+    KANPO_FUREI_ART24,
+    KanpoIssue,
+    KanpoItem,
+    act_applies_to,
+    addressee_is_designated_corporation,
+    concerns_act_toward_specific_addressee,
+    indefinite_posting_risks_addressee_privacy,
+    indefinite_posting_risks_individual_privacy,
+    indefinite_posting_specially_impeded,
+    inspection_measure_taken_on,
+    paper_kanpo_posted_on,
+    paper_matters_measure_started_on,
+    public_interest_particularly_high,
+};
+
+relation paper_matters_posted_on_cabinet_office_website(k: KanpoIssue, day: Date) kind empirical {
+    label ja official "当該書面官報に掲載された事項に係る情報を内閣府のウェブサイトに掲載し、公衆が閲覧することができる状態に置いた日";
+}
+relation paper_matters_inspection_period_ends_on(k: KanpoIssue, day: Date) kind institutional {
+    label ja official "内閣府令第二十四条第三項の期間は、この日の午前八時三十分までとする";
+}
+relation item_carried_in_paper_kanpo(i: KanpoItem, k: KanpoIssue) kind empirical {
+    label ja official "当該事項が当該書面官報に掲載されている";
+}
+relation paper_item_kept_available_after_period(i: KanpoItem) kind institutional {
+    label ja official "内閣府令第二十四条第三項の期間の経過後においても引き続いて、当該事項に係る情報を公衆が閲覧することができる状態に置く措置をとる";
+}
+relation measure_possible_again_on(p: KanpoIssue, day: Date) kind empirical {
+    label ja official "書面官報の発行をした後に、第五条第二項の措置をとることができることとなった日";
+    key(p);
+}
+relation carries_paper_kanpo_date_and_summary(k: KanpoIssue, p: KanpoIssue) kind empirical {
+    label ja official "当該官報に、当該書面官報の発行の年月日及び当該書面官報に掲載された事項の内容の要旨が掲載されている";
+}
+relation paper_kanpo_summary_carried(p: KanpoIssue) kind institutional {
+    label ja official "第十一条第六項により、当該書面官報の発行の年月日及び内容の要旨が第五条第二項の措置により発行する官報に掲載された";
+}
+
+@source(KANPO_ART11, KANPO_FUREI_ART24)
+rule PaperMattersMeasureIsPostingOnCabinetOfficeWebsite(k: KanpoIssue, d: Date, day: Date) strict {
+    when paper_kanpo_posted_on(k, d);
+    when paper_matters_posted_on_cabinet_office_website(k, day);
+    when days_between(d, day) >= 0;
+    then paper_matters_measure_started_on(k, day);
+    label ja official "内閣府令第二十四条第一項・第二項　書面官報の発行をした後に、当該書面官報に掲載された事項に係る情報を内閣府のウェブサイトへの掲載により公衆が閲覧することができる状態に置く措置をとる";
+}
+
+@source(KANPO_FUREI_ART24)
+rule PaperMattersInspectionPeriodEndsAt0830AfterNinetyDays(k: KanpoIssue, s: Date) strict {
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    then paper_matters_inspection_period_ends_on(k, add_calendar_period(s, 90 calendar_day));
+    label ja official "内閣府令第二十四条第三項　当該措置をとった日から起算して九十日を経過した日の午前八時三十分までの期間、継続して当該措置をとる";
+}
+
+@source(KANPO_FUREI_ART24)
+rule PaperMatterKeptAvailable(i: KanpoItem, k: KanpoIssue, s: Date) defeasible {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    then paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項　書面官報に掲載された事項のうち第十八条各号に掲げる事項を除いたものは、前項の期間の経過後においても引き続いて閲覧に供する";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperIndividualPrivacyExcluded(i: KanpoItem, k: KanpoIssue, s: Date) defeater {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when indefinite_posting_risks_individual_privacy(i);
+    defeat paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項・第十八条第一号　個人のプライバシーの確保に支障が生ずるおそれがあると認められる事項を除く";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperAddresseePrivacyExcluded(i: KanpoItem, k: KanpoIssue, s: Date) defeater {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when concerns_act_toward_specific_addressee(i);
+    when not_known(addressee_is_designated_corporation(i));
+    when indefinite_posting_risks_addressee_privacy(i);
+    defeat paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項・第十八条第二号　特定の名あて人に対する行政庁の行為（指定等法人に対するものを除く。）に関する事項であって、プライバシーの確保に支障が生ずるおそれがあると認められるものを除く";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperSpecialImpedimentExcluded(i: KanpoItem, k: KanpoIssue, s: Date) defeater {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when indefinite_posting_specially_impeded(i);
+    defeat paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項・第十八条第三号　特別の理由により特に支障があると認められる事項を除く";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperHighPublicInterestOverIndividualPrivacy(i: KanpoItem, k: KanpoIssue, s: Date) defeasible {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when indefinite_posting_risks_individual_privacy(i);
+    when public_interest_particularly_high(i);
+    then paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項括弧書　公益性が特に高いと認められる事項は、第十八条第一号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperHighPublicInterestOverAddresseePrivacy(i: KanpoItem, k: KanpoIssue, s: Date) defeasible {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when concerns_act_toward_specific_addressee(i);
+    when not_known(addressee_is_designated_corporation(i));
+    when indefinite_posting_risks_addressee_privacy(i);
+    when public_interest_particularly_high(i);
+    then paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項括弧書　公益性が特に高いと認められる事項は、第十八条第二号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART18, KANPO_FUREI_ART24)
+rule PaperHighPublicInterestOverSpecialImpediment(i: KanpoItem, k: KanpoIssue, s: Date) defeasible {
+    when item_carried_in_paper_kanpo(i, k);
+    when paper_matters_measure_started_on(k, s);
+    when act_applies_to(k);
+    when indefinite_posting_specially_impeded(i);
+    when public_interest_particularly_high(i);
+    then paper_item_kept_available_after_period(i);
+    label ja official "内閣府令第二十四条第四項括弧書　公益性が特に高いと認められる事項は、第十八条第三号に該当しても除かれない";
+}
+
+@source(KANPO_FUREI_ART24)
+priority PaperPublicInterestPrevailsOverIndividualPrivacy {
+    prefer PaperHighPublicInterestOverIndividualPrivacy over PaperIndividualPrivacyExcluded;
+    reason explicit_exception;
+}
+
+@source(KANPO_FUREI_ART24)
+priority PaperPublicInterestPrevailsOverAddresseePrivacy {
+    prefer PaperHighPublicInterestOverAddresseePrivacy over PaperAddresseePrivacyExcluded;
+    reason explicit_exception;
+}
+
+@source(KANPO_FUREI_ART24)
+priority PaperPublicInterestPrevailsOverSpecialImpediment {
+    prefer PaperHighPublicInterestOverSpecialImpediment over PaperSpecialImpedimentExcluded;
+    reason explicit_exception;
+}
+
+@source(KANPO_ART11)
+rule PaperKanpoSummaryCarriedAfterRecovery(p: KanpoIssue, k: KanpoIssue, d: Date, r: Date, m: Date) strict {
+    when paper_kanpo_posted_on(p, d);
+    when measure_possible_again_on(p, r);
+    when inspection_measure_taken_on(k, m);
+    when act_applies_to(k);
+    when days_between(r, m) >= 0;
+    when carries_paper_kanpo_date_and_summary(k, p);
+    then paper_kanpo_summary_carried(p);
+    label ja official "第十一条第六項　書面官報の発行をした後に第五条第二項の措置をとることができることとなった後に当該措置をとることにより発行する官報に、当該書面官報の発行の年月日及び当該書面官報に掲載された事項の内容の要旨を掲載する";
+}

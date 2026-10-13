@@ -1,0 +1,682 @@
+// Chapter IV, The Diet (第四章 国会), Articles 59-64: the passage of bills, the
+// budget and treaties, the powers of investigation, the attendance of Ministers and
+// the impeachment court. Articles 41-52 are in ch04a-diet-status.law, Articles 53-58 in
+// ch04b-diet-sessions.law. The vote model and the thresholds are in 01-voting.law.
+//
+// MODEL
+//   * A `Proposal` is what the Houses resolve on; its `proposal_kind` says what it is
+//     (a bill, the budget, the approval of a treaty, or the designation of the Prime
+//     Minister of Chapter V). The vote of one House on a proposal is a `Motion` of the
+//     vote model (`vote_on_proposal(m, p)` with `motion_before(m, h)`); the resolution of
+//     the House is `adopted_by_ordinary_majority(m)` (Art. 56, quorum and majority of the
+//     members PRESENT, on a tie the presiding officer) or `rejected_by_ordinary_majority(m)`.
+//   * ARTICLE 59. `enacted_as_law` is derived (paragraph 1: both Houses; paragraph 2:
+//     the Representatives repass, by two thirds of the members PRESENT, a bill that the
+//     Councillors resolved differently, or that the Councillors are deemed to have
+//     rejected). The exception "as the Constitution otherwise provides" (Art. 95, Chapter
+//     VIII) is the input fact `special_procedure_applies`: the derivation stays silent
+//     for such a bill. Paragraph 3 is a liberty of the Representatives (a joint committee
+//     as provided by law; the statute is an external contract). Paragraph 4: after SIXTY
+//     DAYS in which the Councillors do not resolve, NOT COUNTING THE TIME OF RECESS, the
+//     Representatives MAY deem the bill rejected: a `power` of the House of
+//     Representatives, valid only after the term.
+//   * THE TERM MINUS RECESS (AUDIT.md item 5). It is NOT an ordinary calendar term. It is
+//     computed by representation B of the audit: each day of recess of the Diet is a fact of
+//     the case (`recess_day`), and the number of counted days is the number of days since the
+//     day of receipt (the day of receipt is not counted) MINUS the recess days in that
+//     interval (`days_counted_excluding_recess`). The term is over when the number exceeds 60
+//     (30 for Art. 60(2)). Representation A (a pinned calendar with the recess as non-working
+//     days) was not chosen: it needs a calendar resource and a lock row per session, and
+//     the recess of a session is data of the case, known only ad hoc. Judgment calls:
+//       - "the time of recess" is read as the recess days declared for the Diet (国会休会中),
+//         not as the days between two sessions (closure of the session); this reading is
+//         not asserted from a source;
+//       - the day of receipt is not counted (as in Art. 54).
+//   * The elapse of a term acts on the date of assessment (`assessment_date`, the
+//     "today" workaround of ch04a): a TECH_GAP recorded in coverage/J5.json.
+//   * ARTICLE 60(1) is a prohibition addressed to the Cabinet: the budget is not to be
+//     submitted to the Councillors before the Representatives (the bearer is the Cabinet
+//     by Art. 86, the article that names the submitter; Art. 60 itself names no one). The
+//     action `budget_submitted_to_councillors_first` is established only by two dated
+//     submissions, the earlier one to the Councillors; silence is not a violation.
+//   * ARTICLES 60(2) and 61: the Representatives' resolution is the resolution of the Diet
+//     (`diet_resolution`) when the Houses differ and the joint committee held under
+//     the statute fails to agree, or when the Councillors do not resolve in thirty days
+//     (not counting recess). This is an automatic effect, unlike Art. 59(4) ("may
+//     deem"). Article 61 applies paragraph 2 of Art. 60 to the treaty approval, NOT
+//     paragraph 1: a treaty may be submitted first to the Councillors.
+//   * ARTICLE 62: three powers of a House, valid only for an investigation relating to
+//     government (国政に関する: a fact of the case; the text names no judge).
+//   * ARTICLE 63: a liberty of a Minister to attend and speak on a bill (whether or not
+//     he holds a seat), and a duty to attend when the House requests his presence for
+//     answers or explanations. The text names no sitting; the request is modelled with the
+//     day of the sitting it asks for, and the duty is achieved on that day (judgment call).
+//   * ARTICLE 64: a power of the Diet to establish an impeachment court composed of
+//     members of both Houses (its composition is the condition of validity) and a power of
+//     that court to try a judge against whom removal proceedings were instituted. The
+//     statute of Art. 64(2) is an external contract.
+//
+// PUBLIC PRODUCERS for Chapter V: passed_by_house(p, h), rejected_by_house(p, h),
+// house_resolves_differently(p, h), diet_resolution(p), enacted_as_law(l),
+// days_counted_excluding_recess(p, x, n), recess_day(d), assessment_date(x).
+
+language "law.core" version "0.2";
+package jp.constitution version "0.1.0";
+namespace "urn:jp:constitution:clir";
+
+use self::{
+    Cabinet,
+    Diet,
+    House,
+    HouseOfCouncillors,
+    HouseOfRepresentatives,
+    JP_CONST_ART59_P1,
+    JP_CONST_ART59_P2,
+    JP_CONST_ART59_P3,
+    JP_CONST_ART59_P4,
+    JP_CONST_ART60_P1,
+    JP_CONST_ART60_P2,
+    JP_CONST_ART61_P1,
+    JP_CONST_ART62_P1,
+    JP_CONST_ART63_P1,
+    JP_CONST_ART64_P1,
+    JP_CONST_ART64_P2,
+    LocalPublicBody,
+    Motion,
+    Person,
+    Proposal,
+    adopted_by_ordinary_majority,
+    assessment_date,
+    enacted_as_law,
+    local_majority_consent,
+    member_of,
+    motion_before,
+    quorum_one_third_of_all,
+    rejected_by_ordinary_majority,
+    special_law_for_one_entity,
+    two_thirds_of_present_for,
+};
+
+entity Investigation { label ja official "国政に関する調査"; label en unofficial "an investigation of a House"; }
+entity InvestigationDocument { label ja official "記録"; label en unofficial "a record demanded in an investigation"; }
+entity ImpeachmentCourt { label ja official "弾劾裁判所"; label en unofficial "an impeachment court"; }
+
+enum ProposalKind {
+    label en unofficial "kinds of proposals before the Diet";
+    pk_bill;
+    pk_budget;
+    pk_treaty_approval;
+    pk_designation_of_prime_minister;
+}
+
+relation proposal_kind(p: Proposal, k: ProposalKind) kind empirical {
+    label en unofficial "what the proposal is";
+}
+relation proposal_before_diet(p: Proposal) kind empirical {
+    label en unofficial "the proposal is before the Diet";
+}
+relation vote_on_proposal(m: Motion, p: Proposal) kind empirical {
+    label en unofficial "the motion is the vote of a House on the proposal";
+}
+relation revote_on_proposal(m: Motion, p: Proposal) kind empirical {
+    label ja official "衆議院で出席議員の三分の二以上の多数で再び可決したとき";
+    label en unofficial "the motion is the second vote of the House of Representatives on the proposal (Art. 59(2))";
+}
+relation house_amends_proposal(p: Proposal, h: House) kind empirical {
+    label en unofficial "the House resolved the proposal with amendments (a resolution different from the other House's)";
+}
+relation special_procedure_applies(l: Proposal) kind empirical {
+    label ja official "この憲法に特別の定のある場合";
+    label en unofficial "the Constitution provides a special procedure for the bill (Art. 95, Chapter VIII), which displaces Art. 59";
+}
+
+// G4 (J10b): the exception of Art. 59(1) "unless the Constitution otherwise provides" is DERIVED for
+// the one special procedure the Constitution names for bills (Art. 95, ch08): a bill applicable to
+// only one local public entity (`special_law_for_one_entity`) is not made a law by the passage of the
+// Houses alone; the consent of the residents is a further condition. The input fact
+// `special_procedure_applies` remains for any other special procedure the case establishes.
+relation art59_displaced_by_special_procedure(l: Proposal) kind institutional {
+    label ja official "この憲法に特別の定のある場合";
+    label en unofficial "the general rule of Art. 59 does not make the bill a law: Art. 95 applies and the residents' consent is not (yet) established, or the case establishes another special procedure";
+}
+@source(JP_CONST_ART59_P1, relation = formalizes, coverage = partial, quote = "この憲法に特別の定のある場合を除いては")
+rule SpecialProcedureFactDisplacesArt59 strict {
+    label en unofficial "A special procedure provided by the Constitution displaces the Article 59 procedure";
+    for l: Proposal;
+    when special_procedure_applies(l);
+    then art59_displaced_by_special_procedure(l);
+}
+@source(JP_CONST_ART59_P1, relation = formalizes, coverage = partial, quote = "この憲法に特別の定のある場合を除いては")
+rule SpecialLawWithoutLocalConsentDisplacesArt59 strict {
+    label en unofficial "A special law lacking local consent displaces the ordinary Article 59 procedure";
+    for l: Proposal; for c: LocalPublicBody;
+    when special_law_for_one_entity(l, c) and not_known(local_majority_consent(l, c));
+    then art59_displaced_by_special_procedure(l);
+}
+
+// --- The resolution of a House on a proposal ----------------------------------------------------
+relation passed_by_house(p: Proposal, h: House) kind institutional {
+    label ja official "可決";
+    label en unofficial "the House passed the proposal (Art. 56 resolution in favour; producer for Chapter V)";
+}
+relation rejected_by_house(p: Proposal, h: House) kind institutional {
+    label ja official "否決";
+    label en unofficial "the House rejected the proposal (Art. 56 resolution against)";
+}
+relation house_resolves_differently(p: Proposal, h: House) kind institutional {
+    label ja official "異なつた議決をした";
+    label en unofficial "the House resolved differently: rejected the proposal or passed it with amendments";
+}
+
+@source(JP_CONST_ART59_P1, relation = formalizes, coverage = partial, quote = "両議院で可決したとき")
+rule ProposalPassedByHouse strict {
+    label en unofficial "A proposal is passed by a House when its motion is adopted by an ordinary majority";
+    for m: Motion; for p: Proposal; for h: House;
+    when vote_on_proposal(m, p) and motion_before(m, h) and adopted_by_ordinary_majority(m);
+    then passed_by_house(p, h);
+}
+
+@source(JP_CONST_ART59_P2, relation = formalizes, coverage = partial, quote = "参議院でこれと異なつた議決をした")
+rule ProposalRejectedByHouse strict {
+    label en unofficial "A proposal is rejected by a House when its motion is rejected by an ordinary majority";
+    for m: Motion; for p: Proposal; for h: House;
+    when vote_on_proposal(m, p) and motion_before(m, h) and rejected_by_ordinary_majority(m);
+    then rejected_by_house(p, h);
+}
+
+@source(JP_CONST_ART59_P2, relation = formalizes, coverage = partial, quote = "参議院でこれと異なつた議決をした")
+rule RejectionIsADifferentResolution strict {
+    label en unofficial "Rejection of a proposal by a House is a different resolution";
+    for p: Proposal; for h: House;
+    when rejected_by_house(p, h);
+    then house_resolves_differently(p, h);
+}
+
+@source(JP_CONST_ART59_P2, relation = formalizes, coverage = partial, quote = "参議院でこれと異なつた議決をした")
+rule AmendmentIsADifferentResolution strict {
+    label en unofficial "A House that amends a proposal thereby resolves differently from the other House";
+    for p: Proposal; for h: House;
+    when house_amends_proposal(p, h);
+    then house_resolves_differently(p, h);
+}
+
+// --- Recess and the counting of days ---------------------------------------------------------------
+relation recess_day(d: Date) kind empirical {
+    label ja official "国会休会中の期間";
+    label en unofficial "the day falls in a recess of the Diet (the time of recess is data of the case, AUDIT item 5)";
+}
+relation proposal_received_by_councillors_on(p: Proposal, r: Date) kind empirical {
+    key(p);
+    label ja official "参議院が、衆議院の可決した法律案を受け取つた後";
+    label en unofficial "the House of Councillors received the proposal passed by the House of Representatives on the day r";
+}
+relation councillors_resolved(p: Proposal) kind empirical {
+    label ja official "議決";
+    label en unofficial "the House of Councillors has resolved on the proposal (passed, rejected or amended)";
+}
+relation days_counted_excluding_recess(p: Proposal, x: Date, n: Integer) kind institutional {
+    key(p, x);
+    label en unofficial "the number of days counted from the day after receipt up to the day x, the days of recess subtracted";
+}
+relation councillors_inaction_sixty_days(p: Proposal, x: Date) kind institutional {
+    label ja official "国会休会中の期間を除いて六十日以内に、議決しないとき";
+    label en unofficial "on the day x more than sixty days, recess excluded, have passed since receipt and the Councillors have not resolved";
+}
+relation councillors_inaction_thirty_days(p: Proposal, x: Date) kind institutional {
+    label ja official "国会休会中の期間を除いて三十日以内に、議決しないとき";
+    label en unofficial "on the day x more than thirty days, recess excluded, have passed since receipt and the Councillors have not resolved";
+}
+
+@source(JP_CONST_ART59_P4, relation = formalizes, coverage = partial, quote = "国会休会中の期間を除いて")
+rule CountedDaysExcludeRecess strict {
+    label en unofficial "Arts. 59(4), 60(2). The days counted since receipt: the days between the day after receipt and the day x, minus the recess days in that interval";
+    for p: Proposal; for r: Date; for x: Date;
+    when proposal_received_by_councillors_on(p, r) and assessment_date(x);
+    then days_counted_excluding_recess(p, x, days_between(r, x) - (count distinct d: Date where recess_day(d) and d > r and d <= x));
+}
+
+@source(JP_CONST_ART59_P4, relation = formalizes, coverage = partial, quote = "六十日以内に、議決しないとき")
+rule SixtyDaysWithoutResolution strict {
+    label en unofficial "The House of Councillors is inactive when it has not resolved within sixty days, recess excluded";
+    for p: Proposal; for x: Date; for n: Integer;
+    when passed_by_house(p, HouseOfRepresentatives) and days_counted_excluding_recess(p, x, n) and n > 60
+        and not_known(councillors_resolved(p));
+    then councillors_inaction_sixty_days(p, x);
+}
+
+@source(JP_CONST_ART60_P2, relation = formalizes, coverage = partial, quote = "三十日以内に、議決しない")
+rule ThirtyDaysWithoutResolution strict {
+    label en unofficial "The House of Councillors is inactive when it has not resolved within thirty days, recess excluded";
+    for p: Proposal; for x: Date; for n: Integer;
+    when passed_by_house(p, HouseOfRepresentatives) and days_counted_excluding_recess(p, x, n) and n > 30
+        and not_known(councillors_resolved(p));
+    then councillors_inaction_thirty_days(p, x);
+}
+
+// --- Article 59 -----------------------------------------------------------------------------------------
+relation representatives_deem_rejected(p: Proposal) kind empirical {
+    label ja official "否決したものとみなす";
+    label en unofficial "the House of Representatives deems the bill rejected by the House of Councillors (the act of exercise)";
+}
+relation deemed_rejected_by_councillors(p: Proposal) kind institutional {
+    label ja official "参議院がその法律案を否決したものとみなす";
+    label en unofficial "the bill is deemed rejected by the House of Councillors";
+}
+relation councillors_dissent(p: Proposal) kind institutional {
+    label en unofficial "the House of Councillors resolved differently, or is deemed to have rejected the bill";
+}
+relation joint_committee_provided_by_law(p: Proposal) kind empirical {
+    label ja official "法律の定めるところにより";
+    label en unofficial "a statute provides the joint committee of the two Houses (content external)";
+}
+relation representatives_request_joint_committee(p: Proposal) kind empirical {
+    label ja official "両議院の協議会を開くことを求める";
+    label en unofficial "the House of Representatives requests a joint committee of the two Houses (the action)";
+}
+
+@source(JP_CONST_ART59_P1, relation = formalizes, coverage = partial, quote = "法律案は、この憲法に特別の定のある場合を除いては、両議院で可決したとき法律となる")
+rule BillBecomesLawWhenBothHousesPass strict {
+    label ja official "法律案は、この憲法に特別の定のある場合を除いては、両議院で可決したとき法律となる";
+    label en unofficial "Article 59(1). A bill becomes a law when it is passed by both Houses, unless the Constitution provides otherwise";
+    for l: Proposal;
+    when proposal_kind(l, pk_bill) and passed_by_house(l, HouseOfRepresentatives) and passed_by_house(l, HouseOfCouncillors)
+        and not_known(art59_displaced_by_special_procedure(l));
+    then enacted_as_law(l);
+}
+
+@source(JP_CONST_ART59_P2, relation = formalizes, coverage = partial, quote = "参議院でこれと異なつた議決をした")
+rule CouncillorsResolveDifferentlyIsDissent strict {
+    label en unofficial "A different resolution by the House of Councillors is a dissent from the House of Representatives";
+    for p: Proposal;
+    when house_resolves_differently(p, HouseOfCouncillors);
+    then councillors_dissent(p);
+}
+
+@source(JP_CONST_ART59_P4, relation = formalizes, coverage = partial, quote = "参議院がその法律案を否決したものとみなすことができる")
+rule DeemedRejectionIsDissent strict {
+    label en unofficial "Deemed rejection after sixty days of inaction by the Councillors counts as their dissent";
+    for p: Proposal; for x: Date;
+    when representatives_deem_rejected(p) and councillors_inaction_sixty_days(p, x);
+    then councillors_dissent(p);
+}
+
+@source(JP_CONST_ART59_P2, relation = formalizes, coverage = partial, quote = "衆議院で出席議員の三分の二以上の多数で再び可決したときは、法律となる")
+rule BillBecomesLawOnRepassageByTwoThirds strict {
+    label ja official "衆議院で可決し、参議院でこれと異なつた議決をした法律案は、衆議院で出席議員の三分の二以上の多数で再び可決したときは、法律となる";
+    label en unofficial "Article 59(2). A bill passed by the Representatives and resolved differently by the Councillors becomes a law when the Representatives pass it again by two thirds of the members PRESENT";
+    for l: Proposal; for m: Motion;
+    when proposal_kind(l, pk_bill) and passed_by_house(l, HouseOfRepresentatives) and councillors_dissent(l)
+        and revote_on_proposal(m, l) and motion_before(m, HouseOfRepresentatives)
+        and quorum_one_third_of_all(m) and two_thirds_of_present_for(m)
+        and not_known(art59_displaced_by_special_procedure(l));
+    then enacted_as_law(l);
+}
+
+@source(JP_CONST_ART59_P3)
+rule RepresentativesMayRequestJointCommittee strict {
+    label ja official "前項の規定は、法律の定めるところにより、衆議院が、両議院の協議会を開くことを求めることを妨げない";
+    label en unofficial "Article 59(3). The preceding paragraph does not prevent the Representatives from requesting a joint committee as provided by law";
+    for l: Proposal;
+    when proposal_kind(l, pk_bill) and passed_by_house(l, HouseOfRepresentatives) and house_resolves_differently(l, HouseOfCouncillors)
+        and joint_committee_provided_by_law(l);
+    then liberty RequestJointCommittee {
+        holder HouseOfRepresentatives;
+        action representatives_request_joint_committee(l);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART59_P4)
+rule RepresentativesMayDeemBillRejectedAfterSixtyDays strict {
+    label ja official "参議院が、衆議院の可決した法律案を受け取つた後、国会休会中の期間を除いて六十日以内に、議決しないときは、衆議院は、参議院がその法律案を否決したものとみなすことができる";
+    label en unofficial "Article 59(4). If the Councillors do not resolve within sixty days after receiving a bill passed by the Representatives, the time of recess excluded, the Representatives may deem it rejected";
+    for l: Proposal; for x: Date;
+    when proposal_kind(l, pk_bill) and passed_by_house(l, HouseOfRepresentatives) and assessment_date(x);
+    then power DeemBillRejectedByCouncillors {
+        holder HouseOfRepresentatives; over l;
+        exercise representatives_deem_rejected(l);
+        valid_when councillors_inaction_sixty_days(l, x);
+        effect create(deemed_rejected_by_councillors(l));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 60 and 61 ------------------------------------------------------------------------------------
+relation diet_resolution(p: Proposal) kind institutional {
+    label ja official "国会の議決";
+    label en unofficial "the resolution of the Diet exists on the proposal (producer for Chapter V)";
+}
+relation art60_2_procedure(p: Proposal) kind institutional {
+    label en unofficial "the procedure of Art. 60(2) applies to the proposal: the budget (Art. 60) or the approval of a treaty (Art. 61)";
+}
+relation budget_submitted_to_house(p: Proposal, h: House, d: Date) kind empirical {
+    key(p, h);
+    label ja official "予算の提出";
+    label en unofficial "the budget was submitted to the House on the day";
+}
+relation budget_submitted_to_councillors_first(p: Proposal) kind institutional {
+    label ja official "さきに衆議院に提出しなければならない";
+    label en unofficial "the budget was submitted to the Councillors on a day before it was submitted to the Representatives";
+}
+relation joint_committee_held(p: Proposal) kind empirical {
+    label ja official "両議院の協議会を開いても";
+    label en unofficial "the joint committee of the two Houses was held under the statute";
+}
+relation joint_committee_no_agreement(p: Proposal) kind empirical {
+    label ja official "意見が一致しないとき";
+    label en unofficial "the joint committee did not reach agreement";
+}
+
+@source(JP_CONST_ART60_P2, relation = formalizes, coverage = partial, quote = "衆議院の議決を国会の議決とする")
+rule BudgetFollowsArticle60Paragraph2 strict {
+    label en unofficial "A budget before the Diet follows the procedure of Article 60, paragraph 2";
+    for p: Proposal;
+    when proposal_kind(p, pk_budget) and proposal_before_diet(p);
+    then art60_2_procedure(p);
+}
+
+@source(JP_CONST_ART61_P1)
+rule TreatyApprovalFollowsArticle60Paragraph2 strict {
+    label ja official "条約の締結に必要な国会の承認については、前条第二項の規定を準用する";
+    label en unofficial "Article 61. The approval of the Diet needed for concluding a treaty follows Art. 60(2) (only paragraph 2: no first submission to the Representatives)";
+    for p: Proposal;
+    when proposal_kind(p, pk_treaty_approval) and proposal_before_diet(p);
+    then art60_2_procedure(p);
+}
+
+@source(JP_CONST_ART60_P1)
+rule SubmissionToCouncillorsFirstEstablished strict {
+    label en unofficial "The budget was submitted to the House of Councillors before the House of Representatives";
+    for p: Proposal; for dc: Date; for dr: Date;
+    when budget_submitted_to_house(p, HouseOfCouncillors, dc) and budget_submitted_to_house(p, HouseOfRepresentatives, dr) and dc < dr;
+    then budget_submitted_to_councillors_first(p);
+}
+
+@source(JP_CONST_ART60_P1)
+rule BudgetFirstToRepresentatives strict {
+    label ja official "予算は、さきに衆議院に提出しなければならない";
+    label en unofficial "Article 60(1). The budget must be submitted first to the House of Representatives";
+    for p: Proposal;
+    when proposal_kind(p, pk_budget) and proposal_before_diet(p);
+    then prohibition NoBudgetToCouncillorsFirst {
+        bearer Cabinet;
+        action budget_submitted_to_councillors_first(p);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART60_P2, relation = formalizes, coverage = partial, quote = "両議院の協議会を開いても意見が一致しないとき")
+rule RepresentativesResolutionPrevailsAfterFailedJointCommittee strict {
+    label ja official "予算について、参議院で衆議院と異なつた議決をした場合に、法律の定めるところにより、両議院の協議会を開いても意見が一致しないときは、衆議院の議決を国会の議決とする";
+    label en unofficial "Article 60(2). If the Councillors resolve the budget differently and the joint committee fails to agree, the resolution of the Representatives is the resolution of the Diet";
+    for p: Proposal;
+    when art60_2_procedure(p) and passed_by_house(p, HouseOfRepresentatives) and house_resolves_differently(p, HouseOfCouncillors)
+        and joint_committee_provided_by_law(p) and joint_committee_held(p) and joint_committee_no_agreement(p);
+    then diet_resolution(p);
+}
+
+@source(JP_CONST_ART60_P2, relation = formalizes, coverage = partial, quote = "参議院が、衆議院の可決した予算を受け取つた後、国会休会中の期間を除いて三十日以内に、議決しないときは、衆議院の議決を国会の議決とする")
+rule RepresentativesResolutionPrevailsAfterThirtyDays strict {
+    label ja official "参議院が、衆議院の可決した予算を受け取つた後、国会休会中の期間を除いて三十日以内に、議決しないときは、衆議院の議決を国会の議決とする";
+    label en unofficial "Article 60(2). If the Councillors do not resolve within thirty days after receipt, the time of recess excluded, the resolution of the Representatives is the resolution of the Diet";
+    for p: Proposal; for x: Date;
+    when art60_2_procedure(p) and councillors_inaction_thirty_days(p, x);
+    then diet_resolution(p);
+}
+
+@source(JP_CONST_ART60_P2, relation = formalizes, coverage = partial, quote = "衆議院の議決を国会の議決とする")
+rule ConcurrentResolutionOfBothHousesIsTheDietsResolution strict {
+    label en unofficial "Arts. 42, 56. When both Houses pass the proposal the resolution of the Diet exists (the normal case that Art. 60(2) departs from)";
+    for p: Proposal;
+    when passed_by_house(p, HouseOfRepresentatives) and passed_by_house(p, HouseOfCouncillors);
+    then diet_resolution(p);
+}
+
+// --- Article 62: investigation ---------------------------------------------------------------------------
+relation investigation_by(i: Investigation, h: House) kind empirical {
+    label en unofficial "the investigation is conducted by the House";
+}
+relation relates_to_government(i: Investigation) kind empirical {
+    label ja official "国政に関する";
+    label en unofficial "the investigation relates to government (a fact of the case; the text names no judge)";
+}
+relation witness_summoned(w: Person, i: Investigation) kind empirical {
+    label en unofficial "the person is named as a witness in the investigation";
+}
+relation documents_sought(d: InvestigationDocument, i: Investigation) kind empirical {
+    label en unofficial "the record is sought in the investigation";
+}
+relation house_conducts_investigation(h: House, i: Investigation) kind empirical {
+    label ja official "国政に関する調査を行ひ";
+    label en unofficial "the House conducts the investigation (the act of exercise)";
+}
+relation house_demands_appearance(h: House, w: Person, i: Investigation) kind empirical {
+    label ja official "証人の出頭及び証言";
+    label en unofficial "the House demands the appearance and testimony of the witness (the act of exercise)";
+}
+relation house_demands_production(h: House, d: InvestigationDocument, i: Investigation) kind empirical {
+    label ja official "記録の提出";
+    label en unofficial "the House demands the production of the record (the act of exercise)";
+}
+relation investigation_authorised(i: Investigation) kind institutional {
+    label en unofficial "the investigation is authorised by Art. 62";
+}
+relation witness_bound_to_appear_and_testify(w: Person, i: Investigation) kind institutional {
+    label en unofficial "the witness is bound to appear and testify";
+}
+relation production_of_record_required(d: InvestigationDocument, i: Investigation) kind institutional {
+    label en unofficial "the production of the record is required";
+}
+
+@source(JP_CONST_ART62_P1, relation = formalizes, coverage = partial, quote = "両議院は、各々国政に関する調査を行ひ")
+rule HouseMayInvestigateGovernment strict {
+    label ja official "両議院は、各々国政に関する調査を行ひ";
+    label en unofficial "Article 62. Each House may conduct investigations relating to government";
+    for h: House; for i: Investigation;
+    when investigation_by(i, h);
+    then power ConductInvestigation {
+        holder h; over i;
+        exercise house_conducts_investigation(h, i);
+        valid_when relates_to_government(i);
+        effect create(investigation_authorised(i));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART62_P1, relation = formalizes, coverage = partial, quote = "証人の出頭及び証言")
+rule HouseMayDemandWitnessAppearanceAndTestimony strict {
+    label ja official "これに関して、証人の出頭及び証言を要求することができる";
+    label en unofficial "Article 62. In connection with the investigation the House may demand the appearance and testimony of witnesses";
+    for h: House; for i: Investigation; for w: Person;
+    when investigation_by(i, h) and witness_summoned(w, i);
+    then power DemandWitnessAppearanceAndTestimony {
+        holder h; over w;
+        exercise house_demands_appearance(h, w, i);
+        valid_when relates_to_government(i);
+        effect create(witness_bound_to_appear_and_testify(w, i));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART62_P1, relation = formalizes, coverage = partial, quote = "記録の提出を要求することができる")
+rule HouseMayDemandProductionOfRecords strict {
+    label ja official "これに関して、記録の提出を要求することができる";
+    label en unofficial "Article 62. In connection with the investigation the House may demand the production of records";
+    for h: House; for i: Investigation; for d: InvestigationDocument;
+    when investigation_by(i, h) and documents_sought(d, i);
+    then power DemandProductionOfRecords {
+        holder h; over d;
+        exercise house_demands_production(h, d, i);
+        valid_when relates_to_government(i);
+        effect create(production_of_record_required(d, i));
+        window [@1947-05-03, infinity);
+    };
+}
+
+// --- Article 63: Ministers before the Houses -------------------------------------------------------------
+relation minister_of_state(m: Person) kind empirical {
+    label ja official "内閣総理大臣その他の国務大臣";
+    label en unofficial "the person is the Prime Minister or another Minister of State";
+}
+relation attends_house_to_speak(m: Person, h: House, x: Motion) kind empirical {
+    label ja official "議案について発言するため議院に出席する";
+    label en unofficial "the Minister attends the House to speak on the bill";
+}
+relation house_requests_attendance(h: House, m: Person, d: Date) kind empirical {
+    label ja official "答弁又は説明のため出席を求められたとき";
+    label en unofficial "the House requests the Minister to attend the sitting of the day d to answer or explain";
+}
+relation attends_house_on(m: Person, h: House, d: Date) kind empirical {
+    label en unofficial "the Minister attends the sitting of the House on the day";
+}
+
+@source(JP_CONST_ART63_P1, relation = formalizes, coverage = partial, quote = "何時でも議案について発言するため議院に出席することができる")
+rule MinisterMayAttendAndSpeakOnBills strict {
+    label ja official "内閣総理大臣その他の国務大臣は、両議院の一に議席を有すると有しないとにかかはらず、何時でも議案について発言するため議院に出席することができる";
+    label en unofficial "Article 63, first sentence. A Minister may at any time attend a House to speak on a bill, whether or not he holds a seat in either House";
+    for m: Person; for h: House; for x: Motion;
+    when minister_of_state(m) and motion_before(x, h);
+    then liberty MinisterMayAttendAndSpeak {
+        holder m;
+        action attends_house_to_speak(m, h, x);
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART63_P1, relation = formalizes, coverage = partial, quote = "答弁又は説明のため出席を求められたときは、出席しなければならない")
+rule MinisterMustAttendWhenRequested strict {
+    label ja official "答弁又は説明のため出席を求められたときは、出席しなければならない";
+    label en unofficial "Article 63, second sentence. When requested to attend for answers or explanations the Minister must attend";
+    for m: Person; for h: House; for d: Date;
+    when minister_of_state(m) and house_requests_attendance(h, m, d);
+    then duty MinisterMustAttendOnRequest {
+        bearer m; beneficiary h;
+        goal achievement {
+            condition attends_house_on(m, h, d);
+            window [d, d];
+        }
+    };
+}
+
+// --- Article 64: the impeachment court -------------------------------------------------------------------
+relation removal_prosecution_against(j: Person) kind empirical {
+    label ja official "罷免の訴追を受けた裁判官";
+    label en unofficial "removal proceedings have been instituted against the judge";
+}
+relation court_for_trial_of(c: ImpeachmentCourt, j: Person) kind empirical {
+    label en unofficial "the court is the impeachment court for the trial of the judge";
+}
+relation court_member(c: ImpeachmentCourt, p: Person) kind empirical {
+    label en unofficial "the person sits on the impeachment court";
+}
+relation diet_establishes_impeachment_court(c: ImpeachmentCourt) kind empirical {
+    label ja official "弾劾裁判所を設ける";
+    label en unofficial "the Diet establishes the impeachment court (the act of exercise)";
+}
+relation court_composed_of_members_of_both_houses(c: ImpeachmentCourt) kind institutional {
+    label ja official "両議院の議員で組織する";
+    label en unofficial "the court has members of both Houses and no member who is not a member of either House";
+}
+relation court_has_representative(c: ImpeachmentCourt) kind institutional {
+    label en unofficial "a member of the court sits in the House of Representatives";
+}
+relation court_has_councillor(c: ImpeachmentCourt) kind institutional {
+    label en unofficial "a member of the court sits in the House of Councillors";
+}
+relation court_without_outsider(c: ImpeachmentCourt) kind institutional {
+    label en unofficial "no member of the court is a person who sits in neither House";
+}
+relation impeachment_court_established(c: ImpeachmentCourt) kind institutional {
+    label en unofficial "the impeachment court is established";
+}
+relation court_tries_judge(c: ImpeachmentCourt, j: Person) kind empirical {
+    label ja official "裁判する";
+    label en unofficial "the impeachment court tries the judge (the act of exercise)";
+}
+relation judge_tried_by_impeachment_court(j: Person) kind institutional {
+    label en unofficial "the judge is tried by the impeachment court";
+}
+relation impeachment_statute_applies(c: ImpeachmentCourt) kind empirical {
+    label ja official "弾劾に関する事項は、法律でこれを定める";
+    label en unofficial "a statute governs the impeachment (content external)";
+}
+relation impeachment_matters_set_by_statute(c: ImpeachmentCourt) kind institutional {
+    label ja official "弾劾に関する事項";
+    label en unofficial "the matters of the impeachment are those of the statute";
+}
+
+@source(JP_CONST_ART64_P1, relation = formalizes, coverage = partial, quote = "両議院の議員で組織する")
+rule CourtHasARepresentative strict {
+    label en unofficial "The impeachment court has a member from the House of Representatives";
+    for c: ImpeachmentCourt; for p: Person;
+    when court_member(c, p) and member_of(p, HouseOfRepresentatives);
+    then court_has_representative(c);
+}
+
+@source(JP_CONST_ART64_P1, relation = formalizes, coverage = partial, quote = "両議院の議員で組織する")
+rule CourtHasACouncillor strict {
+    label en unofficial "The impeachment court has a member from the House of Councillors";
+    for c: ImpeachmentCourt; for p: Person;
+    when court_member(c, p) and member_of(p, HouseOfCouncillors);
+    then court_has_councillor(c);
+}
+
+// No member is an outsider: every member of the court sits in one House (Art. 48 makes
+// the two counts disjoint), so the number of members equals the sum of the two counts.
+@source(JP_CONST_ART64_P1, relation = formalizes, coverage = partial, quote = "両議院の議員で組織する")
+rule CourtHasNoOutsider strict {
+    label en unofficial "The impeachment court has no member who belongs to neither House";
+    for c: ImpeachmentCourt; for p: Person;
+    when court_member(c, p)
+        and (count distinct r: Person where court_member(c, r))
+            == (count distinct r: Person where court_member(c, r) and member_of(r, HouseOfRepresentatives))
+             + (count distinct r: Person where court_member(c, r) and member_of(r, HouseOfCouncillors));
+    then court_without_outsider(c);
+}
+
+@source(JP_CONST_ART64_P1, relation = formalizes, coverage = partial, quote = "両議院の議員で組織する")
+rule CourtComposedOfMembersOfBothHouses strict {
+    label en unofficial "The impeachment court is composed of members of both Houses when it has both and no outsider";
+    for c: ImpeachmentCourt;
+    when court_has_representative(c) and court_has_councillor(c) and court_without_outsider(c);
+    then court_composed_of_members_of_both_houses(c);
+}
+
+@source(JP_CONST_ART64_P1)
+rule DietMustEstablishImpeachmentCourt strict {
+    label ja official "国会は、罷免の訴追を受けた裁判官を裁判するため、両議院の議員で組織する弾劾裁判所を設ける";
+    label en unofficial "Article 64(1). The Diet establishes an impeachment court composed of members of both Houses to try judges against whom removal proceedings are instituted";
+    for c: ImpeachmentCourt; for j: Person;
+    when removal_prosecution_against(j) and court_for_trial_of(c, j);
+    then power EstablishImpeachmentCourt {
+        holder Diet; over c;
+        exercise diet_establishes_impeachment_court(c);
+        valid_when court_composed_of_members_of_both_houses(c);
+        effect create(impeachment_court_established(c));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART64_P1, relation = formalizes, coverage = partial, quote = "罷免の訴追を受けた裁判官を裁判するため")
+rule ImpeachmentCourtTriesJudge strict {
+    label ja official "罷免の訴追を受けた裁判官を裁判する";
+    label en unofficial "Article 64(1). The established court tries a judge against whom removal proceedings are instituted";
+    for c: ImpeachmentCourt; for j: Person;
+    when removal_prosecution_against(j) and court_for_trial_of(c, j);
+    then power TryJudgeFacingRemoval {
+        holder c; over j;
+        exercise court_tries_judge(c, j);
+        valid_when impeachment_court_established(c);
+        effect create(judge_tried_by_impeachment_court(j));
+        window [@1947-05-03, infinity);
+    };
+}
+
+@source(JP_CONST_ART64_P2)
+rule ImpeachmentMattersSetByStatute strict {
+    label ja official "弾劾に関する事項は、法律でこれを定める";
+    label en unofficial "Article 64(2). Matters concerning impeachment are fixed by statute";
+    for c: ImpeachmentCourt;
+    when impeachment_statute_applies(c);
+    then impeachment_matters_set_by_statute(c);
+}

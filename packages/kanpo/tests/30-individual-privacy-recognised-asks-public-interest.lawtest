@@ -1,0 +1,22 @@
+language "law.core" version "0.2";
+package jp.kanpo version "0.1.0";
+namespace "urn:jp:corpus:clir:kanpo";
+
+// 内閣府令第十八条第一号: プライバシーへの支障のおそれが認められた — 公益性が特に高いかの判断が残る。
+test "urn:query:kanpo-t30" {
+    given {
+        context { deadline_policy KANPO_INSPECTION_PERIOD; legal_time @2026-09-15; decision_time @2026-09-15T12:00:00Z; knowledge_time @2026-09-15T12:00:00Z; timezone "Asia/Tokyo"; }
+        assert "kanpo-t30-01": issued_on(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t30"), @2025-04-01) { origin case_input; }
+        assert "kanpo-t30-02": made_available_for_inspection_at(entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t30"), "https://www.kanpo.go.jp", @2025-04-01) { origin case_input; }
+        assert "kanpo-t30-03": item_published_in(entity_ref("urn:jp:case:item-privacy"), entity_ref("urn:jp:case:kanpo-2025-04-01-kanpo-t30")) { origin case_input; }
+        assert "kanpo-t30-04": not concerns_act_toward_specific_addressee(entity_ref("urn:jp:case:item-privacy")) { origin case_input; }
+        assert "kanpo-t30-05": indefinite_posting_risks_individual_privacy(entity_ref("urn:jp:case:item-privacy")) { origin adjudicated; }
+        assert "kanpo-t30-06": not indefinite_posting_specially_impeded(entity_ref("urn:jp:case:item-privacy")) { origin adjudicated; }
+    }
+    evaluate truth(kept_available_after_inspection_period(entity_ref("urn:jp:case:item-privacy")));
+    expect result_kind == PROPOSITION;
+    expect truth_status == NEITHER;
+    expect evaluation_status == REQUIRES_JUDGMENT;
+    expect judgment_request(public_interest_particularly_high, PrimeMinisterOfJapan);
+    expect judgment_requests(1);
+}

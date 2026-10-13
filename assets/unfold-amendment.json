@@ -1,0 +1,107 @@
+{
+  "anchors": [],
+  "label": "the House carried the amendment by at least two thirds of all its members",
+  "name": "house_carried_amendment",
+  "package": "clir",
+  "predicate": "urn:jp:constitution:clir#house_carried_amendment",
+  "producers": [
+    {
+      "anchors": [
+        {
+          "id": "urn:jp:constitution:clir#JP_CONST_ART96_P1",
+          "locator": "article/96/1",
+          "quote": [
+            "第九十六条"
+          ]
+        }
+      ],
+      "headPolarity": "positive",
+      "label": "Article 96(1). A House carries the amendment when the votes for are at least two thirds of ALL its members",
+      "name": "HouseCarriesAmendmentByTwoThirdsOfAll",
+      "package": "clir",
+      "premises": [
+        {
+          "anchors": [],
+          "label": "the motion is the vote of a House on initiating the amendment (the House is fixed by motion_before)",
+          "name": "amendment_initiation_vote",
+          "package": "clir",
+          "polarity": "positive",
+          "predicate": "urn:jp:constitution:clir#amendment_initiation_vote",
+          "producers": [],
+          "relationKind": "empirical",
+          "truncated": false
+        },
+        {
+          "anchors": [],
+          "label": "for-votes are at least two thirds of all members",
+          "name": "two_thirds_of_all_for",
+          "package": "clir",
+          "polarity": "positive",
+          "predicate": "urn:jp:constitution:clir#two_thirds_of_all_for",
+          "producers": [
+            {
+              "anchors": [
+                {
+                  "id": "urn:jp:constitution:clir#JP_CONST_ART96_P1",
+                  "locator": "article/96/1",
+                  "quote": [
+                    "第九十六条"
+                  ]
+                }
+              ],
+              "headPolarity": "positive",
+              "label": "Two thirds or more of all members vote for the motion",
+              "name": "TwoThirdsOfAll",
+              "package": "clir",
+              "premises": [
+                {
+                  "anchors": [],
+                  "label": "the motion is before the House",
+                  "name": "motion_before",
+                  "package": "clir",
+                  "polarity": "positive",
+                  "predicate": "urn:jp:constitution:clir#motion_before",
+                  "producers": [],
+                  "relationKind": "empirical",
+                  "truncated": false
+                },
+                {
+                  "opaque": "comparison",
+                  "text": "{\"kind\":\"comparison\",\"left\":{\"kind\":\"binary\",\"left\":{\"input\":{\"binders\":[],\"distinct\":true,\"element\":{\"kind\":\"var\",\"var\":\"v3\"},\"generator\":{\"formula\":{\"args\":[{"
+                },
+                {
+                  "anchors": [],
+                  "label": "statutory total number of members of the House",
+                  "name": "member_count",
+                  "package": "clir",
+                  "polarity": "positive",
+                  "predicate": "urn:jp:constitution:clir#member_count",
+                  "producers": [],
+                  "relationKind": "empirical",
+                  "truncated": false
+                }
+              ],
+              "rule": "urn:jp:constitution:clir#TwoThirdsOfAll",
+              "strength": "strict"
+            }
+          ],
+          "relationKind": "institutional"
+        },
+        {
+          "anchors": [],
+          "label": "the motion is before the House",
+          "name": "motion_before",
+          "package": "clir",
+          "polarity": "positive",
+          "predicate": "urn:jp:constitution:clir#motion_before",
+          "producers": [],
+          "relationKind": "empirical",
+          "truncated": false
+        }
+      ],
+      "rule": "urn:jp:constitution:clir#HouseCarriesAmendmentByTwoThirdsOfAll",
+      "strength": "strict"
+    }
+  ],
+  "relationKind": "institutional"
+}
